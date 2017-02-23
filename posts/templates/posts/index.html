@@ -1,0 +1,15 @@
+<!-- Template originally from
+http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/ -->
+{% if post_list %}
+    <ul>
+    {% for post in post_list %}
+        <li>
+            <a href="/post/{{ post.id }}/">{{ post.content }}</a>
+            <span>{{ post.date_created }}</span>
+	    <span>{{ post.privacy }}</span>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No post is made during the past two days.</p>
+{% endif %}
