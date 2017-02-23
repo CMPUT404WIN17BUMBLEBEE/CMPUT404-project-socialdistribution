@@ -1,12 +1,12 @@
 <!-- Template originally from
 http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/ -->
-{% if post_list %}
+{% if latest_posts_list %}
     <ul>
-    {% for post in post_list %}
+    {% for post in latest_posts_list %}
         <li>
-            <a href="/post/{{ post.id }}/">{{ post.content }}</a>
+            <a href="/posts/{{ post.id }}/">{{ post.posted_text }}</a>
             <span>{{ post.date_created }}</span>
-	    <span>{{ post.privacy }}</span>
+	    <span>{{ post.post_privacy }}</span>
         </li>
     {% endfor %}
     </ul>
