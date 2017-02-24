@@ -9,4 +9,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^posts/(?P<post_id>\d+)/detail.html$', 'posts.views.post_detail', name='post_detail'),	
     url(r'^posts/form_upload.html$', 'posts.views.post_form_upload', name='post_form_upload'),
+    url(r'^authors/register/$', 'authors.views.register', name='register'),
+    url(r'^authors/register/complete/$', 'authors.views.registration_complete',
+ name='registration_complete'),
 ]

@@ -1,0 +1,13 @@
+
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+
+<h1>Registration</h1>
+
+<form action = "/authors/register/" method = "POST">{% csrf_token %}
+	{{form.as_p}}
+<input type = "submit" value= "signup" />
+
+</form>
+
+{% endblock %}
