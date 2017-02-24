@@ -41,6 +41,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 )
 
+#Where the user will be redirected to once they hae logged in ******change me ****************
+LOGIN_REDIRECT_URL = 'posts'
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -24,3 +24,15 @@ Contributors:
     Olexiy Berjanskii
     Erin Torbiak
     Abram Hindle
+    Nicole Lovas
+    Michael Xi
+    Jillian Lovas
+    Shuming Zhang
+    Michele Paulichuk
+    Sarah Morris
+
+
+Resources:  
+
+Some code was used and edited appropriately to set up the sign-up pages:
+http://code.techandstartup.com/django/registration/

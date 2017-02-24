@@ -1,3 +1,5 @@
+# Code altered from http://code.techandstartup.com/django/registration/
+
 from django.shortcuts import render
 from django.shortcuts import render_to_response 
 from django.http import HttpResponseRedirect 
@@ -10,7 +12,7 @@ def register(request):
          form = UserCreationForm(request.POST)
          if form.is_valid():
              form.save()
-             return HttpResponseRedirect('/authors/register/complete')
+             return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
