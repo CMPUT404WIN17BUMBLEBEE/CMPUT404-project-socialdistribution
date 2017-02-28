@@ -5,7 +5,13 @@
 <h1>Login</h1>
 <form method = "POST">
 {% csrf_token %}
-{{ form.as_p }}
+Username
+<br/>
+<input type = "text" name="username"></input>
+<br/>
+Password
+<br/>
+<input type = "text" name="password"></input>
 <button type = "submit">Login</button>
 </form>
 {% endblock %}

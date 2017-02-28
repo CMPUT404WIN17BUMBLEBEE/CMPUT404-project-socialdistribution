@@ -41,8 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 )
 
-#Where the user will be redirected to once they hae logged in ******change me ****************
-LOGIN_REDIRECT_URL = 'posts'
+
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -85,6 +84,9 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+#this changes how the user accounts are stored in the database -Nicole
+AUTH_USER_MODEL = 'authors.User'
 
 
 # Internationalization

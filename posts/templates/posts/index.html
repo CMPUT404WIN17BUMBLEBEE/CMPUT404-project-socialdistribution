@@ -4,7 +4,7 @@ http://pythoncentral.io/writing-simple-views-for-your-first-python-django-applic
     <ul>
     {% for post in latest_posts_list %}
         <li>
-            <a href="/posts/{{ post.id }}/">{{ post.posted_text }}</a>
+            <a href="/posts/{{ post.id }}/detail.html">{{ post.posted_text }}</a>
             <span>{{ post.date_created }}</span>
 	    <span>{{ post.post_privacy }}</span>
         </li>
