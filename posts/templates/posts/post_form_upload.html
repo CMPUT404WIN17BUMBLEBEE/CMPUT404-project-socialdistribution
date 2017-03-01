@@ -5,7 +5,7 @@
     </head>
 
     <body>
-        <form action='/posts/form_upload.html' method='post'>{% csrf_token %}
+        <form action='/posts/post_form_upload.html' method='post'>{% csrf_token %}
         {{ form.as_p }}
         <input type='submit' value='Submit' />
         </form>

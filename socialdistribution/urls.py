@@ -1,6 +1,8 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 
+from router import router
+
 urlpatterns = [
     # Examples:
     # url(r'^$', 'socialdistribution.views.home', name='home'),
@@ -13,4 +15,6 @@ urlpatterns = [
     url(r'^authors/register/$', 'authors.views.register', name='register'),
     url(r'^authors/register/complete/$', 'authors.views.registration_complete',
  name='registration_complete'),
+
+    url(r'^api/', include(router.urls))
 ]
