@@ -2,4 +2,9 @@
     <h1>{{ post.posted_text }}</h1>                                              
     <h2>{{ post.date_created }}</h2>
     <h2>{{ post.post_privacy }}</h2>                                           
+    <h1>Comments: </h1>
+    <h3>{{ comment.date_created }}</h3>
+    <p>{{ comment.comment }}</p>
+    <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
+    
 </div>

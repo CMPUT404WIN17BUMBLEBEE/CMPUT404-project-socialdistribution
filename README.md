@@ -36,3 +36,9 @@ Resources:
 
 Some code was used and edited appropriately to set up the sign-up pages:
 http://code.techandstartup.com/django/registration/
+
+Code was used from here to connect the user profile with their account:
+https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
+
+Using Django's built-in login system:
+https://simpleisbetterthancomplex.com/tutorial/2016/06/27/how-to-use-djangos-built-in-login-system.html

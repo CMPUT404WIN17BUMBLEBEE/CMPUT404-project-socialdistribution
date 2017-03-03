@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.template import Context, loader
 from .models import Post, Comment
-from posts.forms import PostForm
+from posts.forms import PostForm, CommentForm
 from django.core.urlresolvers import reverse
 
 # Create your views here.
@@ -33,9 +33,35 @@ def post_detail(request, post_id):
     except Post.DoesNotExist:
         # If no Post has id post_id, we raise an HTTP 404 error.
         raise Http404
-    return render(request, 'posts/detail.html', {'post': post})
 
+    comment = Comment.objects 
+    try:
+        # currently only works for a post that does not have more than 1 comment
+        comment = Comment.objects.get(associated_post=post_id)
+    except Comment.DoesNotExist:
+        # no comment for post, return 'no comments'
+        comment.comment = "no comments"
 
+    return render(request, 'posts/detail.html', {'post': post, 'comment': comment})
+
+def add_comment(request, post_id):
+
+    post = Post.objects.get(pk=post_id)
+
+    if request.method == 'GET':
+        form = CommentForm()
+    else:
+        form = CommentForm(request.POST)
+
+        if form.is_valid():
+            comment_text = form.cleaned_data['comment']
+            date_created = form.cleaned_data['date_created']
+            comment = Comment.objects.create(comment=comment_text, date_created=date_created, associated_post=post)
+
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id})) 
+
+    return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
+    
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
  

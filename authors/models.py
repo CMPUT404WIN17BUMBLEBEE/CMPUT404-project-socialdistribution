@@ -1,16 +1,33 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-#used this to help set up some customizations on the default user:
-#https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#abstractuser
+from django.utils.encoding import python_2_unicode_compatible
 
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-class User(AbstractUser):
+@python_2_unicode_compatible
+class Profile(models.Model):
+    #userId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    displayName = models.CharField(max_length=200)
+    githubUsername = models.CharField(max_length=200)
+    firstName = models.CharField(max_length=200)
+    lastName = models.CharField(max_length=200)
+    email = models.CharField(max_length=400)
+    bio = models.CharField(max_length=2000)
+    #TODO: put friends list and posts in here
 
-    following = models.ManyToManyField("self",related_name='follows',symmetrical=False) #unaccepted friend request from you
+#the following lines onward are from here:
+#https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone   
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    def __str__(self):  # __unicode__ for Python 2
+        return self.user.username
 
+#these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
+@receiver(post_save,sender=User)
+def create_user_profile(sender,instance, created, **kwargs):
+    if created:
+         Profile.objects.create(user=instance)
 
-
- 
-    #followers? #unaccepted friend request to you
-    #friend? #in both following and followers
-
+@receiver(post_save, sender=User)
+def save_user_profile(sender,instance, **kwargs):
+    instance.profile.save()

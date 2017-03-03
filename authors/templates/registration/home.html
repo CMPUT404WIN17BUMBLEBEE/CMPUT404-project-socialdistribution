@@ -1,0 +1,18 @@
+{% block title %}Bumblebee{% endblock %}
+{% block content %}
+<br/>
+<div> <a href = "/logout/">Log Out</a> </div>
+<br/>
+
+<h1>Welcome</h1>
+Hello, {{request.user.username}}
+<br/>
+Some info about you:
+<ul>
+<li>email: {{request.user.profile.email}}
+<li>github: {{request.user.profile.githubUsername}}
+<li>bio: {{request.user.profile.bio}}
+</ul>
+<br/> Those should be blank for now
+This will show your stream sometime later.
+{% endblock %}

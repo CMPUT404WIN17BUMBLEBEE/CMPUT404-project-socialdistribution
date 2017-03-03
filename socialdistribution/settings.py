@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     'posts',
     'authors',
+    'profiles',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -85,9 +86,7 @@ DATABASES = {
     }
 }
 
-#this changes how the user accounts are stored in the database -Nicole
-AUTH_USER_MODEL = 'authors.User'
-
+LOGIN_REDIRECT_URL = '/home/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
