@@ -34,7 +34,7 @@ def registration_complete(request):
 #-registered
 #otherwise, tell them to log in if theyre not
 #edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
-@login_required
+@login_required(login_url = '/login/')
 def homePage(request):
 	 #if this person has just logged in
 

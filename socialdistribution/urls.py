@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 
+from router import router
+
 urlpatterns = [
     # Examples:
     #url(r'^$', 'socialdistribution.views.home', name='home'),
@@ -11,6 +13,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^posts/(?P<post_id>\d+)/detail.html$', 'posts.views.post_detail', name='post_detail'),	
+
     url(r'^posts/form_upload.html$', 'posts.views.post_form_upload', name='post_form_upload'),
 
  
@@ -19,11 +22,11 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^home/$', 'authors.views.homePage', name='homePage'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
+
+    
     url(r'^posts/(?P<post_id>\d+)/add_comment.html$', 'posts.views.add_comment', name='add_comment'),
-    url(r'^posts/add_comment.html$', 'posts.views.add_comment', name='add_comment'),
-    url(r'^authors/register/$', 'authors.views.register', name='register'),
-    url(r'^authors/register/complete/$', 'authors.views.registration_complete',
- name='registration_complete'),
+    
+    url(r'^api/', include(router.urls))
 
 ]
 
