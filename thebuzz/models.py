@@ -4,11 +4,12 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import uuid
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
-    #userId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     displayName = models.CharField(max_length=200)
     githubUsername = models.CharField(max_length=200)
     firstName = models.CharField(max_length=200)
@@ -16,12 +17,17 @@ class Profile(models.Model):
     email = models.CharField(max_length=400)
     bio = models.CharField(max_length=2000)
     #TODO: put friends list and posts in here
+    #friends = models.ManyToManyField('self', through = 'Friends', symmetrical = false)
 
 #the following lines onward are from here:
 #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
+
+#class Friends(models.Model):
+#    source = models.ForeignKey(Profile, related_name = 'source')
+#    target = models.ForeignKey(Profile, related_name = 'target')
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
 @receiver(post_save,sender=User)
