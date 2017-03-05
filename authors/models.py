@@ -1,4 +1,4 @@
-from django.db import models
+ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 from django.contrib.auth.models import User
@@ -17,7 +17,7 @@ class Profile(models.Model):
     #TODO: put friends list and posts in here
 
 #the following lines onward are from here:
-#https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone   
+#https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
