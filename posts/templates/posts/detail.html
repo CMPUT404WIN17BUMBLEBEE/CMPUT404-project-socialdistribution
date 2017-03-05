@@ -4,7 +4,10 @@
     <h2>{{ post.post_privacy }}</h2>                                           
     <h1>Comments: </h1>
     <h3>{{ comment.date_created }}</h3>
-    <p>{{ comment.comment }}</p>
+    <span>{{ comment.comment }}</span> 
+    <input type="submit" name="delete" value="Delete"/>
+    </br>
+    </br>
     <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
     
 </div>
