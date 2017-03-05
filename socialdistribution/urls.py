@@ -24,7 +24,8 @@ urlpatterns = [
     url(r'^home/$', 'thebuzz.views.homePage', name='homePage'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
-
+    url(r'^profile/$', 'thebuzz.views.profile', name='profile'),
+    url(r'^profile/edit_profile$', 'thebuzz.views.edit_profile', name='edit_profile'),
 
     url(r'^api/', include(router.urls))
 

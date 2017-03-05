@@ -6,7 +6,7 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment
+from .models import Post, Comment, Profile
 from .forms import PostForm, CommentForm
 from django.core.urlresolvers import reverse
 
@@ -50,6 +50,19 @@ def homePage(request):
 	 #	return render_to_response('registration/login.html')
 
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
+
+# PROFILE VIEWS
+#@login_required(login_url = '/login/')
+def profile(request):
+    profile = Profile.objects
+
+    return render(request, 'profile/profile.html', {'profile': profile})
+
+def edit_profile(request):
+    return render(request, 'profile/edit_profile_form.html')
+
+
+# END PROFILE VIEWS
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -128,11 +141,6 @@ def post_form_upload(request):
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
-
-
-
-
-
 
 #again parts of code from
 #http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
