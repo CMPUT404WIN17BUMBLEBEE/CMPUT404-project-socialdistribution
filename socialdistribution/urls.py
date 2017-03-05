@@ -13,7 +13,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^posts/(?P<post_id>\d+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),	
-    url(r'^posts/form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
+    url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
     url(r'^posts/(?P<post_id>\d+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
 
  

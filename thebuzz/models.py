@@ -4,6 +4,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
@@ -54,4 +55,4 @@ class Comment(models.Model):
 	comment = models.TextField()
 	date_created = models.DateTimeField('DateTime created')
 
-
+# ------------------- END POST AND COMMENTS -----------------------

@@ -31,7 +31,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    'posts',
     'rest_framework',
     'thebuzz',
     'django.contrib.admin',
