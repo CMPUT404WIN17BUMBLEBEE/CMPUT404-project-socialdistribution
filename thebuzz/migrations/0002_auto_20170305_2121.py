@@ -7,6 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('thebuzz', '0001_initial'),
     ]
 
     operations = [
@@ -29,6 +30,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='comment',
             name='associated_post',
-            field=models.ForeignKey(to='posts.Post'),
+            field=models.ForeignKey(to='thebuzz.Post'),
         ),
     ]
