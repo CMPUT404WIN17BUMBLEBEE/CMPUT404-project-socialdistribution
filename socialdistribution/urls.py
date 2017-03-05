@@ -12,9 +12,9 @@ urlpatterns = [
     url(r'^posts/', include('posts.urls', namespace='posts')),
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^posts/(?P<post_id>\d+)/detail.html$', 'posts.views.post_detail', name='post_detail'),	
-
-    url(r'^posts/form_upload.html$', 'posts.views.post_form_upload', name='post_form_upload'),
+    url(r'^posts/(?P<post_id>\d+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),	
+    url(r'^posts/form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
+    url(r'^posts/(?P<post_id>\d+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
 
  
     url(r'^register/$', 'thebuzz.views.register', name='register'),
@@ -24,7 +24,6 @@ urlpatterns = [
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
     
-    url(r'^posts/(?P<post_id>\d+)/add_comment.html$', 'posts.views.add_comment', name='add_comment'),
     
     url(r'^api/', include(router.urls))
 
