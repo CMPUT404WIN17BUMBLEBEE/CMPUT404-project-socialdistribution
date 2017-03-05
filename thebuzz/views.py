@@ -53,7 +53,7 @@ def homePage(request):
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
-
+@login_required(login_url = '/login/')
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
@@ -70,7 +70,7 @@ def posts(request):
 	return render(request, 'posts/posts.html', context)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
-
+@login_required(login_url = '/login/')
 def post_detail(request, post_id):
     try:
         post = Post.objects.get(pk=post_id)
@@ -108,7 +108,7 @@ def add_comment(request, post_id):
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
-
+@login_required(login_url = '/login/')
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
@@ -121,7 +121,9 @@ def post_form_upload(request):
             posted_text = form.cleaned_data['posted_text']
             date_created = form.cleaned_data['date_created']
             post = Post.objects.create(posted_text=posted_text,
-                                         date_created=date_created)
+                                       date_created=date_created,
+				       associated_author = request.user
+                                       )
             return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': post.id}))
 

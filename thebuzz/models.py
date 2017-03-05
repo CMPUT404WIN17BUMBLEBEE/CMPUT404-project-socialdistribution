@@ -48,6 +48,8 @@ class Post(models.Model):
 	posted_text = models.CharField(max_length =2000) 
 	date_created = models.DateTimeField('DateTime created')
 	post_privacy = 1
+        #idk, added default so it would stop complaining
+        associated_author = models.ForeignKey(User, default="")
 
 
 class Comment(models.Model):
