@@ -17,10 +17,10 @@ urlpatterns = [
     url(r'^posts/form_upload.html$', 'posts.views.post_form_upload', name='post_form_upload'),
 
  
-    url(r'^register/$', 'authors.views.register', name='register'),
-    url(r'^register/complete/$', 'authors.views.registration_complete', name='registration_complete'),
+    url(r'^register/$', 'thebuzz.views.register', name='register'),
+    url(r'^register/complete/$', 'thebuzz.views.registration_complete', name='registration_complete'),
     url(r'^login/$', auth_views.login, name='login'),
-    url(r'^home/$', 'authors.views.homePage', name='homePage'),
+    url(r'^home/$', 'thebuzz.views.homePage', name='homePage'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
     

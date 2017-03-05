@@ -1,5 +1,3 @@
-# Code altered from http://code.techandstartup.com/django/registration/
-
 from django.shortcuts import render
 from django.shortcuts import render_to_response 
 from django.http import HttpResponseRedirect 
@@ -7,8 +5,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 
-# Create your views here.
-#for signing up
+#------------------------------------------------------------------
+# SIGNING UP
+
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
@@ -44,3 +43,5 @@ def homePage(request):
 
 	 #else: #change this later to account for the other 2 cases ******
 	 #	return render_to_response('registration/login.html')
+
+# END LOGIN VIEWS------------------------------------------------------------------------------------------
