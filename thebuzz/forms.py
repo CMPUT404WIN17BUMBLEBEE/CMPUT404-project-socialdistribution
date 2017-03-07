@@ -18,7 +18,7 @@ class ProfileForm(forms.ModelForm):
             'lastName': 'Last Name:',
             'email': 'Email:',
             'githubUsername': 'GitHub Username:',
-            'bio': 'Bio:'
+            'About Me': 'Bio:'
         }
 
 class PostForm(forms.Form):
