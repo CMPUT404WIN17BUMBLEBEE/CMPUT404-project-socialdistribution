@@ -1,19 +1,29 @@
 <!DOCTYPE HTML>
+{% load static %}
 <html>
   <head>
     <title>Profile</title>
     <meta charset="utf-8" />
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
   </head>
   <body>
-    <div id="title">
-      <span>The Buzz</span>
+    <div id="title-bar">
+      <span id="app-title">The Buzz</span>
       <span>{{ user.profile.displayName }}</span>
-      <span>Logout</span>
+      <span id="logout">
+        <a href="/logout">Logout</a>
+      </span>
     </div>
     <div id="nav">
-       <span id="news-feed">News Feed</span>
-       <span id="profile">Profile</span>
-       <span id="friends">Friends</span>
+       <span id="news-feed">
+         <a href="#">News Feed</a>
+       </span>
+       <span id="profile">
+         <a href="/profile">Profile</a>
+       </span>
+       <span id="friends">
+         <a href="#">Friends</a>
+       </span>
     </div>
     <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
       {{ form.as_p }}

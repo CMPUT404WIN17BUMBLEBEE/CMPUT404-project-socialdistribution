@@ -12,6 +12,8 @@ urlpatterns = [
     #url(r'^posts/', include('posts.urls', namespace='posts')),
     url(r'^admin/', include(admin.site.urls)),
 
+    url(r'^$', auth_views.login, name='login'),
+
     url(r'^posts/$', 'thebuzz.views.posts', name='posts'),
     url(r'^posts/(?P<post_id>\d+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),
     url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),

@@ -1,18 +1,43 @@
-{% block title %}Bumblebee{% endblock %}
-{% block content %}
-<br/>
-<div> <a href = "/logout/">Log Out</a> </div>
-<br/>
-
-<h1>Welcome</h1>
-Hello, {{request.user.username}}
-<br/>
-Some info about you:
-<ul>
-<li>email: {{request.user.profile.email}}
-<li>github: {{request.user.profile.githubUsername}}
-<li>bio: {{request.user.profile.bio}}
-</ul>
-<br/> Those should be blank for now
-This will show your stream sometime later.
-{% endblock %}
+<!DOCTYPE HTML>
+{% load static %}
+<html>
+  <head>
+    <title>Home</title>
+    <meta charset="utf-8" />
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div id="title-bar">
+      <span id="app-title">The Buzz</span>
+      <span>{{ user.profile.displayName }}</span>
+      <span id="logout">
+        <a href="/logout">Logout</a>
+      </span>
+    </div>
+    <div id="nav">
+       <span id="news-feed">
+         <a href="#">News Feed</a>
+       </span>
+       <span id="profile">
+         <a href="/profile">Profile</a>
+       </span>
+       <span id="friends">
+         <a href="#">Friends</a>
+       </span>
+    </div>
+    <div>
+      <h1>Welcome</h1>
+      Hello, {{request.user.username}}
+      <br/>
+      Some info about you:
+      <ul>
+      <li>email: {{request.user.profile.email}}
+      <li>github: {{request.user.profile.githubUsername}}
+      <li>bio: {{request.user.profile.bio}}
+      </ul>
+      <br/> Those should be blank for now
+      This will show your stream sometime later.
+    </div>
+  </body>
+</html>

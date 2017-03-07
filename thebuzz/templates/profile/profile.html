@@ -1,34 +1,53 @@
 <!DOCTYPE HTML>
+{% load static %}
 <html>
   <head>
     <title>Profile</title>
     <meta charset="utf-8" />
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
   </head>
   <body>
-    <div id="title">
-      <span>The Buzz</span>
+    <div id="title-bar">
+      <span id="app-title">The Buzz</span>
       <span>{{ user.profile.displayName }}</span>
-      <span>Logout</span>
+      <span id="logout">
+        <a href="/logout">Logout</a>
+      </span>
     </div>
     <div id="nav">
-       <span id="news-feed">News Feed</span>
-       <span id="profile">Profile</span>
-       <span id="friends">Friends</span>
+       <span id="news-feed">
+         <a href="#">News Feed</a>
+       </span>
+       <span id="profile">
+         <a href="/profile">Profile</a>
+       </span>
+       <span id="friends">
+         <a href="#">Friends</a>
+       </span>
     </div>
-    <div>
-      <div id="user-names">
-        <div>{{ user.profile.displayName }}</div>
-        <div>{{ user.profile.firstName }} {{ user.profile.lastName }}</div>
-      </div>
-      <a href="/profile/edit_profile">
-        <button type="button">Edit</button>
-      </a>
-    </div>
-    <div id="email">
-      Email: {{ user.profile.email }}
+    <div id="top-section">
+      <span>
+        <img src="{% static 'default-profile-pic.jpg' %}" />
+      </span>
+      <span id="info">
+        <div>Display Name:  {{ user.profile.displayName }}</div>
+        <div>Full Name:  {{ user.profile.firstName }} {{ user.profile.lastName }}</div>
+        <div>Email: {{ user.profile.email }}</div>
+        <div>Github Username: {{ user.profile.githubUsername }}</div>
+      </span>
+      <span>
+        <a href="/profile/edit_profile">
+          <button type="button">Edit Profile</button>
+        </a>
+      </span>
     </div>
     <div id="bio">
-      Bio: {{ user.profile.bio }}
+      <u>About Me:</u>
+      </br>
+      <p>
+        {{ user.profile.bio }}
+      </p>
     </div>
     <div id="user-posts">
 

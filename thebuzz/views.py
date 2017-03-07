@@ -10,6 +10,7 @@ from .models import Post, Comment, Profile
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.contrib.auth import logout
 
 #------------------------------------------------------------------
 # SIGNING UP
