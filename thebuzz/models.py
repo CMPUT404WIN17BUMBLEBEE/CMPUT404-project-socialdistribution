@@ -9,7 +9,6 @@ from django.dispatch import receiver
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
-    #userId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     displayName = models.CharField(max_length=200)
     githubUsername = models.CharField(max_length=200)
     firstName = models.CharField(max_length=200)
@@ -45,7 +44,7 @@ def save_user_profile(sender,instance, **kwargs):
 
 class Post(models.Model):
 	#assuming links would go in as text? may have to change later
-	posted_text = models.CharField(max_length =2000) 
+	posted_text = models.CharField(max_length =2000)
 	date_created = models.DateTimeField('DateTime created')
 	post_privacy = 1
 

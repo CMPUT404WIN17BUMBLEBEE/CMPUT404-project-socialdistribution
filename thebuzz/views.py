@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth.forms import UserCreationForm
@@ -7,8 +7,9 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from django.template import Context, loader
 from .models import Post, Comment, Profile
-from .forms import PostForm, CommentForm
+from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
+from django.db import transaction
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -52,16 +53,25 @@ def homePage(request):
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
 
 # PROFILE VIEWS
-#@login_required(login_url = '/login/')
+@login_required(login_url = '/login/')
 def profile(request):
-    profile = Profile.objects
-
+    profile = Profile.objects.get(user_id=request.user.id)
     return render(request, 'profile/profile.html', {'profile': profile})
 
+@login_required(login_url = '/login/')
+@transaction.atomic
 def edit_profile(request):
-    return render(request, 'profile/edit_profile_form.html')
+    if request.method == 'POST':
+        profile = Profile.objects.get(pk=request.user.id)
+        form = ProfileForm(request.POST, instance=profile)
+        form.save()
 
+        return redirect('profile')
+    else:
+        profile = Profile.objects.get(pk=request.user.id)
+        form = ProfileForm(instance=profile)
 
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
 # END PROFILE VIEWS
 
 # POSTS AND COMMENTS

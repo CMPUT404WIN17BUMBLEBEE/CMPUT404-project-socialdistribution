@@ -7,7 +7,7 @@
   <body>
     <div id="title">
       <span>The Buzz</span>
-      <span>[Display Name]</span>
+      <span>{{ user.profile.displayName }}</span>
       <span>Logout</span>
     </div>
     <div id="nav">
@@ -15,25 +15,8 @@
        <span id="profile">Profile</span>
        <span id="friends">Friends</span>
     </div>
-    <form>
-      <div>
-        <div>
-          <img id="profile-img" src="" alt=""/>
-        </div>
-        <div id="user-names">
-          <div>Display Name: <input type="text" name="displayName"/></div>
-          <div>
-            First Name: <input type="text" name="firstName"/>
-            Last Name: <input type="text" name="lastName" />
-          </div>
-        </div>
-      </div>
-      <div id="email">
-        Email: <input type="email" name="email"/>
-      </div>
-      <div id="bio">
-        Bio: <textarea name="bio"></textarea>
-      </div>
+    <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
+      {{ form.as_p }}
       <div>
         <input type="submit" value="save" />
       </div>
