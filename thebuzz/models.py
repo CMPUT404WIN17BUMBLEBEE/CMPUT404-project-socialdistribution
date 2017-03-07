@@ -48,11 +48,17 @@ class Post(models.Model):
 	posted_text = models.CharField(max_length =2000) 
 	date_created = models.DateTimeField('DateTime created')
 	post_privacy = 1
+    comments = models.oneToMany(Comment)
 
 
 class Comment(models.Model):
 	associated_post= models.ForeignKey(Post)
 	comment = models.TextField()
 	date_created = models.DateTimeField('DateTime created')
+    count = moadels.IntegerField()
+    size = models.IntegerField()
+    previous = models.CharField()
+    next = models.CharField()
+    guid = models.CharField()
 
 # ------------------- END POST AND COMMENTS -----------------------

@@ -80,13 +80,13 @@ def post_detail(request, post_id):
 
     comment = Comment.objects
     try:
-        # currently only works for a post that does not have more than 1 comment
-        comment = Comment.objects.get(associated_post=post_id)
+        print "before comments"
+        comments  = Comment.objects.get(associated_post=post_id)
     except Comment.DoesNotExist:
         # no comment for post, return 'no comments'
-        comment.comment = "no comments"
+        comments = null
 
-    return render(request, 'posts/detail.html', {'post': post, 'comment': comment})
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
 def add_comment(request, post_id):
 
@@ -105,6 +105,9 @@ def add_comment(request, post_id):
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
+
+#def delete_comment():
+#    if request.DELETE.delete('delete')
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
