@@ -12,6 +12,14 @@ class ProfileForm(forms.ModelForm):
         widgets = {
             'bio': Textarea(attrs={'cols': 80, 'rows': 20}),
         }
+        labels = {
+            'displayName': 'Display Name:',
+            'firstName': 'First Name:',
+            'lastName': 'Last Name:',
+            'email': 'Email:',
+            'githubUsername': 'GitHub Username:',
+            'bio': 'Bio:'
+        }
 
 class PostForm(forms.Form):
     posted_text = forms.CharField(max_length=2000)

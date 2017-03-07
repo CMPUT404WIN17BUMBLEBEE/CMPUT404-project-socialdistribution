@@ -5,6 +5,7 @@
     <title>Profile</title>
     <meta charset="utf-8" />
     <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'edit_profile.css' %}" rel="stylesheet" type="text/css"/>
   </head>
   <body>
     <div id="title-bar">
@@ -25,11 +26,13 @@
          <a href="#">Friends</a>
        </span>
     </div>
-    <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
-      {{ form.as_p }}
-      <div>
-        <input type="submit" value="save" />
-      </div>
-    </form>
+    <div id="form">
+      <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
+        {{ form.as_p }}
+        <div id="button">
+          <input type="submit" value="save" />
+        </div>
+      </form>
+    </div>
   </body>
 </html>
