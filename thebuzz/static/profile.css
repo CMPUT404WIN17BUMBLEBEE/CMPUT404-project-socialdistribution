@@ -1,0 +1,34 @@
+#top-section {
+  display: inline-flex;
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
+#top-section span {
+  padding-left: 100px;
+  padding-right: 100px;
+  margin: auto;
+}
+
+#top-section button {
+  width: 150px;
+  height: 50px;
+  font-size:16pt;
+  background-color: #000000;
+  color: #ffd11a;
+}
+
+#info{
+  font-size: 18pt;
+}
+
+#info div {
+  padding: 5px 0px;
+}
+
+#bio {
+  padding: 10px 100px;
+  background-color: #000000;
+  color: #fff5cc;
+  font-size: 20pt;
+}
