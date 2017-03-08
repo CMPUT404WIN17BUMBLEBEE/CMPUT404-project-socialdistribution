@@ -11,6 +11,7 @@ from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.auth import logout
+from django.views.generic.edit import DeleteView
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -112,8 +113,6 @@ def post_detail(request, post_id):
 
 def add_comment(request, post_id):
 
-    print "adding comment"
-
     post = get_object_or_404(Post, pk=post_id)
 
     if request.method == 'GET':
@@ -130,12 +129,8 @@ def add_comment(request, post_id):
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
-#def delete_comment():
-#    if request.DELETE.delete('delete')
-
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
-
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
