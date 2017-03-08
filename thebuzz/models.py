@@ -4,6 +4,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import datetime, uuid
 
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
@@ -45,9 +46,26 @@ def save_user_profile(sender,instance, **kwargs):
 
 class Post(models.Model):
 	#assuming links would go in as text? may have to change later
-	posted_text = models.CharField(max_length =2000) 
-	date_created = models.DateTimeField('DateTime created')
-	post_privacy = 1
+	#id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDING the primary key id that django implements #####SOMETHING WRONG HERE	
+	title = models.CharField(max_length = 100, default='No Title') #added
+	###source = 'uh'
+	###origin = 'uh'
+	description = models.CharField(max_length =100) #altered
+	content = models.CharField(max_length =2000)
+	#content types can be:
+	#text/markdown -> included markdown in their post
+	#text/plain    -> plain ol' post. No images or nothing. Default value for now
+	#application/base64 -> dunno yet, just an image?
+	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
+	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
+	###contentType = 'text/plain'   
+	published = models.DateTimeField('DateTime created') #altered
+	###categories = ...
+	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
+	visibility ="PUBLIC" #for now idk ALTERED
+	visibileTo = []
+	unlisted = False
+	#post_privacy = 1
         #idk, added default so it would stop complaining
         associated_author = models.ForeignKey(User, default="")
 

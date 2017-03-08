@@ -4,8 +4,9 @@ from django import forms
 from datetime import datetime
  
 class PostForm(forms.Form):
-    posted_text = forms.CharField(max_length=2000)
-    date_created = forms.DateTimeField()
+    title = forms.CharField(max_length = 100)
+    content = forms.CharField(max_length=2000)
+    published = forms.DateTimeField()
 
 class CommentForm(forms.Form):
     comment = forms.CharField(max_length=2000)

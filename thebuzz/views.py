@@ -57,7 +57,7 @@ def homePage(request):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
+	latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
 
 	#template = loader.get_template('index.html')
 
@@ -118,10 +118,12 @@ def post_form_upload(request):
 
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
-            posted_text = form.cleaned_data['posted_text']
-            date_created = form.cleaned_data['date_created']
-            post = Post.objects.create(posted_text=posted_text,
-                                       date_created=date_created,
+	    title = form.cleaned_data['title']
+            content = form.cleaned_data['content']
+            published = form.cleaned_data['published']
+            post = Post.objects.create(title = title,
+                                       content=content,
+                                       published=published,
 				       associated_author = request.user
                                        )
             return HttpResponseRedirect(reverse('post_detail',
@@ -144,7 +146,7 @@ def post_upload(request):
 
 		two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-		latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
+		latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
 
 		#template = loader.get_template('index.html')
 
