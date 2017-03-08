@@ -46,7 +46,7 @@ def save_user_profile(sender,instance, **kwargs):
 
 class Post(models.Model):
 	#assuming links would go in as text? may have to change later
-	#id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDING the primary key id that django implements #####SOMETHING WRONG HERE	
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDDING the primary key id that django implements	
 	title = models.CharField(max_length = 100, default='No Title') 
 	source = models.CharField(max_length = 2000)
 	origin = models.CharField(max_length = 2000)
