@@ -22,6 +22,7 @@ http://pythoncentral.io/writing-simple-views-for-your-first-python-django-applic
                 <a href="/posts/{{ post.id }}/detail.html">{{ post.posted_text }}</a>
                 <span>{{ post.date_created }}</span>
             <span>{{ post.post_privacy }}</span>
+                <a href="/posts/{{ post.id }}/delete">Delete</a>
             </li>
         {% endfor %}
         </ul>

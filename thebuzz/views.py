@@ -176,6 +176,10 @@ def post_upload(request):
 			date_created=datetime.utcnow() )
 		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
+def DeletePost(request, post_id):
+   post = get_object_or_404(Post, pk=post_id).delete() 
+   return HttpResponseRedirect(reverse('posts'))
+
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/
 from rest_framework import viewsets
