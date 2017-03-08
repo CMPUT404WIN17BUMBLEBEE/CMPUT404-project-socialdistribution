@@ -124,7 +124,10 @@ def post_form_upload(request):
             post = Post.objects.create(title = title,
                                        content=content,
                                        published=published,
-				       associated_author = request.user
+				       associated_author = request.user,
+				       source = request.META.get('HTTP_REFERER'),
+				       origin = 'huh',
+				       
                                        )
             return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': post.id}))
