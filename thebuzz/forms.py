@@ -26,5 +26,5 @@ class PostForm(forms.Form):
     date_created = forms.DateTimeField()
 
 class CommentForm(forms.Form):
-    comment = forms.CharField(max_length=2000)
+    content = forms.CharField(max_length=2000)
     date_created = forms.DateTimeField()

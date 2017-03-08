@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+import uuid
+
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
@@ -43,21 +45,19 @@ def save_user_profile(sender,instance, **kwargs):
 #because I have no idea what im doing
 
 class Post(models.Model):
-	#assuming links would go in as text? may have to change later
-	posted_text = models.CharField(max_length =2000)
-	date_created = models.DateTimeField('DateTime created')
-	post_privacy = 1
-    comments = models.oneToMany(Comment)
+    #assuming links would go in as text? may have to change later
+    posted_text = models.CharField(max_length =2000)
+    date_created = models.DateTimeField('DateTime created')
+    post_privacy = 1
 
 
 class Comment(models.Model):
-	associated_post= models.ForeignKey(Post)
-	comment = models.TextField()
-	date_created = models.DateTimeField('DateTime created')
-    count = moadels.IntegerField()
-    size = models.IntegerField()
-    previous = models.CharField()
-    next = models.CharField()
-    guid = models.CharField()
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    associated_post= models.ForeignKey(Post, on_delete=models.CASCADE)
+#    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    content = models.TextField()
+    date_created = models.DateTimeField(auto_now=True)
 
 # ------------------- END POST AND COMMENTS -----------------------

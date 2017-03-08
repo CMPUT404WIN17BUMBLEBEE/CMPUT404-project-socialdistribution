@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth.forms import UserCreationForm
@@ -102,19 +102,19 @@ def post_detail(request, post_id):
         # If no Post has id post_id, we raise an HTTP 404 error.
         raise Http404
 
-    comment = Comment.objects
-    try:
-        print "before comments"
-        comments  = Comment.objects.get(associated_post=post_id)
+    try :
+        comments  = Comment.objects.filter(associated_post=post_id)
     except Comment.DoesNotExist:
-        # no comment for post, return 'no comments'
-        comments = null
+        comments = Comment.objects 
 
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
+
 def add_comment(request, post_id):
 
-    post = Post.objects.get(pk=post_id)
+    print "adding comment"
+
+    post = get_object_or_404(Post, pk=post_id)
 
     if request.method == 'GET':
         form = CommentForm()
@@ -122,9 +122,9 @@ def add_comment(request, post_id):
         form = CommentForm(request.POST)
 
         if form.is_valid():
-            comment_text = form.cleaned_data['comment']
+            content = form.cleaned_data['content']
             date_created = form.cleaned_data['date_created']
-            comment = Comment.objects.create(comment=comment_text, date_created=date_created, associated_post=post)
+            comment = Comment.objects.create(content=content, date_created=date_created, associated_post=post)
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
