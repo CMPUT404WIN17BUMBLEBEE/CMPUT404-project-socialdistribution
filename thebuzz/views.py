@@ -102,7 +102,7 @@ def add_comment(request, post_id):
             date_created = form.cleaned_data['date_created']
             comment = Comment.objects.create(comment=comment_text, date_created=date_created, associated_post=post)
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
