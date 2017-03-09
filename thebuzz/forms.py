@@ -6,7 +6,7 @@ import CommonMark
  
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)
-    content = forms.CharField(max_length=2000)
+    content = forms.CharField(max_length=2000, widget=forms.Textarea)
     published = forms.DateTimeField()
 
     CHOICES=[('PUBLIC','Public'),

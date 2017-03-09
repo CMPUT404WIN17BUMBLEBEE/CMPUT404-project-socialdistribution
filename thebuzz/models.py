@@ -51,7 +51,7 @@ class Post(models.Model):
 	source = models.CharField(max_length = 2000)
 	origin = models.CharField(max_length = 2000)
 	description = models.CharField(max_length =100) 
-	content = models.CharField(max_length =2000)
+	content = models.TextField(max_length =2000)
 	#content types can be:
 	#text/markdown -> included markdown in their post
 	#text/plain    -> plain ol' post. No images or nothing. Default value for now
