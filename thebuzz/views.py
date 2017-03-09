@@ -9,6 +9,7 @@ from django.template import Context, loader
 from .models import Post, Comment
 from .forms import PostForm, CommentForm
 from django.core.urlresolvers import reverse
+import CommonMark
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -108,6 +109,7 @@ def add_comment(request, post_id):
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
+#CommonMark code help from: https://pypi.python.org/pypi/CommonMark
 @login_required(login_url = '/login/')
 def post_form_upload(request):
     if request.method == 'GET':
@@ -116,13 +118,18 @@ def post_form_upload(request):
         # A POST request: Handle Form Upload
         form = PostForm(request.POST) # Bind data from request.POST into a PostForm
 
+	parser = CommonMark.Parser()
+	renderer = CommonMark.HtmlRenderer()
+
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
 	    title = form.cleaned_data['title']
             content = form.cleaned_data['content']
+	    ast = parser.parse(content)
+	    html = renderer.render(ast)
             published = form.cleaned_data['published']
             post = Post.objects.create(title = title,
-                                       content=content,
+                                       content=html,
                                        published=published,
 				       associated_author = request.user,
 				       source = request.META.get('HTTP_REFERER'),

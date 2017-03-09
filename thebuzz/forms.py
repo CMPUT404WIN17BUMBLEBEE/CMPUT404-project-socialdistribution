@@ -2,6 +2,7 @@
 
 from django import forms
 from datetime import datetime
+import CommonMark
  
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)

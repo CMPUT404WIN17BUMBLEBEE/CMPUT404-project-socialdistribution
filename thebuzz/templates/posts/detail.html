@@ -1,6 +1,13 @@
+ <!DOCTYPE html>
+<html>
+<head>
+<title>Post Detail</title>
+</head>
+<body>
+
 <div>                    
     <h1>{{ post.title }}</h1>                                                    
-    <h2>{{ post.content }}</h2>                                              
+    <h2>{{ post.content | safe }}</h2>                                              
     <h2>{{ post.published }}</h2>
     <h2>{{ post.visibility }}</h2>
     <h2>{{ post.associated_author }}</h2>
@@ -9,5 +16,8 @@
     <h3>{{ comment.date_created }}</h3>
     <p>{{ comment.comment }}</p>
     <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
+</body>
+</html> 
+
     
 </div>
