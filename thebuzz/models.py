@@ -62,7 +62,7 @@ class Post(models.Model):
 	published = models.DateTimeField('DateTime created') 
 	categories = []
 	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
-	visibility ="PUBLIC" #for now idk 
+	visibility = models.CharField(default ="PUBLIC", max_length=20)  
 	visibileTo = []
 	unlisted = False
         #idk, added default so it would stop complaining

@@ -128,6 +128,7 @@ def post_form_upload(request):
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
 				       description = content[0:97] + '...',
+				       visibility = form.cleaned_data['choose_Post_Visibility'],
                                        )
             return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
