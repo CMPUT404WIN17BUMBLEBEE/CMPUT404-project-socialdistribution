@@ -127,7 +127,7 @@ def post_form_upload(request):
 				       associated_author = request.user,
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
-				       
+				       description = content[0:97] + '...',
                                        )
             return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
@@ -136,35 +136,6 @@ def post_form_upload(request):
         'form': form,
     })
 
-
-
-
-
-
-#again parts of code from
-#http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
-# NOT WORKING
-def post_upload(request):
-	if request.method =='GET':
-
-		two_days_ago = datetime.utcnow() - timedelta(days=2)
-
-		latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
-
-		#template = loader.get_template('index.html')
-
-		context = {
-
-		'post_upload': latest_posts_list
-
-		}
-
-		return render(request, 'posts/post_form_upload.html', context)
-	elif request.method == 'POST':
-		#fix after GET is working...
-		post = Post.objects.create(content=request.POST['posted_text'],
-			date_created=datetime.utcnow() )
-		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/

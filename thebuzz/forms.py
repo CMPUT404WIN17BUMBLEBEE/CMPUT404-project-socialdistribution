@@ -12,12 +12,9 @@ class PostForm(forms.Form):
          ('FRIENDS','Friends'),
 	 ('FOAF', 'Friend of A Friend'),
 	 ('PRIVATE', 'Private'),
-	 ('SERVERONLY', 'Server only (wut?)')]
+	 ('SERVERONLY', 'Members of this server only')]
 
-    choose_Post_Visibility = forms.MultipleChoiceField(required=True,
-        						widget=forms.CheckboxSelectMultiple,
-        						choices=CHOICES,
-    							)
+    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
 class CommentForm(forms.Form):
     comment = forms.CharField(max_length=2000)
     date_created = forms.DateTimeField()
