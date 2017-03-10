@@ -3,7 +3,7 @@
 from django import forms
 from django.forms import ModelForm, Textarea
 from datetime import datetime
-from .models import Profile
+from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):
     class Meta:
@@ -25,6 +25,11 @@ class PostForm(forms.Form):
     posted_text = forms.CharField(max_length=2000)
     date_created = forms.DateTimeField()
 
-class CommentForm(forms.Form):
-    content = forms.CharField(max_length=2000)
-    date_created = forms.DateTimeField()
+class CommentForm(ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ['content']
+        labels = {
+            'content': 'Comment'
+        }

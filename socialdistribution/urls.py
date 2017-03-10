@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^posts/(?P<post_id>\d+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),
     url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
     url(r'^posts/(?P<post_id>\d+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
+    url(r'^posts/(?P<post_id>[0-9A-Fa-f-]+)/delete/$', 'thebuzz.views.DeletePost', name="delete_comment"),
 
     url(r'^register/$', 'thebuzz.views.register', name='register'),
     url(r'^register/complete/$', 'thebuzz.views.registration_complete', name='registration_complete'),
