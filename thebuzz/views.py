@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import UserCreationForm 
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -36,8 +37,8 @@ def registration_complete(request):
 @login_required(login_url = '/login/')
 def homePage(request):
 	 #if this person has just logged in
-
-			return render(request, 'registration/home.html')
+			data = User.objects.all()
+			return render(request, 'registration/home.html',{'data': data,})
 		#else:
 			#invalid login page -- implement later	
 
