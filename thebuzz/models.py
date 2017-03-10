@@ -12,7 +12,7 @@ import uuid
 @python_2_unicode_compatible
 class Profile(models.Model):
     displayName = models.CharField(max_length=200,blank=True)
-    githubUsername = models.CharField(max_length=200,blank=True)
+    github = models.CharField(max_length=200,blank=True)
     firstName = models.CharField(max_length=200,blank=True)
     lastName = models.CharField(max_length=200,blank=True)
     email = models.CharField(max_length=400,blank=True)

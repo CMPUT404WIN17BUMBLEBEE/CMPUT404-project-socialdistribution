@@ -12,7 +12,11 @@
     </div>
 		<div id="registration-info">
 			<form action = "/register/" method = "POST">{% csrf_token %}
+        <h3>Please fill out the following registration information:</h3>
 				{{form.as_p}}
+        </br>
+        <h4>Optional profile fields:</h4>
+        {{profileForm.as_p}}
 				<div id="form-submit">
 					<input type = "submit" value= "signup" />
 				</div>

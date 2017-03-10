@@ -12,6 +12,8 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 
 #------------------------------------------------------------------
@@ -20,15 +22,25 @@ from django.utils import timezone
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
+
          if form.is_valid():
-             form.save()
+             username = form.cleaned_data['username']
+             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+             user = User.objects.create(username=username, password=password)
+
+             profile = Profile.objects.get(user_id=user.id)
+             profileForm = ProfileForm(request.POST, instance=profile)
+             profileForm.save()
+
              return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
+         profileForm = ProfileForm()
      token = {}
      token.update(csrf(request))
      token['form'] = form
+     token['profileForm'] = profileForm
 
      return render_to_response('registration/registration_form.html', token)
 
@@ -71,7 +83,7 @@ def edit_profile(request):
 
         return redirect('profile')
     else:
-        profile = Profile.objects.get(pk=request.user.id)
+        profile = Profile.objects.get(user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
@@ -123,7 +135,7 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = author 
+            comment.author = author
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()
@@ -183,7 +195,7 @@ def post_upload(request):
 		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 def DeletePost(request, post_id):
-   post = get_object_or_404(Post, pk=post_id).delete() 
+   post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
 
