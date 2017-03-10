@@ -54,10 +54,8 @@ class Post(models.Model):
 class Comment(models.Model):
 
     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
-
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE)
-#    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     content = models.TextField()
     date_created = models.DateTimeField(auto_now=True)
 

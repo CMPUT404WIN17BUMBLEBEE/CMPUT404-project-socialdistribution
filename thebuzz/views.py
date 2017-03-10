@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
+from django.utils import timezone
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -115,17 +116,20 @@ def add_comment(request, post_id):
 
     post = get_object_or_404(Post, pk=post_id)
 
-    if request.method == 'GET':
-        form = CommentForm()
-    else:
+    if request.method == 'POST':
         form = CommentForm(request.POST)
 
         if form.is_valid():
-            content = form.cleaned_data['content']
-            date_created = form.cleaned_data['date_created']
-            comment = Comment.objects.create(content=content, date_created=date_created, associated_post=post)
+            comment = form.save(commit=False)
+            comment.content = form.cleaned_data['content']
+            comment.author = request.user.profile 
+            comment.associated_post = post
+            comment.save()
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
+        return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
+
+    else:
+        form = CommentForm()
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
