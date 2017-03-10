@@ -1,9 +1,18 @@
-<!-- Altered code from http://code.techandstartup.com/django/registration/ -->
-{% block title %}You are Registered{% endblock %}
-{% block content %}
-
-<h1>Thank you for signing up!</h1>
-<br/>
-<a href = "/login/"> Please Login</a>
-
-{% endblock %}
+<!DOCTYPE HTML>
+{% load static %}
+<html>
+  <head>
+    <title>Registration Complete</title>
+    <meta charset="utf-8" />
+    <link href="{% static 'registration-complete.css' %}" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div id="title-bar">
+      <h1>Registeration Complete</h1>
+    </div>
+    <div>
+      <h2>Thank you for signing up!</h2>
+      <a href = "/login/"> Please Login</a>
+    </div>
+  </body>
+</html>

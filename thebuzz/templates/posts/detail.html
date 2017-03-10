@@ -13,8 +13,20 @@
     <h2>{{ post.associated_author }}</h2>
     <h2>{{ post.source }}</h2>                                            
     <h1>Comments: </h1>
-    <h3>{{ comment.date_created }}</h3>
-    <p>{{ comment.comment }}</p>
+
+    {% if comments %}
+        <ul class='comments'>
+
+        {% for comment in comments.all %}
+            <span>{{ comment.content }}</span> 
+            <p>{{ comment.date_created }}</p>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <span>No comments</span>
+    {% endif %}
+    </br>
+    </br>
     <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
 </body>
 </html> 

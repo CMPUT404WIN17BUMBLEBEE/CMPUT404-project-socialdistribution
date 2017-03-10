@@ -2,10 +2,10 @@
 {% load static %}
 <html>
   <head>
-    <title>Home</title>
+    <title>Profile</title>
     <meta charset="utf-8" />
     <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
-    <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'edit_profile.css' %}" rel="stylesheet" type="text/css"/>
   </head>
   <body>
     <div id="title-bar">
@@ -26,18 +26,13 @@
          <a href="#">Friends</a>
        </span>
     </div>
-    <div>
-      <h1>Welcome</h1>
-      Hello, {{request.user.username}}
-      <br/>
-      Some info about you:
-      <ul>
-      <li>email: {{request.user.profile.email}}
-      <li>github: {{request.user.profile.githubUsername}}
-      <li>bio: {{request.user.profile.bio}}
-      </ul>
-      <br/> Those should be blank for now
-      This will show your stream sometime later.
+    <div id="form">
+      <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
+        {{ form.as_p }}
+        <div id="button">
+          <input type="submit" value="save" />
+        </div>
+      </form>
     </div>
   </body>
 </html>

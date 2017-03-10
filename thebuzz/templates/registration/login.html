@@ -1,11 +1,25 @@
-{#Code from https://simpleisbetterthancomplex.com/tutorial/2016/06/27/how-to-use-djangos-built-in-login-system.html #}
-{% block title %}Login{% endblock %}
-
-{% block content %}
-  <h2>Login</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form>
-{% endblock %}
+<!DOCTYPE HTML>
+{% load static %}
+<html>
+  <head>
+    <title>Login</title>
+    <meta charset="utf-8" />
+    <link href="{% static 'login.css' %}" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div id="title-bar">
+      <img src="{% static 'default-profile-pic.jpg' %}" />
+      <h1>WELCOME TO THE BUZZ!</h1>
+    </div>
+    <div id="login-info">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+      </form>
+    </div>
+    <div id="signup">
+      <a href="/register">Sign Up</a>
+    </div>
+  </body>
+</html>

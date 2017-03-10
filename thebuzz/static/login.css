@@ -1,0 +1,31 @@
+body {
+  margin: 50px;
+  background-color: #000000;
+  text-align: center;
+  font-size: 16pt;
+}
+
+#title-bar {
+  font-size: 18pt;
+  color: #ffd11a;
+}
+
+#login-info {
+  color: #ffd11a;
+}
+
+#login-info button {
+  width: 100px;
+  height: 40px;
+  font-size:14pt;
+  background-color: #ffd11a;
+  color: #000000;
+}
+
+#signup {
+  padding: 30px;
+}
+
+#signup a, #signup a:visited {
+  color: #fff5cc;
+}
