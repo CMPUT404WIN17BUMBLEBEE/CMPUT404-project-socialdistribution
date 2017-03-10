@@ -65,7 +65,7 @@ def profile(request):
 @transaction.atomic
 def edit_profile(request):
     if request.method == 'POST':
-        profile = Profile.objects.get(pk=request.user.id)
+        profile = Profile.objects.get(user_id=request.user.id)
         form = ProfileForm(request.POST, instance=profile)
         form.save()
 
@@ -107,7 +107,7 @@ def post_detail(request, post_id):
     try :
         comments  = Comment.objects.filter(associated_post=post_id)
     except Comment.DoesNotExist:
-        comments = Comment.objects 
+        comments = Comment.objects
 
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 

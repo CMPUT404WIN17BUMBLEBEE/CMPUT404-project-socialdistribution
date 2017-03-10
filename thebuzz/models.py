@@ -11,12 +11,12 @@ import uuid
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
-    displayName = models.CharField(max_length=200)
-    githubUsername = models.CharField(max_length=200)
-    firstName = models.CharField(max_length=200)
-    lastName = models.CharField(max_length=200)
-    email = models.CharField(max_length=400)
-    bio = models.CharField(max_length=2000)
+    displayName = models.CharField(max_length=200,blank=True)
+    githubUsername = models.CharField(max_length=200,blank=True)
+    firstName = models.CharField(max_length=200,blank=True)
+    lastName = models.CharField(max_length=200,blank=True)
+    email = models.CharField(max_length=400,blank=True)
+    bio = models.CharField(max_length=2000,blank=True)
     #TODO: put friends list and posts in here
 
 #the following lines onward are from here:
@@ -54,6 +54,7 @@ class Post(models.Model):
 class Comment(models.Model):
 
     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     content = models.TextField()
