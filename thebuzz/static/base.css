@@ -21,12 +21,8 @@ body {
   color: #ffd11a;
 }
 
-#logout a:link{
-  color: #99ccff
-}
-
-#logout a:visited{
-  color: #0073e6
+#logout a:link, #logout a:visited{
+  color: #fff5cc
 }
 
 #logout a:hover, #logout a:active {

@@ -12,6 +12,8 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -19,15 +21,25 @@ from django.views.generic.edit import DeleteView
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
+
          if form.is_valid():
-             form.save()
+             username = form.cleaned_data['username']
+             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+             user = User.objects.create(username=username, password=password)
+
+             profile = Profile.objects.get(user_id=user.id)
+             profileForm = ProfileForm(request.POST, instance=profile)
+             profileForm.save()
+
              return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
+         profileForm = ProfileForm()
      token = {}
      token.update(csrf(request))
      token['form'] = form
+     token['profileForm'] = profileForm
 
      return render_to_response('registration/registration_form.html', token)
 
@@ -70,7 +82,7 @@ def edit_profile(request):
 
         return redirect('profile')
     else:
-        profile = Profile.objects.get(pk=request.user.id)
+        profile = Profile.objects.get(user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})

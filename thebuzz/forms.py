@@ -8,7 +8,7 @@ from .models import Profile
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['displayName', 'firstName', 'lastName', 'email', 'githubUsername', 'bio']
+        fields = ['displayName', 'firstName', 'lastName', 'email', 'github', 'bio']
         widgets = {
             'bio': Textarea(attrs={'cols': 80, 'rows': 20}),
         }
@@ -17,7 +17,7 @@ class ProfileForm(forms.ModelForm):
             'firstName': 'First Name:',
             'lastName': 'Last Name:',
             'email': 'Email:',
-            'githubUsername': 'GitHub Username:',
+            'github': 'GitHub:',
             'bio': 'About Me:'
         }
 
