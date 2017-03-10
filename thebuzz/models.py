@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
+
+
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
@@ -42,3 +44,22 @@ def save_user_profile(sender,instance, **kwargs):
 
 #END PROFILE AND USER STUFF
 #-----------------------------------------------------
+
+#POSTS AND COMMENTS
+
+#taking influence from http://pythoncentral.io/writing-models-for-your-first-python-django-application/
+#because I have no idea what im doing
+
+class Post(models.Model):
+	#assuming links would go in as text? may have to change later
+	posted_text = models.CharField(max_length =2000) 
+	date_created = models.DateTimeField('DateTime created')
+	post_privacy = 1
+
+
+class Comment(models.Model):
+	associated_post= models.ForeignKey(Post)
+	comment = models.TextField()
+	date_created = models.DateTimeField('DateTime created')
+
+# ------------------- END POST AND COMMENTS -----------------------
