@@ -115,6 +115,7 @@ def post_detail(request, post_id):
 def add_comment(request, post_id):
 
     post = get_object_or_404(Post, pk=post_id)
+    author = Profile.objects.get(user_id=request.user.id)
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -122,8 +123,9 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = request.user.profile 
+            comment.author = author 
             comment.associated_post = post
+            comment.date_created = timezone.now()
             comment.save()
 
         return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
