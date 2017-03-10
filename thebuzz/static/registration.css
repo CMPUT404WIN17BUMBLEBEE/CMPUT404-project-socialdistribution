@@ -1,0 +1,38 @@
+body {
+  margin: auto;
+  background-color: #fff5cc;
+  font-size: 16pt;
+}
+
+#title-bar {
+  font-size: 18pt;
+  color: #ffd11a;
+  background-color: #000000;
+  text-align: center;
+}
+
+#registration-info {
+  margin: 0 auto;
+  width: 800px;
+  color: #000000;
+}
+
+#registration-info input[type='submit'] {
+  width: 100px;
+  height: 40px;
+  font-size:14pt;
+  background-color: #000000;
+  color: #ffd11a;
+}
+
+#form-submit {
+  text-align: center;
+}
+
+.helptext {
+  font-size: 14pt;
+}
+
+#thanks {
+  text-align: center;
+}

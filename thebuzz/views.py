@@ -1,15 +1,19 @@
-from django.shortcuts import render
-from django.shortcuts import render_to_response 
-from django.http import HttpResponseRedirect, HttpResponse, Http404 
-from django.contrib.auth.forms import UserCreationForm 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment
-from posts.forms import PostForm, CommentForm
+from .models import Post, Comment, Profile
+from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.contrib.auth import logout
+from django.views.generic.edit import DeleteView
+from django.utils import timezone
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -45,17 +49,39 @@ def homePage(request):
 			data = User.objects.all()
 			return render(request, 'registration/home.html',{'data': data,})
 		#else:
-			#invalid login page -- implement later	
+			#invalid login page -- implement later
 
 	 #else: #change this later to account for the other 2 cases ******
 	 #	return render_to_response('registration/login.html')
 
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
 
+# PROFILE VIEWS
+@login_required(login_url = '/login/')
+def profile(request):
+    profile = Profile.objects.get(user_id=request.user.id)
+    return render(request, 'profile/profile.html', {'profile': profile})
+
+@login_required(login_url = '/login/')
+@transaction.atomic
+def edit_profile(request):
+    if request.method == 'POST':
+        profile = Profile.objects.get(user_id=request.user.id)
+        form = ProfileForm(request.POST, instance=profile)
+        form.save()
+
+        return redirect('profile')
+    else:
+        profile = Profile.objects.get(pk=request.user.id)
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+# END PROFILE VIEWS
+
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 
-def index(request):
+def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
 	latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
@@ -63,12 +89,12 @@ def index(request):
 	#template = loader.get_template('index.html')
 
 	context = {
-	
+
 	'latest_posts_list': latest_posts_list
 
 	}
 
-	return render(request, 'posts/index.html', context)
+	return render(request, 'posts/posts.html', context)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 
@@ -79,44 +105,44 @@ def post_detail(request, post_id):
         # If no Post has id post_id, we raise an HTTP 404 error.
         raise Http404
 
-    comment = Comment.objects 
-    try:
-        # currently only works for a post that does not have more than 1 comment
-        comment = Comment.objects.get(associated_post=post_id)
+    try :
+        comments  = Comment.objects.filter(associated_post=post_id)
     except Comment.DoesNotExist:
-        # no comment for post, return 'no comments'
-        comment.comment = "no comments"
+        comments = Comment.objects
 
-    return render(request, 'posts/detail.html', {'post': post, 'comment': comment})
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
+
 
 def add_comment(request, post_id):
 
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
 
-    if request.method == 'GET':
-        form = CommentForm()
-    else:
+    if request.method == 'POST':
         form = CommentForm(request.POST)
 
         if form.is_valid():
-            comment_text = form.cleaned_data['comment']
-            date_created = form.cleaned_data['date_created']
-            comment = Comment.objects.create(comment=comment_text, date_created=date_created, associated_post=post)
+            comment = form.save(commit=False)
+            comment.content = form.cleaned_data['content']
+            comment.author = request.user.profile 
+            comment.associated_post = post
+            comment.save()
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id})) 
+        return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
+
+    else:
+        form = CommentForm()
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
-    
+
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
- 
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
     else:
         # A POST request: Handle Form Upload
         form = PostForm(request.POST) # Bind data from request.POST into a PostForm
- 
+
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
             posted_text = form.cleaned_data['posted_text']
@@ -125,15 +151,10 @@ def post_form_upload(request):
                                          date_created=date_created)
             return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': post.id}))
- 
+
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
-
-
-
-
-
 
 #again parts of code from
 #http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
@@ -148,7 +169,7 @@ def post_upload(request):
 		#template = loader.get_template('index.html')
 
 		context = {
-	
+
 		'post_upload': latest_posts_list
 
 		}
@@ -160,10 +181,14 @@ def post_upload(request):
 			date_created=datetime.utcnow() )
 		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
+def DeletePost(request, post_id):
+   post = get_object_or_404(Post, pk=post_id).delete() 
+   return HttpResponseRedirect(reverse('posts'))
+
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/
 from rest_framework import viewsets
-from posts.serializers import PostSerializer, CommentSerializer
+from .serializers import PostSerializer, CommentSerializer
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -173,4 +198,3 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
 # END POSTS AND COMMENTS
-

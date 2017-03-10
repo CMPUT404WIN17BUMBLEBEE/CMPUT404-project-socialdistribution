@@ -1,4 +1,4 @@
-from posts.models import Post, Comment
+from .models import Post, Comment
 from rest_framework import serializers
 
 
@@ -30,4 +30,4 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Comment
-        fields = ("associated_post", "comment", "date_created")
+        fields = ("associated_post", "content", "date_created")

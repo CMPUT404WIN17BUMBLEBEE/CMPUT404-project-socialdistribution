@@ -2,7 +2,7 @@
 {% load static %}
 <html>
   <head>
-    <title>Home</title>
+    <title>Profile</title>
     <meta charset="utf-8" />
     <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
     <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
@@ -26,30 +26,31 @@
          <a href="#">Friends</a>
        </span>
     </div>
-    <div>
-      <h1>Welcome</h1>
-      Hello, {{request.user.username}}
-      <br/>
-      Some info about you:
-      <ul>
-      <li>email: {{request.user.profile.email}}
-      <li>github: {{request.user.profile.githubUsername}}
-      <li>bio: {{request.user.profile.bio}}
-      </ul>
-      <br/> Those should be blank for now
-      This will show your stream sometime later.
-<!-- remove this after it works -->
-<br/>
-Here's all the users! Click on them to become friends!<br/>
-{% for user in data %}
-<button onclick = "addfriend({{user}})">{{ user.username}}</button>
-{% endfor %}
+    <div id="top-section">
+      <span>
+        <img src="{% static 'default-profile-pic.jpg' %}" />
+      </span>
+      <span id="info">
+        <div>Display Name:  {{ user.profile.displayName }}</div>
+        <div>Full Name:  {{ user.profile.firstName }} {{ user.profile.lastName }}</div>
+        <div>Email: {{ user.profile.email }}</div>
+        <div>GitHub Username: {{ user.profile.githubUsername }}</div>
+      </span>
+      <span>
+        <a href="/profile/edit_profile">
+          <button type="button">Edit Profile</button>
+        </a>
+      </span>
+    </div>
+    <div id="bio">
+      <u>About Me:</u>
+      </br>
+      <p>
+        {{ user.profile.bio }}
+      </p>
+    </div>
+    <div id="user-posts">
 
-<script type="text/javascript">
-function addfriend(user){
-//alert(user.username);
-}
-</script>
     </div>
   </body>
 </html>
