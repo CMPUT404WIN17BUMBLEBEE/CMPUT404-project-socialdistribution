@@ -49,12 +49,14 @@ def homePage(request):
 
         friend = User.objects.get(username = request.POST['befriend']).id
 
-        print "me: " + str(request.user.profile)
-
         request.user.profile.follow(friend)
 
     data = User.objects.all() #for testing purposes only
-    return render(request, 'registration/home.html',{'data': data,})
+    
+    following = request.user.profile.get_all_following()
+    print "following: " + str(following)
+
+    return render(request, 'registration/home.html',{'data': data, 'following': following })
 		
 
 	 #else: #change this later to account for the other 2 cases ******

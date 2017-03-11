@@ -54,6 +54,18 @@ Here's all the users! Click on them to become friends!<br/>
 <input  type='submit' value ="befriend"></button>
 </form>
 
+<br/>
+<h3>Who I'm Following</h3>
+{% if following %}
+    <ul>
+        {% for user in following.all %}
+            <p>{{ user.id }}</p>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Not following anyone</p>
+{% endif %}
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> <!--Put all script in .js file later -->
 <script type="text/javascript">
 //function addfriend(user){

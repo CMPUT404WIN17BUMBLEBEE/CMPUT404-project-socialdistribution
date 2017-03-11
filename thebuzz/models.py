@@ -23,7 +23,6 @@ class Profile(models.Model):
     bio = models.CharField(max_length=2000,blank=True)
     
     following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
-    friends = models.ManyToManyField('self', symmetrical = False, blank=Truem related_name='friends')
 
     #friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
@@ -37,9 +36,13 @@ class Profile(models.Model):
         self.following.add(user_to_follow)
         self.save()
 
-    def friend(self, user_to_befriend):
-        self.friends.add(user_to_befriend)
-        self.save()
+#    def friend(self, user_to_befriend):
+#        self.friends.add(user_to_befriend)
+#        self.save()
+
+    def get_all_following(self):
+        return self.following.all()
+        
 
 
 class Friends(models.Model):
