@@ -5,29 +5,39 @@
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
+  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 
 {% block content %}
-  <div>
-      <a href="/posts/post_form_upload.html">
-          <input id="newpost" type="button" value="Add New Post">
-      </a>
-  </div>
-  {% if latest_posts_list %}
-      <ul>
+  <div id="news_feed_content">
+    <div>
+        <a href="/posts/post_form_upload.html">
+            <input id="newpost" type="button" value="Add New Post">
+        </a>
+    </div>
+    {% if latest_posts_list %}
       {% for post in latest_posts_list %}
-          <li>
-              <a href="/posts/{{ post.id }}/detail.html">{{ post.posted_text }}</a>
-              <span>{{ post.date_created }}</span>
-          <span>{{ post.post_privacy }}</span>
-              <a href="/posts/{{ post.id }}/delete">Delete</a>
-          </li>
+          <div id="post-blocks">
+              <div id="post-title-bar">
+                <div id="author">{{ post.associated_author }}</div><!--TODO: need to fix this to be author's displayName-->
+                <div id="post-title">
+                  <a href="/posts/{{ post.id }}/detail.html">{{ post.title }}</a>
+                </div>
+                <div id="post-date">{{ post.published }}</div>
+              </div>
+              <div>
+                {{ post.content | safe }}
+              </div>
+              <div id="delet-div">
+                <a href="/posts/{{ post.id }}/delete">
+                  <button type="button">Delete</button>
+                </a>
+              </div>
+          </div>
       {% endfor %}
-      </ul>
-  {% else %}
-      <p>No post is made during the past two days.</p>
-
-
-  {% endif %}
+    {% else %}
+        <p id="no-posts">No post is made during the past two days.</p>
+    {% endif %}
+  </div>
 {% endblock %}

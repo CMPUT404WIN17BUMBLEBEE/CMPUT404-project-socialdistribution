@@ -16,10 +16,22 @@
   text-align: center;
 }
 
-#id_bio {
+#form p {
+  padding-left: 150px;
+}
+
+#id_bio, #id_content {
   display: block;
 }
 
-#form p {
-  padding-left: 150px;
+#id_content {
+  font-size: 12pt;
+}
+
+#id_choose_Post_Visibility {
+  font-size: 14pt;
+}
+
+#form input[type='text'] {
+  font-size: 12pt;
 }

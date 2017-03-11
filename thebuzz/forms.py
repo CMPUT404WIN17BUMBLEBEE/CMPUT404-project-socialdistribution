@@ -4,7 +4,7 @@ from django import forms
 from django.forms import ModelForm, Textarea
 from datetime import datetime
 import CommonMark
- 
+
 from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):
@@ -25,8 +25,7 @@ class ProfileForm(forms.ModelForm):
 
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)
-    content = forms.CharField(max_length=2000, widget=forms.Textarea)
-    published = forms.DateTimeField()
+    content = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}))
 
     CHOICES=[('PUBLIC','Public'),
          ('FRIENDS','Friends'),
@@ -45,4 +44,7 @@ class CommentForm(ModelForm):
         fields = ['content']
         labels = {
             'content': 'Comment'
+        }
+        widgets = {
+            'content':Textarea(attrs={'cols': 70, 'rows': 10})
         }

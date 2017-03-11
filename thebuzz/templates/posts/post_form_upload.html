@@ -5,11 +5,16 @@
 {% block title %}Create Post{% endblock %}
 
 {% block extra_head %}
+  <link href="{% static 'form.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block content %}
+  <div id="form">
     <form action='/posts/post_form_upload.html' method='post'>{% csrf_token %}
       {{ form.as_p }}
-      <input type='submit' value='Submit' />
+      <div id="button">
+        <input type='submit' value='Submit' />
+      </div>
     </form>
+  </div>
 {% endblock %}
