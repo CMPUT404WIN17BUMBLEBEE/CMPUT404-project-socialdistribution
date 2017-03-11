@@ -124,6 +124,7 @@ def post_detail(request, post_id):
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
 
+@login_required(login_url = '/login/')
 def add_comment(request, post_id):
 
     post = get_object_or_404(Post, pk=post_id)
@@ -135,7 +136,7 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = author
+            comment.author = Profile.objects.get(pk=request.user.id)
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()
