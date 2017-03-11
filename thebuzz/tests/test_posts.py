@@ -16,7 +16,6 @@ class post_tests(TestCase):
         user = User.objects.create(username='user1', password='password1')
         author = Profile.objects.create(user_id=123)
     
-        print "POST: " + str(post.id)
         comment = Comment.objects.create(
             associated_post = post,
             content = 'test comment text',
@@ -27,4 +26,3 @@ class post_tests(TestCase):
         self.assertIsInstance(comment.date_created, datetime, "created date is not a datetime instance")
         self.assertEqual(comment.associated_post, post, "associated with the correct post")
         self.assertIsInstance(comment, Comment, "Not a comment object")
-

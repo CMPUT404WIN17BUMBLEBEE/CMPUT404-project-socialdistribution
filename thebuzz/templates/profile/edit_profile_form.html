@@ -1,38 +1,20 @@
-<!DOCTYPE HTML>
+{% extends 'base.html' %}
+
 {% load static %}
-<html>
-  <head>
-    <title>Profile</title>
-    <meta charset="utf-8" />
-    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
-    <link href="{% static 'edit_profile.css' %}" rel="stylesheet" type="text/css"/>
-  </head>
-  <body>
-    <div id="title-bar">
-      <span id="app-title">The Buzz</span>
-      <span>{{ user.profile.displayName }}</span>
-      <span id="logout">
-        <a href="/logout">Logout</a>
-      </span>
-    </div>
-    <div id="nav">
-       <span id="news-feed">
-         <a href="#">News Feed</a>
-       </span>
-       <span id="profile">
-         <a href="/profile">Profile</a>
-       </span>
-       <span id="friends">
-         <a href="#">Friends</a>
-       </span>
-    </div>
-    <div id="form">
-      <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
-        {{ form.as_p }}
-        <div id="button">
-          <input type="submit" value="save" />
-        </div>
-      </form>
-    </div>
-  </body>
-</html>
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block extra_head %}
+  <link href="{% static 'edit_profile.css' %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block content %}
+  <div id="form">
+    <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
+      {{ form.as_p }}
+      <div id="button">
+        <input type="submit" value="save" />
+      </div>
+    </form>
+  </div>
+{% endblock %}
