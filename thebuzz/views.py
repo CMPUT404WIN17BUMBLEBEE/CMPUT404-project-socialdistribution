@@ -86,6 +86,20 @@ def edit_profile(request):
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 # END PROFILE VIEWS
 
+
+# -------------- FRIEND VIEWS --------------------
+
+def accept_friend_request(request):
+    if request.method == 'POST':
+
+
+
+
+
+
+# ------------END FRIEND VIEWS ----------------
+
+
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 

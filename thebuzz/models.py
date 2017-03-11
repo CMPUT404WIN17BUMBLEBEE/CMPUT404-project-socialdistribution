@@ -24,6 +24,10 @@ class Profile(models.Model):
     
     following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
 
+    friends = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friends')
+
+    friend_requests = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friend_requests')
+
     #friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
 #the following lines onward are from here:
@@ -36,13 +40,18 @@ class Profile(models.Model):
         self.following.add(user_to_follow)
         self.save()
 
-#    def friend(self, user_to_befriend):
-#        self.friends.add(user_to_befriend)
-#        self.save()
+    def friend(self, user_to_befriend):
+        self.friends.add(user_to_befriend)
+        self.save()
 
     def get_all_following(self):
         return self.following.all()
-        
+
+    def get_all_friends(self):
+        return self.friends.all() 
+
+    def get_all_friend_requests(self):
+        return self.friend_requests.all()
 
 
 class Friends(models.Model):
