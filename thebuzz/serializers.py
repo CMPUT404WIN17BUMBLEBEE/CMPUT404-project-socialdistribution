@@ -30,4 +30,4 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Comment
-        fields = ("associated_post", "comment", "date_created")
+        fields = ("associated_post", "content", "date_created")

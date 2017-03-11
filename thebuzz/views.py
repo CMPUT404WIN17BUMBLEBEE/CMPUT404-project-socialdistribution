@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth.forms import UserCreationForm
@@ -6,10 +6,17 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment
-from .forms import PostForm, CommentForm
+from .models import Post, Comment, Profile
+from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark
+from django.db import transaction
+from django.contrib.auth import logout
+from django.views.generic.edit import DeleteView
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -17,40 +24,53 @@ import CommonMark
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
+
          if form.is_valid():
-             form.save()
+             username = form.cleaned_data['username']
+             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+             user = User.objects.create(username=username, password=password)
+
+             profile = Profile.objects.get(user_id=user.id)
+             profileForm = ProfileForm(request.POST, instance=profile)
+             profileForm.save()
+
              return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
+         profileForm = ProfileForm()
      token = {}
      token.update(csrf(request))
      token['form'] = form
+     token['profileForm'] = profileForm
 
      return render_to_response('registration/registration_form.html', token)
 
 def registration_complete(request):
      return render_to_response('registration/registration_complete.html')
-
-#for showing the home page/actually logging in
-#3 ways to get here:
-#-logged in
-#-already logged in, used a cookie
-#-registered
-#otherwise, tell them to log in if theyre not
-#edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
-@login_required(login_url = '/login/')
-def homePage(request):
-	 #if this person has just logged in
-
-			return render(request, 'registration/home.html')
-		#else:
-			#invalid login page -- implement later
-
-	 #else: #change this later to account for the other 2 cases ******
-	 #	return render_to_response('registration/login.html')
-
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
+
+# PROFILE VIEWS
+@login_required(login_url = '/login/')
+def profile(request):
+    profile = Profile.objects.get(user_id=request.user.id)
+    return render(request, 'profile/profile.html', {'profile': profile})
+
+@login_required(login_url = '/login/')
+@transaction.atomic
+def edit_profile(request):
+    if request.method == 'POST':
+        profile = Profile.objects.get(user_id=request.user.id)
+        form = ProfileForm(request.POST, instance=profile)
+        form.save()
+
+        return redirect('profile')
+    else:
+        profile = Profile.objects.get(user_id=request.user.id)
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+# END PROFILE VIEWS
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -79,36 +99,44 @@ def post_detail(request, post_id):
         # If no Post has id post_id, we raise an HTTP 404 error.
         raise Http404
 
-    comment = Comment.objects
-    try:
-        # currently only works for a post that does not have more than 1 comment
-        comment = Comment.objects.get(associated_post=post_id)
+    try :
+        comments  = Comment.objects.filter(associated_post=post_id)
     except Comment.DoesNotExist:
-        # no comment for post, return 'no comments'
-        comment.comment = "no comments"
+        comments = Comment.objects
 
-    return render(request, 'posts/detail.html', {'post': post, 'comment': comment})
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
+
+@login_required(login_url = '/login/')
 def add_comment(request, post_id):
 
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
+    author = Profile.objects.get(user_id=request.user.id)
 
-    if request.method == 'GET':
-        form = CommentForm()
-    else:
+    if request.method == 'POST':
         form = CommentForm(request.POST)
 
         if form.is_valid():
-            comment_text = form.cleaned_data['comment']
-            date_created = form.cleaned_data['date_created']
-            comment = Comment.objects.create(comment=comment_text, date_created=date_created, associated_post=post)
+            comment = form.save(commit=False)
+            comment.content = form.cleaned_data['content']
+            comment.author = Profile.objects.get(pk=request.user.id)
+            comment.associated_post = post
+            comment.date_created = timezone.now()
+            comment.save()
+
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+
+
+    else:
+        form = CommentForm()
+
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
+
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark
 @login_required(login_url = '/login/')
 def post_form_upload(request):
@@ -143,6 +171,11 @@ def post_form_upload(request):
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
+
+
+def DeletePost(request, post_id):
+   post = get_object_or_404(Post, pk=post_id).delete()
+   return HttpResponseRedirect(reverse('posts'))
 
 
 

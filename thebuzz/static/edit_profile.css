@@ -1,0 +1,25 @@
+#form {
+  width: 800px;
+  margin: 0 auto;
+  font-size: 18pt;
+}
+
+#form input[type='submit'] {
+  width: 100px;
+  height: 40px;
+  font-size:14pt;
+  background-color: #000000;
+  color: #ffd11a;
+}
+
+#button {
+  text-align: center;
+}
+
+#id_bio {
+  display: block;
+}
+
+#form p {
+  padding-left: 150px;
+}

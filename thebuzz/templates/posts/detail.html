@@ -1,23 +1,45 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <title>Post Detail</title>
 </head>
 <body>
 
-<div>                    
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Post{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+  <div>
     <h1>{{ post.title }}</h1>                                                    
     <h2>{{ post.content | safe }}</h2>                                              
     <h2>{{ post.published }}</h2>
     <h2>{{ post.visibility }}</h2>
     <h2>{{ post.associated_author }}</h2>
-    <h2>{{ post.source }}</h2>                                            
-    <h1>Comments: </h1>
-    <h3>{{ comment.date_created }}</h3>
-    <p>{{ comment.comment }}</p>
-    <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
+    <h2>{{ post.source }}</h2>
+      <h1>Comments: </h1>
+
+      {% if comments %}
+          <ul class='comments'>
+
+          {% for comment in comments.all %}
+              <span>{{ comment.content }}</span>
+              <p>{{ comment.date_created }}</p>
+          {% endfor %}
+          </ul>
+      {% else %}
+          <span>No comments</span>
+      {% endif %}
+      </br>
+      </br>
+      <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
+
+  </div>
 </body>
 </html> 
-
-    
-</div>
+{% endblock %}

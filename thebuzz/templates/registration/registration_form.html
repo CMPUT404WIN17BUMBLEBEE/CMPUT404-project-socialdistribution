@@ -1,13 +1,26 @@
-<!-- Code altered from http://code.techandstartup.com/django/registration/ -->
-{% block title %}Sign Up{% endblock %}
-{% block content %}
-
-<h1>Registration</h1>
-
-<form action = "/register/" method = "POST">{% csrf_token %}
-	{{form.as_p}}
-<input type = "submit" value= "signup" />
-
-</form>
-
-{% endblock %}
+<!DOCTYPE HTML>
+{% load static %}
+<html>
+  <head>
+    <title>Registration</title>
+    <meta charset="utf-8" />
+    <link href="{% static 'registration.css' %}" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div id="title-bar">
+      <h1>Please fill out below to sign up:</h1>
+    </div>
+		<div id="registration-info">
+			<form action = "/register/" method = "POST">{% csrf_token %}
+        <h3>Please fill out the following registration information:</h3>
+				{{form.as_p}}
+        </br>
+        <h4>Optional profile fields:</h4>
+        {{profileForm.as_p}}
+				<div id="form-submit">
+					<input type = "submit" value= "signup" />
+				</div>
+			</form>
+		</div>
+	</body>
+</html>
