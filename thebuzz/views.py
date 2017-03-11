@@ -45,15 +45,18 @@ def registration_complete(request):
 @login_required(login_url = '/login/')
 def homePage(request):
 	 #if this person has just logged in
-			if request.method == 'POST': #for testing purposes only
-				    friend = User.objects.get(username=request.POST['befriend']).pk #get id of friend by username
-				    #request.user.profile.friends.add(request.user.id, friend)
-				    friendlist = Friends()
-				    friendlist.save()
-				    friendlist.objects.create(sourceFriend=request.user.id, targetFriend=friend)
+    if request.method == 'POST': #for testing purposes only
+        friend = User.objects.get(username=request.POST['befriend']) #get id of friend by username
+        #request.user.profile.friends.add(request.user.id, friend)
+        print "friend: " + str(friend.id)
+        print "source friend id: " + str(request.user.id)
+        print "source friend " + str(request.user.profile)
 
-			data = User.objects.all() #for testing purposes only
-			return render(request, 'registration/home.html',{'data': data,})
+        friendlist = Friends()
+        friendlist.save()
+        friendlist.objects.create(sourceFriend=request.user.profile, targetFriend=friend)
+    data = User.objects.all() #for testing purposes only
+    return render(request, 'registration/home.html',{'data': data,})
 		
 
 	 #else: #change this later to account for the other 2 cases ******
