@@ -16,6 +16,9 @@ class PostForm(forms.Form):
 	 ('SERVERONLY', 'Members of this server only')]
 
     choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
+
+    image = forms.ImageField()
+
 class CommentForm(forms.Form):
     comment = forms.CharField(max_length=2000)
     date_created = forms.DateTimeField()
