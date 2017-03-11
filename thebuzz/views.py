@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile
+from .models import Post, Comment, Profile, Friends
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -41,15 +41,20 @@ def registration_complete(request):
 #-logged in
 #-already logged in, used a cookie
 #-registered
-#otherwise, tell them to log in if theyre not
 #edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
 @login_required(login_url = '/login/')
 def homePage(request):
 	 #if this person has just logged in
-			data = User.objects.all()
+			if request.method == 'POST': #for testing purposes only
+				    friend = User.objects.get(username=request.POST['befriend']).pk #get id of friend by username
+				    #request.user.profile.friends.add(request.user.id, friend)
+				    friendlist = Friends()
+				    friendlist.save()
+				    friendlist.objects.create(sourceFriend=request.user.id, targetFriend=friend)
+
+			data = User.objects.all() #for testing purposes only
 			return render(request, 'registration/home.html',{'data': data,})
-		#else:
-			#invalid login page -- implement later
+		
 
 	 #else: #change this later to account for the other 2 cases ******
 	 #	return render_to_response('registration/login.html')

@@ -41,14 +41,60 @@
 <!-- remove this after it works -->
 <br/>
 Here's all the users! Click on them to become friends!<br/>
-{% for user in data %}
-<button onclick = "addfriend({{user}})">{{ user.username}}</button>
-{% endfor %}
 
+<form action = '/home/' method = 'POST'>
+{% csrf_token %}
+{% for user in data %}
+{% if user.username != request.user.username %}
+{{user.username}}  
+{% endif %}
+{% endfor %}
+<br/>
+<input type = "text" name = "befriend"/></input><br/>
+<input  type='submit' value ="befriend"></button>
+</form>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> <!--Put all script in .js file later -->
 <script type="text/javascript">
-function addfriend(user){
-//alert(user.username);
-}
+//function addfriend(user){
+//var tmp = "{{request.user.username|escapejs}}";
+//alert(user);
+
+//sendJSONXMLHTTPRequest("/home/", uhhhhh, callback)
+//}
+/*
+function updateFriends(){ //send a POST request to update the server using jQuery
+    var data = {'profile': pieFact};
+    $.post(URL, data, function(response){
+        if(response === 'success'){ alert('Yay!'); }
+        else{ alert('Error! :('); }
+    });
+}*/
+
+/*
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            try {
+                if (xhr.status==200) {
+              
+		    if(callback !== null){
+		    callback(JSON.parse(xhr.responseText));
+		    }
+                }
+            } 
+            catch(e) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+  
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.setRequestHeader("Accept", "*");
+	xhr.send(JSON.stringify(objects));
+	}	*/
 </script>
     </div>
   </body>

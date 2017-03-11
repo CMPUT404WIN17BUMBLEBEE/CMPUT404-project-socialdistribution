@@ -21,9 +21,7 @@ class Profile(models.Model):
     lastName = models.CharField(max_length=200,blank=True)
     email = models.CharField(max_length=400,blank=True)
     bio = models.CharField(max_length=2000,blank=True)
-
-    #TODO: put friends list and posts in here
-    #friends = models.ManyToManyField('self', through = 'Friends', symmetrical = false)
+    friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
 #the following lines onward are from here:
 #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
@@ -31,9 +29,9 @@ class Profile(models.Model):
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
 
-#class Friends(models.Model):
-#    source = models.ForeignKey(Profile, related_name = 'source')
-#    target = models.ForeignKey(Profile, related_name = 'target')
+class Friends(models.Model):
+   sourceFriend = models.ForeignKey(Profile, related_name = 'source',default="")
+   targetFriend = models.ForeignKey(Profile, related_name = 'target',default="")
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
 @receiver(post_save,sender=User)
