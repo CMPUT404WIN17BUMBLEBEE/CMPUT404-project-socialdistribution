@@ -1,35 +1,31 @@
-<!-- Template originally from
-http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/ -->
-<!DOCTYPE>
-<html>
-    <head>
-        <title>Author's Post</title>
+{% extends 'base.html' %}
 
+{% load static %}
 
-    </head>
+{% block title %}News Feed{% endblock %}
 
-    <body>
-        <div>
-            <a href="/posts/post_form_upload.html">
-                <input id="newpost" type="button" value="Add New Post">
-            </a>
-        </div>
+{% block extra_head %}
+{% endblock %}
 
-    {% if latest_posts_list %}
-        <ul>
-        {% for post in latest_posts_list %}
-            <li>
-                <a href="/posts/{{ post.id }}/detail.html">{{ post.posted_text }}</a>
-                <span>{{ post.date_created }}</span>
-            <span>{{ post.post_privacy }}</span>
-                <a href="/posts/{{ post.id }}/delete">Delete</a>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No post is made during the past two days.</p>
+{% block content %}
+  <div>
+      <a href="/posts/post_form_upload.html">
+          <input id="newpost" type="button" value="Add New Post">
+      </a>
+  </div>
+  {% if latest_posts_list %}
+      <ul>
+      {% for post in latest_posts_list %}
+          <li>
+              <a href="/posts/{{ post.id }}/detail.html">{{ post.posted_text }}</a>
+              <span>{{ post.date_created }}</span>
+          <span>{{ post.post_privacy }}</span>
+              <a href="/posts/{{ post.id }}/delete">Delete</a>
+          </li>
+      {% endfor %}
+      </ul>
+  {% else %}
+      <p>No post is made during the past two days.</p>
 
-    {% endif %}
-
-    </body>
-</html>
+  {% endif %}
+{% endblock %}

@@ -1,56 +1,38 @@
-<!DOCTYPE HTML>
-{% load static %}
-<html>
-  <head>
-    <title>Profile</title>
-    <meta charset="utf-8" />
-    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css"/>
-    <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
-  </head>
-  <body>
-    <div id="title-bar">
-      <span id="app-title">The Buzz</span>
-      <span>{{ user.profile.displayName }}</span>
-      <span id="logout">
-        <a href="/logout">Logout</a>
-      </span>
-    </div>
-    <div id="nav">
-       <span id="news-feed">
-         <a href="#">News Feed</a>
-       </span>
-       <span id="profile">
-         <a href="/profile">Profile</a>
-       </span>
-       <span id="friends">
-         <a href="#">Friends</a>
-       </span>
-    </div>
-    <div id="top-section">
-      <span>
-        <img src="{% static 'default-profile-pic.jpg' %}" />
-      </span>
-      <span id="info">
-        <div>Display Name:  {{ user.profile.displayName }}</div>
-        <div>Full Name:  {{ user.profile.firstName }} {{ user.profile.lastName }}</div>
-        <div>Email: {{ user.profile.email }}</div>
-        <div>GitHub: {{ user.profile.github }}</div>
-      </span>
-      <span>
-        <a href="/profile/edit_profile">
-          <button type="button">Edit Profile</button>
-        </a>
-      </span>
-    </div>
-    <div id="bio">
-      <u>About Me:</u>
-      </br>
-      <p>
-        {{ user.profile.bio }}
-      </p>
-    </div>
-    <div id="user-posts">
+{% extends 'base.html' %}
 
-    </div>
-  </body>
-</html>
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+
+{% block extra_head %}
+  <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block content %}
+  <div id="top-section">
+    <span>
+      <img src="{% static 'default-profile-pic.jpg' %}" />
+    </span>
+    <span id="info">
+      <div>Display Name:  {{ user.profile.displayName }}</div>
+      <div>Full Name:  {{ user.profile.firstName }} {{ user.profile.lastName }}</div>
+      <div>Email: {{ user.profile.email }}</div>
+      <div>GitHub: {{ user.profile.github }}</div>
+    </span>
+    <span>
+      <a href="/profile/edit_profile">
+        <button type="button">Edit Profile</button>
+      </a>
+    </span>
+  </div>
+  <div id="bio">
+    <u>About Me:</u>
+    </br>
+    <p>
+      {{ user.profile.bio }}
+    </p>
+  </div>
+  <div id="user-posts">
+
+  </div>
+{% endblock %}
