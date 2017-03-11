@@ -46,15 +46,13 @@ def registration_complete(request):
 def homePage(request):
 	 #if this person has just logged in
     if request.method == 'POST': #for testing purposes only
-        friend = User.objects.get(username=request.POST['befriend']) #get id of friend by username
-        #request.user.profile.friends.add(request.user.id, friend)
-        print "friend: " + str(friend.id)
-        print "source friend id: " + str(request.user.id)
-        print "source friend " + str(request.user.profile)
 
-        friendlist = Friends()
-        friendlist.save()
-        friendlist.objects.create(sourceFriend=request.user.profile, targetFriend=friend)
+        friend = User.objects.get(username = request.POST['befriend']).id
+
+        print "me: " + str(request.user.profile)
+
+        request.user.profile.follow(friend)
+
     data = User.objects.all() #for testing purposes only
     return render(request, 'registration/home.html',{'data': data,})
 		

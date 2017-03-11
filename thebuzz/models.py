@@ -21,13 +21,26 @@ class Profile(models.Model):
     lastName = models.CharField(max_length=200,blank=True)
     email = models.CharField(max_length=400,blank=True)
     bio = models.CharField(max_length=2000,blank=True)
-    friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
+    
+    following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
+    friends = models.ManyToManyField('self', symmetrical = False, blank=Truem related_name='friends')
+
+    #friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
 #the following lines onward are from here:
 #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
+
+    def follow(self, user_to_follow):
+        self.following.add(user_to_follow)
+        self.save()
+
+    def friend(self, user_to_befriend):
+        self.friends.add(user_to_befriend)
+        self.save()
+
 
 class Friends(models.Model):
    sourceFriend = models.ForeignKey(Profile, related_name = 'source',default="")
