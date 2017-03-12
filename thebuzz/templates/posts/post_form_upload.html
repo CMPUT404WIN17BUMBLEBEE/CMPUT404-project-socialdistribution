@@ -2,6 +2,41 @@
 <html>
 <head>
 <title>Post Detail</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script>
+ //help with making a textbox appear from
+ //
+
+//checks on entry to the page if the 'visible to' box should be there
+$(document).ready(function(){
+  var privacy_textbox = document.getElementById('privacy_textbox');
+  var dropdown = document.getElementById('vis_dropdown');
+
+  console.log(dropdown.value);
+  if(dropdown.value == 'PRIVATE'){
+    privacy_textbox.disabled = false;
+  }else{
+     privacy_textbox.disabled=true; 
+
+   }
+
+});
+
+function privacyBox(val){ //$(document).ready(
+  alert('Its here');
+  var privacy_textbox = document.getElementById('privacy_textbox');
+  console.log(val.value);
+  if(val.value=='PRIVATE'){
+    privacy_textbox.disabled = false;
+  }else{
+     privacy_textbox.disabled=true; 
+
+   }
+}
+
+
+
+</script>
 </head>
 <body>
 

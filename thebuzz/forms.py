@@ -33,9 +33,11 @@ class PostForm(forms.Form):
 	 ('PRIVATE', 'Private'),
 	 ('SERVERONLY', 'Members of this server only')]
 
-    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
+    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True, widget=forms.Select(attrs={"onChange":'privacyBox(this)', 'id': 'vis_dropdown'}) )
 
     image_upload = forms.ImageField(label='Image', required=False)
+    
+    privacy_textbox = forms.CharField(label='Visible to', max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
 
 class CommentForm(ModelForm):
 
