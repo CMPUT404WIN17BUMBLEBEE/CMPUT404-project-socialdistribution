@@ -72,6 +72,27 @@ def edit_profile(request):
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 # END PROFILE VIEWS
 
+# FRIENDS VIEWS
+def friends (request):
+    #TODO: add retrieval of friends list and such for viewing
+
+    context = {
+	   #TODO: add your objects here you want to display in the form
+	}
+
+    return render(request, 'friends/friends.html', context)
+
+def add_friends (request):
+    if request.method == 'POST':
+        #TODO: Retrieve form data and save to model
+        return redirect('friends')
+    else:
+        #TODO: Retrieve set correct form
+        form = ""
+
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+# END FRIENDS VIEWS
+
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
