@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import datetime, uuid
+import json
 
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
@@ -122,9 +123,16 @@ class Post(models.Model):
 	categories = []
 	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
 	visibility = models.CharField(default ="PUBLIC", max_length=20)
-	visibileTo = []
+	visibleTo = models.CharField(max_length = 1000) #need to CONVERT this into JSON. Functions below
 	unlisted = False
         associated_author = models.ForeignKey(User, default="")
+
+	def setVisibleTo(self, x): #writes over it for now
+	  self.visibleTo = json.dumps(x)
+	  print visibleTo
+
+	def getVisibleTo(self):
+	  return json.loads(self.visibleTo)
 
 
 

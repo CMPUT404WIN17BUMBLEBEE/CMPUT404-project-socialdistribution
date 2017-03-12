@@ -37,7 +37,7 @@ class PostForm(forms.Form):
 
     image_upload = forms.ImageField(label='Image', required=False)
     
-    privacy_textbox = forms.CharField(label='Visible to', max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
+    privacy_textbox = forms.CharField(label='Visible to', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
 
 class CommentForm(ModelForm):
 

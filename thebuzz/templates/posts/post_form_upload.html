@@ -5,7 +5,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script>
  //help with making a textbox appear from
- //
+ //Umesh Patil (http://stackoverflow.com/users/2833565/umesh-patil)
+ //http://stackoverflow.com/questions/9634783/how-to-activate-a-textbox-if-i-select-an-other-option-in-drop-down-box
 
 //checks on entry to the page if the 'visible to' box should be there
 $(document).ready(function(){
@@ -22,8 +23,8 @@ $(document).ready(function(){
 
 });
 
-function privacyBox(val){ //$(document).ready(
-  alert('Its here');
+//the onChange of the dropdown widget
+function privacyBox(val){ 
   var privacy_textbox = document.getElementById('privacy_textbox');
   console.log(val.value);
   if(val.value=='PRIVATE'){
