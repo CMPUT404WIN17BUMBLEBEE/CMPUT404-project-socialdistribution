@@ -72,6 +72,27 @@ def edit_profile(request):
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 # END PROFILE VIEWS
 
+# FRIENDS VIEWS
+def friends (request):
+    #TODO: add retrieval of friends list and such for viewing
+
+    context = {
+	   #TODO: add your objects here you want to display in the form
+	}
+
+    return render(request, 'friends/friends.html', context)
+
+def add_friends (request):
+    if request.method == 'POST':
+        #TODO: Retrieve form data and save to model
+        return redirect('friends')
+    else:
+        #TODO: Retrieve set correct form
+        form = ""
+
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+# END FRIENDS VIEWS
+
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
@@ -83,9 +104,7 @@ def posts(request):
 	#template = loader.get_template('index.html')
 
 	context = {
-
-	'latest_posts_list': latest_posts_list
-
+	   'latest_posts_list': latest_posts_list
 	}
 
 	return render(request, 'posts/posts.html', context)
@@ -104,7 +123,8 @@ def post_detail(request, post_id):
     except Comment.DoesNotExist:
         comments = Comment.objects
 
-    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
+    displayName = Profile.objects.get(user_id=post.associated_author).displayName
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
 
 
 @login_required(login_url = '/login/')
@@ -135,11 +155,6 @@ def add_comment(request, post_id):
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
 
-#@login_required
-#def create_post(request):
-#    return render_to_response('posts/post_form_upload.html', { 'form' : PostForm() })
-
-
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
 
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark
@@ -158,11 +173,11 @@ def post_form_upload(request):
 
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
-	    title = form.cleaned_data['title']
+            title = form.cleaned_data['title']
             content = form.cleaned_data['content']
 	    ast = parser.parse(content)
 	    html = renderer.render(ast)
-            published = form.cleaned_data['published']
+            published = timezone.now()
 	    image = form.cleaned_data['image_upload']
 	    print image
 	    print image.name
@@ -200,31 +215,6 @@ def post_form_upload(request):
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
-
-#def image_form_upload(request):
-#    if request.method == 'GET':
-#        form = PostForm()
-#    else:
-#        form = PostForm() #request.POST, request.FILES
-#        if form.is_valid():
-#          newImg = Img()
-#          newImg = request.FILES['image_upload']
-#          newImg.image = request.FILES['file'].name
-#          newImg.associated_post = request.user #IDK. May be a major problem
-
-        # delete unsaved previous blog post
-#          try:
-#              oldEntry = BlogEntry.objects.get(user=request.user,completed=False)
-#              oldEntry.delete()
-#          except:
-#              pass
-
-#          newEntry.save()
-#          return HttpResponse(simplejson.dumps({'imageLocation' : '/static/media/blogImgs/%s' % request.FILES['image'].name }), mimetype='application/javascript')
-
-#    return render(request, 'posts/post_form_upload.html', {
-#        'form': form,
-#    })
 
 
 def DeletePost(request, post_id):

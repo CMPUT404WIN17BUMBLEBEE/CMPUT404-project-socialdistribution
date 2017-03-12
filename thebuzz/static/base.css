@@ -10,10 +10,12 @@ body {
   padding-top: 15px;
   padding-bottom: 15px;
   text-align: center;
+  width: 100%;
+  display: inline-flex;
 }
 
-#title-bar span {
-  padding: 0px 195px;
+#title-bar div {
+   width: 33%;
 }
 
 #app-title {
@@ -35,11 +37,16 @@ body {
   text-align:center;
   padding-top: 10px;
   padding-bottom: 10px;
+  width: 100%;
+  display: inline-flex;
 }
 
-#nav span {
-  padding-left:50px;
-  padding-right:50px;
+#nav div:not(.nav-spacer) {
+  width: 10%;
+}
+
+.nav-spacer {
+  width: 35%;
 }
 
 #nav a, #nav a:visited {
