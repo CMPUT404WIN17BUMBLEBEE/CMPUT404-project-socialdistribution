@@ -9,22 +9,24 @@
   </head>
   <body>
     <div id="title-bar">
-      <span id="app-title">The Buzz</span>
-      <span>{{ user.profile.displayName }}</span>
-      <span id="logout">
+      <div id="app-title">The Buzz</div>
+      <div>{{ user.profile.displayName }}</div>
+      <div id="logout">
         <a href="/logout">Logout</a>
-      </span>
+      </div>
     </div>
     <div id="nav">
-       <span id="news-feed">
+       <div class="nav-spacer"></div>
+       <div id="news-feed">
          <a href="/posts">News Feed</a>
-       </span>
-       <span id="profile">
+       </div>
+       <div id="profile">
          <a href="/profile">Profile</a>
-       </span>
-       <span id="friends">
-         <a href="#">Friends</a>
-       </span>
+       </div>
+       <div id="friends">
+         <a href="/friends">Friends</a>
+       </div>
+       <div class="nav-spacer"></div>
     </div>
     <div>
         {% block content %}

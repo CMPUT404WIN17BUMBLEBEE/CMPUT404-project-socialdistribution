@@ -1,0 +1,64 @@
+#news_feed_content {
+  width: 800px;
+  margin: 25px auto;
+}
+
+#newpost {
+  width: 150px;
+  height: 40px;
+  font-size:14pt;
+  background-color: #000000;
+  color: #ffd11a;
+  margin-bottom: 25px;
+}
+
+#post-title-bar {
+  width: 100%;
+  display: inline-flex;
+  background-color: #000000;
+  color: #fff5cc;
+  padding: 5px;
+}
+
+#author {
+  width: 30%;
+  text-align: left;
+}
+
+#post-title {
+  width: 40%;
+  text-align: center;
+}
+
+#post-title a, #post-title a:visited{
+  color: #fff5cc;
+}
+
+#post-title a:hover {
+  color: #fff5cc;
+}
+
+#post-date {
+  width: 30%;
+  text-align: right;
+}
+
+#post-blocks {
+  padding: 15px;
+  background-color: #ffd11a;
+  color: #000000;
+  border: solid 2px #000000;
+}
+
+button {
+  width: 70px;
+  height: 25px;
+  font-size:10pt;
+  background-color: #fff5cc;
+  color: #000000;
+}
+
+#delet-div {
+  width: 100%;
+  text-align: right;
+}

@@ -76,11 +76,11 @@ def save_user_profile(sender,instance, **kwargs):
 
 class Post(models.Model):
 	#assuming links would go in as text? may have to change later
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDDING the primary key id that django implements	
-	title = models.CharField(max_length = 100, default='No Title') 
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDDING the primary key id that django implements
+	title = models.CharField(max_length = 100, default='No Title')
 	source = models.CharField(max_length = 2000)
 	origin = models.CharField(max_length = 2000)
-	description = models.CharField(max_length =100) 
+	description = models.CharField(max_length =100)
 	content = models.TextField(max_length =2000)
 	#content types can be:
 	#text/markdown -> included markdown in their post
@@ -88,11 +88,11 @@ class Post(models.Model):
 	#application/base64 -> dunno yet, just an image?
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
 	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
-	contentType = models.CharField(max_length = 2000, default='text/plain')   
-	published = models.DateTimeField('DateTime created') 
+	contentType = models.CharField(max_length = 2000, default='text/plain')
+	published = models.DateTimeField(auto_now=True)
 	categories = []
 	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
-	visibility = models.CharField(default ="PUBLIC", max_length=20)  
+	visibility = models.CharField(default ="PUBLIC", max_length=20)
 	visibileTo = []
 	unlisted = False
         #idk, added default so it would stop complaining
@@ -105,7 +105,7 @@ class Comment(models.Model):
 
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    content = models.TextField()
+    content =  models.TextField(max_length =2000)
     date_created = models.DateTimeField(auto_now=True)
 
 # ------------------- END POST AND COMMENTS -----------------------

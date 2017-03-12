@@ -5,11 +5,16 @@
 {% block title %}Add Post Comment{% endblock %}
 
 {% block extra_head %}
+  <link href="{% static 'form.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block content %}
-  <form action='/posts/{{ post.id }}/add_comment.html' method='post'>{% csrf_token %}
+  <div id="form">
+    <form action='/posts/{{ post.id }}/add_comment.html' method='post'>{% csrf_token %}
       {{ form.as_p }}
-      <input type='submit' value='Comment'/>
-  </form>
+      <div id="button">
+        <input type='submit' value='Comment'/>
+      </div>
+    </form>
+  </div>
 {% endblock %}

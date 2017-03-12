@@ -101,17 +101,28 @@ def edit_profile(request):
 # END PROFILE VIEWS
 
 
-# -------------- FRIEND VIEWS --------------------
 
-#def accept_friend_request(request):
+# ------------ FRIENDS VIEWS ---------------------
+def friends (request):
+    #TODO: add retrieval of friends list and such for viewing
 
+    context = {
+	   #TODO: add your objects here you want to display in the form
+	}
 
+    return render(request, 'friends/friends.html', context)
 
+def add_friends (request):
+    if request.method == 'POST':
+        #TODO: Retrieve form data and save to model
+        return redirect('friends')
+    else:
+        #TODO: Retrieve set correct form
+        form = ""
 
-
-
-# ------------END FRIEND VIEWS ----------------
-
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+# END FRIENDS VIEWS
+>>>>>>> d7b572ed21338b8c3c15e72a8aa0a213a03a4a6a
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -124,9 +135,7 @@ def posts(request):
 	#template = loader.get_template('index.html')
 
 	context = {
-
-	'latest_posts_list': latest_posts_list
-
+	   'latest_posts_list': latest_posts_list
 	}
 
 	return render(request, 'posts/posts.html', context)
@@ -145,7 +154,8 @@ def post_detail(request, post_id):
     except Comment.DoesNotExist:
         comments = Comment.objects
 
-    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
+    displayName = Profile.objects.get(user_id=post.associated_author).displayName
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
 
 
 @login_required(login_url = '/login/')
@@ -192,11 +202,11 @@ def post_form_upload(request):
 
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
-	    title = form.cleaned_data['title']
+            title = form.cleaned_data['title']
             content = form.cleaned_data['content']
-	    ast = parser.parse(content)
-	    html = renderer.render(ast)
-            published = form.cleaned_data['published']
+            ast = parser.parse(content)
+            html = renderer.render(ast)
+            published = timezone.now()
             post = Post.objects.create(title = title,
                                        content=html,
                                        published=published,
