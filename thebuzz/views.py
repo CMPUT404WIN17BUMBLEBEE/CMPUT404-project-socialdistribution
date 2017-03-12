@@ -16,6 +16,7 @@ from django.views.generic.edit import DeleteView
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.db.models import Q
 
 
 #------------------------------------------------------------------
@@ -99,12 +100,12 @@ def add_friends (request):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
+	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() )
 
 	#template = loader.get_template('index.html')
 
 	context = {
-	   'latest_posts_list': latest_posts_list
+	   'possible_posts_list': possible_posts_list
 	}
 
 	return render(request, 'posts/posts.html', context)
