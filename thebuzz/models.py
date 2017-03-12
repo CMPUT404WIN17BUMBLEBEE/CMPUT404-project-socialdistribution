@@ -59,7 +59,7 @@ class Post(models.Model):
 	#application/base64 -> dunno yet, just an image?
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
 	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
-	image = models.ImageField(blank=True)
+	image = models.ImageField(null=True, blank=True)
 	contentType = models.CharField(max_length = 2000, default='text/plain')   
 	published = models.DateTimeField(auto_now=True) 
 	categories = []

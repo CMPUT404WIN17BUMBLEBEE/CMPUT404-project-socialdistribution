@@ -9,7 +9,7 @@ from django.template import Context, loader
 from .models import Post, Comment, Profile, Img
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
-import CommonMark
+import CommonMark, imghdr
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
@@ -179,10 +179,14 @@ def post_form_upload(request):
 	    html = renderer.render(ast)
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
-	    print image
-	    print image.name
+	    
 	    if image:
 	      #create Posts and Img objects here!
+	      cType = imghdr.what(image.name)
+	      #if(cType == 'png'):
+	      #  contentType = 'image/png;base64'
+	      #elif(cType == 'jpeg'):
+	      #	contentType = 'image/jpeg;base64'
 	      imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
               post = Post.objects.create(title = title,
                                        content=html + "<p>" + imgItself,
