@@ -119,7 +119,7 @@ class Post(models.Model):
 	categories = []
 	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
 	visibility = models.CharField(default ="PUBLIC", max_length=20)
-	visibleTo = models.CharField(max_length = 1000) #need to CONVERT this into JSON. Functions below
+	visibleTo = models.CharField(max_length = 1000, blank=True) #need to CONVERT this into JSON. Functions below
 	unlisted = False
         associated_author = models.ForeignKey(User, default="")
 
