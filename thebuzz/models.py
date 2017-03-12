@@ -38,8 +38,8 @@ class Profile(models.Model):
 
         if user_to_follow in self.followers.all():
             self.friend(user_to_follow)
-        
-        self.following.add(user_to_follow)
+        else:
+            self.following.add(user_to_follow)
         self.save()
 
     def get_all_following(self):
@@ -50,8 +50,8 @@ class Profile(models.Model):
 
         if user_whos_following in self.following.all():
             self.friend(user_whos_following)
-        
-        self.followers.add(user_whos_following)
+        else:
+            self.followers.add(user_whos_following)
         self.save
 
     def friend(self, user_to_befriend):
