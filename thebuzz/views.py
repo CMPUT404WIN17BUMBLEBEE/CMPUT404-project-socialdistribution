@@ -133,6 +133,12 @@ def add_friends (request):
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 
+def delete_friend (request, profile_id):
+
+    friend = Profile.objects.get(pk=profile_id)
+    request.user.profile.unfriend(friend)
+    return HttpResponseRedirect(reverse('friends'))
+
 # ----------- END FRIENDS VIEWS -------------
 
 

@@ -25,10 +25,10 @@
         <input  type='submit'></button>
     </form>
     <br/>
-    <h3>Pending Friend Requests</h3>
+    <h3>Pending Friend Requests (Waiting on them)</h3>
     <ul>
     {% if following %}
-        {% for user in following.all %}
+        {% for user in following %}
             <p>{{ user }}</p>
         {% endfor %}
     </ul>
@@ -36,17 +36,22 @@
         <p>No pending friend requests</p>
     {% endif %}
 
-<h2>Friend Requests</h2>
+<h2>Friend Requests (Respond to)</h2>
 
+<form action='/friends/' method='POST'>
+    {% csrf_token %}
 {% for follower in followers %}
     <p>{{ follower }}</p>
+
 {% endfor %}
 
 <h2>Friends</h2>
 {% for friend in friends %}
-    <p>{{ friend }}</p>
+    <span>{{ friend }}</span>
+    <a href="/friends/{{ friend.id }}/delete_friend">
+        <button type="button">Unfriend</button>
+    </a>
 {% endfor %}
-
 
 {% endblock %}
 

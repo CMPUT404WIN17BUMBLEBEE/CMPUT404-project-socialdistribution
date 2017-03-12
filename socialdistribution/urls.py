@@ -31,6 +31,7 @@ urlpatterns = [
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.homePage', name='friends'),
     url(r'^friends/add_friends$', 'thebuzz.views.add_friends', name='add_friend'),
+    url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
 
     url(r'^api/', include(router.urls))
 
