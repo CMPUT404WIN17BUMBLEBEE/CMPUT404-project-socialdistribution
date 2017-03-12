@@ -182,7 +182,7 @@ def post_form_upload(request):
 	    
 	    if image:
 	      #create Posts and Img objects here!
-	      cType = imghdr.what(image.name)
+	      #cType = imghdr.what(image.name)
 	      #if(cType == 'png'):
 	      #  contentType = 'image/png;base64'
 	      #elif(cType == 'jpeg'):
