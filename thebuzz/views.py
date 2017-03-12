@@ -121,8 +121,10 @@ def add_friends (request):
         form = ""
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
-# END FRIENDS VIEWS
->>>>>>> d7b572ed21338b8c3c15e72a8aa0a213a03a4a6a
+
+# ----------- END FRIENDS VIEWS -------------
+
+
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
