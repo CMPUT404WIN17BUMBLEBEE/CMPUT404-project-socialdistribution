@@ -11,40 +11,40 @@
 {% block content %}
   <div id="form">
 
-    Here's all the users! Click on them to become friends!<br/>
-    <!--TODO: ADD your content here -->
+    Here's all the users!<br/>
     <form action = '/friends/' method = 'POST'>
         {% csrf_token %}
+        <select name="befriend">
         {% for user in users %}
             {% if user.username != request.user.username %}
-                {{user.username}}  
+                <option value='{{user.username}}'>{{ user.username }}</option>
             {% endif %}
         {% endfor %}
+        </select>
         <br/>
-        <input type = "text" name = "befriend"/></input><br/>
-        <input  type='submit' value ="befriend"></button>
+        <input  type='submit'></button>
     </form>
     <br/>
-    <h3>Who I'm Following</h3>
+    <h3>Pending Friend Requests</h3>
     <ul>
     {% if following %}
         {% for user in following.all %}
-            <p>{{ user.id }}</p>
+            <p>{{ user }}</p>
         {% endfor %}
     </ul>
     {% else %}
-        <p>Not following anyone</p>
+        <p>No pending friend requests</p>
     {% endif %}
 
-<h2>Friend Requests (are following me)</h2>
+<h2>Friend Requests</h2>
 
 {% for follower in followers %}
-    <p>{{ follower.id }}</p>
+    <p>{{ follower }}</p>
 {% endfor %}
 
 <h2>Friends</h2>
 {% for friend in friends %}
-    <p>{{ friend.id }}</p>
+    <p>{{ friend }}</p>
 {% endfor %}
 
 

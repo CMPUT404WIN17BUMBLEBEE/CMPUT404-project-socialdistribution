@@ -11,7 +11,7 @@ import datetime, uuid
 @python_2_unicode_compatible
 class Profile(models.Model):
 
-    #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    #uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     displayName = models.CharField(max_length=200,blank=True)
     github = models.CharField(max_length=200,blank=True)
     firstName = models.CharField(max_length=200,blank=True)
@@ -56,10 +56,12 @@ class Profile(models.Model):
 
     def friend(self, user_to_befriend):
         self.friends.add(user_to_befriend)
+        self.followers.remove(user_to_befriend)
+        self.following.remove(user_to_befriend)
         self.save()
 
     def get_all_friends(self):
-        return self.friends.all() 
+        return self.friends.all()
 
     # delete friend from friends list and from following list (they can still be following me)
     def unfriend(self, friend):
@@ -73,12 +75,6 @@ class Profile(models.Model):
         #pending = pending.exclude(pk__in=self.friends.all())
         return pending
         
-    def accept_friend_request(self, user_to_friend):
-        self.friends.add(user_to_friend) 
-        self.following.add(user_to_friend)
-        self.save()
-
-
 #class Friends(models.Model):
 #   sourceFriend = models.ForeignKey(Profile, related_name = 'source',default="")
 #   targetFriend = models.ForeignKey(Profile, related_name = 'target',default="")
