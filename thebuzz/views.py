@@ -6,7 +6,7 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile
+from .models import Post, Comment, Profile, Img
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark
@@ -135,6 +135,11 @@ def add_comment(request, post_id):
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
 
+#@login_required
+#def create_post(request):
+#    return render_to_response('posts/post_form_upload.html', { 'form' : PostForm() })
+
+
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
 
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark
@@ -142,9 +147,11 @@ def add_comment(request, post_id):
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
+	print 'am I here?'
     else:
         # A POST request: Handle Form Upload
-        form = PostForm(request.POST) # Bind data from request.POST into a PostForm
+        form = PostForm(request.POST, request.FILES) # Bind data from request.POST into a PostForm
+	print 'or am i here?'
 
 	parser = CommonMark.Parser()
 	renderer = CommonMark.HtmlRenderer()
@@ -156,8 +163,14 @@ def post_form_upload(request):
 	    ast = parser.parse(content)
 	    html = renderer.render(ast)
             published = form.cleaned_data['published']
-            post = Post.objects.create(title = title,
-                                       content=html,
+	    image = form.cleaned_data['image_upload']
+	    print image
+	    print image.name
+	    if image:
+	      #create Posts and Img objects here!
+	      imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
+              post = Post.objects.create(title = title,
+                                       content=html + "<p>" + imgItself,
                                        published=published,
 				       associated_author = request.user,
 				       source = request.META.get('HTTP_REFERER'),
@@ -165,12 +178,53 @@ def post_form_upload(request):
 				       description = content[0:97] + '...',
 				       visibility = form.cleaned_data['choose_Post_Visibility'],
                                        )
-            return HttpResponseRedirect(reverse('post_detail',
+              myImg = Img.objects.create(associated_post = post,
+					 myImg = image )
+	      #can't make a whole new post for images, will look funny. Try this??
+	     
+	    else:
+	      #create a Post without an image here!
+	      post = Post.objects.create(title = title,
+                                       content=html ,
+                                       published=published,
+				       associated_author = request.user,
+				       source = request.META.get('HTTP_REFERER'),
+				       origin = 'huh',
+				       description = content[0:97] + '...',
+				       visibility = form.cleaned_data['choose_Post_Visibility'],
+                                       )
+
+	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
 
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
+
+#def image_form_upload(request):
+#    if request.method == 'GET':
+#        form = PostForm()
+#    else:
+#        form = PostForm() #request.POST, request.FILES
+#        if form.is_valid():
+#          newImg = Img()
+#          newImg = request.FILES['image_upload']
+#          newImg.image = request.FILES['file'].name
+#          newImg.associated_post = request.user #IDK. May be a major problem
+
+        # delete unsaved previous blog post
+#          try:
+#              oldEntry = BlogEntry.objects.get(user=request.user,completed=False)
+#              oldEntry.delete()
+#          except:
+#              pass
+
+#          newEntry.save()
+#          return HttpResponse(simplejson.dumps({'imageLocation' : '/static/media/blogImgs/%s' % request.FILES['image'].name }), mimetype='application/javascript')
+
+#    return render(request, 'posts/post_form_upload.html', {
+#        'form': form,
+#    })
 
 
 def DeletePost(request, post_id):

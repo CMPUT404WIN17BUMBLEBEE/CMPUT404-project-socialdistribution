@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Post Detail</title>
+</head>
+<body>
+
+
 {% extends 'base.html' %}
 
 {% load static %}
@@ -8,8 +16,10 @@
 {% endblock %}
 
 {% block content %}
-    <form action='/posts/post_form_upload.html' method='post'>{% csrf_token %}
+    <form action='/posts/post_form_upload.html' method='post' enctype="multipart/form-data">{% csrf_token %}
       {{ form.as_p }}
       <input type='submit' value='Submit' />
     </form>
 {% endblock %}
+</body>
+</html> 
