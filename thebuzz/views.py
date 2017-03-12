@@ -179,7 +179,7 @@ def post_form_upload(request):
 	    html = renderer.render(ast)
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
-	    
+
 	    if image:
 	      #create Posts and Img objects here!
 	      #cType = imghdr.what(image.name)
@@ -200,7 +200,7 @@ def post_form_upload(request):
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
 	      #can't make a whole new post for images, will look funny. Try this??
-	     
+
 	    else:
 	      #create a Post without an image here!
 	      post = Post.objects.create(title = title,
