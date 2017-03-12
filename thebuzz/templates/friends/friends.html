@@ -11,9 +11,86 @@
 {% block content %}
   <div id="form">
 
+    Here's all the users! Click on them to become friends!<br/>
     <!--TODO: ADD your content here -->
-    <p>
-      This is the friends view page.
-    </p>
-  </div>
+    <form action = '/friends/' method = 'POST'>
+        {% csrf_token %}
+        {% for user in users %}
+            {% if user.username != request.user.username %}
+                {{user.username}}  
+            {% endif %}
+        {% endfor %}
+        <br/>
+        <input type = "text" name = "befriend"/></input><br/>
+        <input  type='submit' value ="befriend"></button>
+    </form>
+    <br/>
+    <h3>Who I'm Following</h3>
+    <ul>
+    {% if following %}
+        {% for user in following.all %}
+            <p>{{ user.id }}</p>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p>Not following anyone</p>
+    {% endif %}
+
+<h2>Friend Requests (are following me)</h2>
+
+{% for follower in followers %}
+    <p>{{ follower.id }}</p>
+{% endfor %}
+
+<h2>Friends</h2>
+{% for friend in friends %}
+    <p>{{ friend.id }}</p>
+{% endfor %}
+
+
 {% endblock %}
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> <!--Put all script in .js file later -->
+<script type="text/javascript">
+//function addfriend(user){
+//var tmp = "{{request.user.username|escapejs}}";
+//alert(user);
+
+//sendJSONXMLHTTPRequest("/home/", uhhhhh, callback)
+//}
+/*
+function updateFriends(){ //send a POST request to update the server using jQuery
+    var data = {'profile': pieFact};
+    $.post(URL, data, function(response){
+        if(response === 'success'){ alert('Yay!'); }
+        else{ alert('Error! :('); }
+    });
+}*/
+
+/*
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            try {
+                if (xhr.status==200) {
+              
+		    if(callback !== null){
+		    callback(JSON.parse(xhr.responseText));
+		    }
+                }
+            } 
+            catch(e) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+  
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.setRequestHeader("Accept", "*");
+	xhr.send(JSON.stringify(objects));
+	}	*/
+</script>
