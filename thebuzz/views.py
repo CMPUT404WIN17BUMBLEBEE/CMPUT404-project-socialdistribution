@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
+import json
 
 
 #------------------------------------------------------------------
@@ -142,7 +143,9 @@ def add_friends (request):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() )
+	
+
+	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
@@ -222,6 +225,19 @@ def post_form_upload(request):
 	    html = renderer.render(ast)
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
+	    visibility = form.cleaned_data['choose_Post_Visibility']
+	    visible_to = ''#[]
+
+	    if(visibility == 'PRIVATE'):
+	      #glean the users by commas for now
+	      entries = form.cleaned_data['privacy_textbox']
+	      #visible_to = form.cleaned_data['privacy_textbox']
+	      entries = entries.split(',')
+              
+	      for item in entries:
+		visible_to += item
+                #visible_to.append(item)
+
 
 	    if image:
 	      #create Posts and Img objects here!
@@ -238,8 +254,9 @@ def post_form_upload(request):
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
 				       description = content[0:97] + '...',
-				       visibility = form.cleaned_data['choose_Post_Visibility'],
-                                       )
+				       visibility = visibility,
+				       visibleTo = visible_to,
+                                       ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
 	      #can't make a whole new post for images, will look funny. Try this??
@@ -253,8 +270,9 @@ def post_form_upload(request):
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
 				       description = content[0:97] + '...',
-				       visibility = form.cleaned_data['choose_Post_Visibility'],
-                                       )
+				       visibility = visibility,
+				       visibleTo = visible_to,
+                                       ) #json.dumps(visible_to)
 
 	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
