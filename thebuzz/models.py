@@ -112,15 +112,21 @@ class Post(models.Model):
 	#application/base64 -> dunno yet, just an image?
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
 	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
-	contentType = models.CharField(max_length = 2000, default='text/plain')
-	published = models.DateTimeField(auto_now=True)
+	image = models.ImageField(null=True, blank=True)
+	contentType = models.CharField(max_length = 2000, default='text/plain')   
+	published = models.DateTimeField(auto_now=True) 
 	categories = []
 	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
 	visibility = models.CharField(default ="PUBLIC", max_length=20)
 	visibileTo = []
 	unlisted = False
-        #idk, added default so it would stop complaining
         associated_author = models.ForeignKey(User, default="")
+
+
+
+class Img(models.Model):
+	associated_post = models.ForeignKey(Post, on_delete=models.CASCADE)
+	myImg = models.ImageField() #upload_to='images'
 
 
 class Comment(models.Model):

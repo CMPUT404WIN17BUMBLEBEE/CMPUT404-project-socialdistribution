@@ -14,7 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+PROJECT_DIR  = os.path.dirname(__file__) 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+MEDIA_ROOT = os.path.join(PROJECT_DIR, 'images')
+MEDIA_URL = '/images/'
 
 # Application definition
 
@@ -105,3 +109,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(PROJECT_DIR,'static')
+
+#help with this from
+#catherine on Stack OverFlow
+#http://stackoverflow.com/questions/15081893/unable-to-serve-static-files-like-css-js-in-django-python
+#http://stackoverflow.com/users/2008506/catherine
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_DIR, 'staticfiles'),
+)

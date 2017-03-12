@@ -7,16 +7,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile
+from .models import Post, Comment, Profile, Img
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
-import CommonMark
+import CommonMark, imghdr
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.db.models import Q
 
 
 #------------------------------------------------------------------
@@ -141,12 +142,12 @@ def add_friends (request):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
+	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() )
 
 	#template = loader.get_template('index.html')
 
 	context = {
-	   'latest_posts_list': latest_posts_list
+	   'possible_posts_list': possible_posts_list
 	}
 
 	return render(request, 'posts/posts.html', context)
@@ -204,9 +205,11 @@ def add_comment(request, post_id):
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
+	print 'am I here?'
     else:
         # A POST request: Handle Form Upload
-        form = PostForm(request.POST) # Bind data from request.POST into a PostForm
+        form = PostForm(request.POST, request.FILES) # Bind data from request.POST into a PostForm
+	print 'or am i here?'
 
 	parser = CommonMark.Parser()
 	renderer = CommonMark.HtmlRenderer()
@@ -215,11 +218,21 @@ def post_form_upload(request):
         if form.is_valid():
             title = form.cleaned_data['title']
             content = form.cleaned_data['content']
-            ast = parser.parse(content)
-            html = renderer.render(ast)
+	    ast = parser.parse(content)
+	    html = renderer.render(ast)
             published = timezone.now()
-            post = Post.objects.create(title = title,
-                                       content=html,
+	    image = form.cleaned_data['image_upload']
+
+	    if image:
+	      #create Posts and Img objects here!
+	      #cType = imghdr.what(image.name)
+	      #if(cType == 'png'):
+	      #  contentType = 'image/png;base64'
+	      #elif(cType == 'jpeg'):
+	      #	contentType = 'image/jpeg;base64'
+	      imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
+              post = Post.objects.create(title = title,
+                                       content=html + "<p>" + imgItself,
                                        published=published,
 				       associated_author = request.user,
 				       source = request.META.get('HTTP_REFERER'),
@@ -227,7 +240,23 @@ def post_form_upload(request):
 				       description = content[0:97] + '...',
 				       visibility = form.cleaned_data['choose_Post_Visibility'],
                                        )
-            return HttpResponseRedirect(reverse('post_detail',
+              myImg = Img.objects.create(associated_post = post,
+					 myImg = image )
+	      #can't make a whole new post for images, will look funny. Try this??
+
+	    else:
+	      #create a Post without an image here!
+	      post = Post.objects.create(title = title,
+                                       content=html ,
+                                       published=published,
+				       associated_author = request.user,
+				       source = request.META.get('HTTP_REFERER'),
+				       origin = 'huh',
+				       description = content[0:97] + '...',
+				       visibility = form.cleaned_data['choose_Post_Visibility'],
+                                       )
+
+	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
 
     return render(request, 'posts/post_form_upload.html', {

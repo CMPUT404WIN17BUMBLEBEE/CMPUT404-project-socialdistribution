@@ -35,7 +35,7 @@ class PostForm(forms.Form):
 
     choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
 
-    #image = forms.ImageField()
+    image_upload = forms.ImageField(label='Image', required=False)
 
 class CommentForm(ModelForm):
 

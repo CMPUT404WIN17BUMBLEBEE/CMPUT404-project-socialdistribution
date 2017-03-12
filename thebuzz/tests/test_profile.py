@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 
 class ProfileTestCase(TestCase):
     user_id = 0
+
     def setUp(self):
         global user_id
         password = make_password("password123")
@@ -16,7 +17,8 @@ class ProfileTestCase(TestCase):
         global user_id
         profile = Profile.objects.get(user_id = user_id)
 
-        self.assertEqual(profile.user_id, user_id)
+        self.assertTrue(profile, "profile is empty")
+        self.assertEqual(profile.user_id, user_id, "could not find matching profile")
 
     def test_updating_profile(self):
         global user_id
@@ -37,10 +39,11 @@ class ProfileTestCase(TestCase):
         profile.save()
 
         updateProfile = Profile.objects.get(user_id = user_id)
-        self.assertEqual(updateProfile.user_id, user_id)
-        self.assertEqual(updateProfile.displayName, displayName)
-        self.assertEqual(updateProfile.firstName, fname)
-        self.assertEqual(updateProfile.lastName, lname)
-        self.assertEqual(updateProfile.email, email)
-        self.assertEqual(updateProfile.github, github)
-        self.assertEqual(updateProfile.bio, bio)
+
+        self.assertEqual(updateProfile.user_id, user_id, "user id does not match")
+        self.assertEqual(updateProfile.displayName, displayName, "display name does not match")
+        self.assertEqual(updateProfile.firstName, fname, "first name does not match")
+        self.assertEqual(updateProfile.lastName, lname, "last name does not match")
+        self.assertEqual(updateProfile.email, email, "email does not match")
+        self.assertEqual(updateProfile.github, github, "github does not match")
+        self.assertEqual(updateProfile.bio, bio, "bio does not match")
