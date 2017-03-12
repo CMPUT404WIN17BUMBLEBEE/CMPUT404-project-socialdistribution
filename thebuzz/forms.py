@@ -3,12 +3,14 @@
 from django import forms
 from django.forms import ModelForm, Textarea
 from datetime import datetime
+import CommonMark
+ 
 from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['displayName', 'firstName', 'lastName', 'email', 'githubUsername', 'bio']
+        fields = ['displayName', 'firstName', 'lastName', 'email', 'github', 'bio']
         widgets = {
             'bio': Textarea(attrs={'cols': 80, 'rows': 20}),
         }
@@ -17,13 +19,24 @@ class ProfileForm(forms.ModelForm):
             'firstName': 'First Name:',
             'lastName': 'Last Name:',
             'email': 'Email:',
-            'githubUsername': 'GitHub Username:',
+            'github': 'GitHub:',
             'bio': 'About Me:'
         }
 
 class PostForm(forms.Form):
-    posted_text = forms.CharField(max_length=2000)
-    date_created = forms.DateTimeField()
+    title = forms.CharField(max_length = 100)
+    content = forms.CharField(max_length=2000, widget=forms.Textarea)
+    published = forms.DateTimeField()
+
+    CHOICES=[('PUBLIC','Public'),
+         ('FRIENDS','Friends'),
+	 ('FOAF', 'Friend of A Friend'),
+	 ('PRIVATE', 'Private'),
+	 ('SERVERONLY', 'Members of this server only')]
+
+    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
+
+    #image = forms.ImageField()
 
 class CommentForm(ModelForm):
 

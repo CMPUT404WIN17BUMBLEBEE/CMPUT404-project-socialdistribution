@@ -1,0 +1,9 @@
+<h2>Friend Requests</h2>
+
+{% for request in requests %}
+    <p>{{ request.displayName }}</p>
+    <form action = '/friend/' method='POST'>
+        <input type='submit' value='Accept'/>
+    </form>
+{% endfor %}
+

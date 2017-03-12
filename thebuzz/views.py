@@ -10,10 +10,14 @@ from django.template import Context, loader
 from .models import Post, Comment, Profile, Friends
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
+import CommonMark
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -21,15 +25,25 @@ from django.utils import timezone
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
+
          if form.is_valid():
-             form.save()
+             username = form.cleaned_data['username']
+             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+             user = User.objects.create(username=username, password=password)
+
+             profile = Profile.objects.get(user_id=user.id)
+             profileForm = ProfileForm(request.POST, instance=profile)
+             profileForm.save()
+
              return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
+         profileForm = ProfileForm()
      token = {}
      token.update(csrf(request))
      token['form'] = form
+     token['profileForm'] = profileForm
 
      return render_to_response('registration/registration_form.html', token)
 
@@ -56,7 +70,7 @@ def homePage(request):
     following = request.user.profile.get_all_following()
     print "following: " + str(following)
 
-    return render(request, 'registration/home.html',{'data': data, 'following': following })
+    return render(request, 'friends/friends.html',{'data': data, 'following': following })
 		
 
 	 #else: #change this later to account for the other 2 cases ******
@@ -80,7 +94,7 @@ def edit_profile(request):
 
         return redirect('profile')
     else:
-        profile = Profile.objects.get(pk=request.user.id)
+        profile = Profile.objects.get(user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
@@ -89,8 +103,7 @@ def edit_profile(request):
 
 # -------------- FRIEND VIEWS --------------------
 
-def accept_friend_request(request):
-    if request.method == 'POST':
+#def accept_friend_request(request):
 
 
 
@@ -102,11 +115,11 @@ def accept_friend_request(request):
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
-
+@login_required(login_url = '/login/')
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
+	latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
 
 	#template = loader.get_template('index.html')
 
@@ -119,7 +132,7 @@ def posts(request):
 	return render(request, 'posts/posts.html', context)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
-
+@login_required(login_url = '/login/')
 def post_detail(request, post_id):
     try:
         post = Post.objects.get(pk=post_id)
@@ -135,9 +148,11 @@ def post_detail(request, post_id):
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
 
+@login_required(login_url = '/login/')
 def add_comment(request, post_id):
 
     post = get_object_or_404(Post, pk=post_id)
+    author = Profile.objects.get(user_id=request.user.id)
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -145,19 +160,26 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = request.user.profile 
+            comment.author = Profile.objects.get(pk=request.user.id)
             comment.associated_post = post
+            comment.date_created = timezone.now()
             comment.save()
 
-        return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
+
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+
 
     else:
         form = CommentForm()
+
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
+
+#CommonMark code help from: https://pypi.python.org/pypi/CommonMark
+@login_required(login_url = '/login/')
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
@@ -165,47 +187,37 @@ def post_form_upload(request):
         # A POST request: Handle Form Upload
         form = PostForm(request.POST) # Bind data from request.POST into a PostForm
 
+	parser = CommonMark.Parser()
+	renderer = CommonMark.HtmlRenderer()
+
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
-            posted_text = form.cleaned_data['posted_text']
-            date_created = form.cleaned_data['date_created']
-            post = Post.objects.create(posted_text=posted_text,
-                                         date_created=date_created)
+	    title = form.cleaned_data['title']
+            content = form.cleaned_data['content']
+	    ast = parser.parse(content)
+	    html = renderer.render(ast)
+            published = form.cleaned_data['published']
+            post = Post.objects.create(title = title,
+                                       content=html,
+                                       published=published,
+				       associated_author = request.user,
+				       source = request.META.get('HTTP_REFERER'),
+				       origin = 'huh',
+				       description = content[0:97] + '...',
+				       visibility = form.cleaned_data['choose_Post_Visibility'],
+                                       )
             return HttpResponseRedirect(reverse('post_detail',
-                                                kwargs={'post_id': post.id}))
+                                                kwargs={'post_id': str(post.id) }))
 
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
 
-#again parts of code from
-#http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
-# NOT WORKING
-def post_upload(request):
-	if request.method =='GET':
-
-		two_days_ago = datetime.utcnow() - timedelta(days=2)
-
-		latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
-
-		#template = loader.get_template('index.html')
-
-		context = {
-
-		'post_upload': latest_posts_list
-
-		}
-
-		return render(request, 'posts/post_form_upload.html', context)
-	elif request.method == 'POST':
-		#fix after GET is working...
-		post = Post.objects.create(content=request.POST['posted_text'],
-			date_created=datetime.utcnow() )
-		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 def DeletePost(request, post_id):
-   post = get_object_or_404(Post, pk=post_id).delete() 
+   post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
+
 
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/

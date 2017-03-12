@@ -4,10 +4,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-import uuid
-
-
-import uuid
+import datetime, uuid
 
 #---------------------------------------------------------------------------------------------
 # PROFILE AND USER STUFF
@@ -16,7 +13,7 @@ class Profile(models.Model):
 
     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     displayName = models.CharField(max_length=200,blank=True)
-    githubUsername = models.CharField(max_length=200,blank=True)
+    github = models.CharField(max_length=200,blank=True)
     firstName = models.CharField(max_length=200,blank=True)
     lastName = models.CharField(max_length=200,blank=True)
     email = models.CharField(max_length=400,blank=True)
@@ -24,9 +21,9 @@ class Profile(models.Model):
     
     following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
 
-    friends = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friends')
+    #friends = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friends')
 
-    friend_requests = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friend_requests')
+    #friend_requests = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='friend_requests')
 
     #friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
@@ -78,10 +75,28 @@ def save_user_profile(sender,instance, **kwargs):
 #because I have no idea what im doing
 
 class Post(models.Model):
-    #assuming links would go in as text? may have to change later
-    posted_text = models.CharField(max_length =2000)
-    date_created = models.DateTimeField('DateTime created')
-    post_privacy = 1
+	#assuming links would go in as text? may have to change later
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDDING the primary key id that django implements	
+	title = models.CharField(max_length = 100, default='No Title') 
+	source = models.CharField(max_length = 2000)
+	origin = models.CharField(max_length = 2000)
+	description = models.CharField(max_length =100) 
+	content = models.TextField(max_length =2000)
+	#content types can be:
+	#text/markdown -> included markdown in their post
+	#text/plain    -> plain ol' post. No images or nothing. Default value for now
+	#application/base64 -> dunno yet, just an image?
+	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
+	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
+	contentType = models.CharField(max_length = 2000, default='text/plain')   
+	published = models.DateTimeField('DateTime created') 
+	categories = []
+	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
+	visibility = models.CharField(default ="PUBLIC", max_length=20)  
+	visibileTo = []
+	unlisted = False
+        #idk, added default so it would stop complaining
+        associated_author = models.ForeignKey(User, default="")
 
 
 class Comment(models.Model):
