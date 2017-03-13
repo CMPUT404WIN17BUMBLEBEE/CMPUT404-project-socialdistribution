@@ -5,8 +5,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
 class post_tests(TestCase):
-    user_id = 0
-
     def setUp(self):
         global user_id
         password = make_password("password123")
@@ -14,7 +12,6 @@ class post_tests(TestCase):
         user_id = user.id
 
     def test_create_post(self):
-        global user_id
         user = User.objects.get(id=user_id)
 
         title = "Test Title"
@@ -48,8 +45,6 @@ class post_tests(TestCase):
 
 
     def test_create_comment(self):
-        global user_id
-
         post = Post.objects.create(
             content = "test post text",
             published = datetime.now(),
@@ -68,3 +63,14 @@ class post_tests(TestCase):
         self.assertIsInstance(comment.date_created, datetime, "created date is not a datetime instance")
         self.assertEqual(comment.associated_post, post, "associated with the correct post")
         self.assertIsInstance(comment, Comment, "Not a comment object")
+
+    def test_get_posts(self):
+        user = User.objects.get(id=user_id)
+
+        response = self.client.get("/posts/")
+        self.assertEquals(response.status_code, 302, "able to get to posts page")
+
+        self.client.login(username='TestUser', password='password123')
+
+        response = self.client.get("/posts/")
+        self.assertEquals(response.status_code, 200, "not able to get to posts page")

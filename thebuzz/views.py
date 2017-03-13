@@ -51,42 +51,6 @@ def register(request):
 
 def registration_complete(request):
      return render_to_response('registration/registration_complete.html')
-
-#for showing the home page/actually logging in
-#3 ways to get here:
-#-logged in
-#-already logged in, used a cookie
-#-registered
-#edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
-@login_required(login_url = '/login/')
-def homePage(request):
-	 #if this person has just logged in
-    if request.method == 'POST': #for testing purposes only
-        
-        # get the person i want to follow
-        friend = User.objects.get(username = request.POST['befriend'])
-        friend_profile = Profile.objects.get(pk=friend.id)
-
-        # follow that person
-        request.user.profile.follow(friend_profile)
-        friend_profile.add_user_following_me(request.user.profile)
-
-    users = User.objects.all() #for testing purposes only
-    
-    # get all the people I am currently following
-    following = request.user.profile.get_all_following()
-
-    # get all the people that are following me, that I am not friends with yet
-    followers = request.user.profile.get_all_followers()
-
-    friends = request.user.profile.get_all_friends()
-
-    return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
-		
-
-	 #else: #change this later to account for the other 2 cases ******
-	 #	return render_to_response('registration/login.html')
-
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
 
 # PROFILE VIEWS
@@ -115,13 +79,27 @@ def edit_profile(request):
 
 # ------------ FRIENDS VIEWS ---------------------
 def friends (request):
-    #TODO: add retrieval of friends list and such for viewing
+        if request.method == 'POST': #for testing purposes only
 
-    context = {
-	   #TODO: add your objects here you want to display in the form
-	}
+            # get the person i want to follow
+            friend = User.objects.get(username = request.POST['befriend'])
+            friend_profile = Profile.objects.get(pk=friend.id)
 
-    return render(request, 'friends/friends.html', context)
+            # follow that person
+            request.user.profile.follow(friend_profile)
+            friend_profile.add_user_following_me(request.user.profile)
+
+        users = User.objects.all() #for testing purposes only
+
+        # get all the people I am currently following
+        following = request.user.profile.get_all_following()
+
+        # get all the people that are following me, that I am not friends with yet
+        followers = request.user.profile.get_all_followers()
+
+        friends = request.user.profile.get_all_friends()
+
+        return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
 
 def add_friends (request):
     if request.method == 'POST':
@@ -149,7 +127,7 @@ def delete_friend (request, profile_id):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	
+
 
 	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
@@ -239,7 +217,7 @@ def post_form_upload(request):
 	      entries = form.cleaned_data['privacy_textbox']
 	      #visible_to = form.cleaned_data['privacy_textbox']
 	      entries = entries.split(',')
-              
+
 	      for item in entries:
 		visible_to += item
                 #visible_to.append(item)

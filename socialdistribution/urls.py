@@ -15,8 +15,8 @@ urlpatterns = [
     url(r'^posts/$', 'thebuzz.views.posts', name='posts'),
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),
     url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
-    
-    
+
+
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
     url(r'^posts/(?P<post_id>[0-9A-Fa-f-]+)/delete/$', 'thebuzz.views.DeletePost', name="delete_comment"),
 
@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^profile/edit_profile$', 'thebuzz.views.edit_profile', name='edit_profile'),
 
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
-    url(r'^friends/$', 'thebuzz.views.homePage', name='friends'),
+    url(r'^friends/$', 'thebuzz.views.friends', name='friends'),
     url(r'^friends/add_friends$', 'thebuzz.views.add_friends', name='add_friend'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
 

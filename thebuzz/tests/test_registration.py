@@ -3,8 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
 class RegistrationTestCase(TestCase):
-    user_id = 0
-
+    
     def setUp(self):
         global user_id
         password = make_password("password123")
