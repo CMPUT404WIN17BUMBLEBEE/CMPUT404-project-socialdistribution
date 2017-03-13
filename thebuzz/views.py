@@ -181,16 +181,24 @@ def posts(request):
     friends  = author.get_all_friends()
     if len(friends) > 0:
         for friend in friends:
+            # get all posts for friends
             f = User.objects.get(pk=friend.id)
-            posts = Post.objects.filter(associated_author=f)
-            for friend in friends:
-                # get all posts of the friend that are not private
-                posts = Post.objects.filter(associated_author=f).exclude(visibility='PRIVATE')
+            # get all posts of the friend that are not private
+            posts = Post.objects.filter(associated_author=f).exclude(visibility='PRIVATE')
 
-                for post in posts:
-                    post_list.append(post)
+            for post in posts:
+                post_list.append(post)
 
-    
+            # get all posts for friends of friends
+            foafs = friend.get_all_friends()
+            if len(foafs) > 0:
+                for foaf in foafs:
+                    foaf_user = User.objects.get(pk=foaf.id)
+                    # get all posts of the foaf that are not private or only for friends
+                    foaf_posts = Post.objects.filter(associated_author=foaf_user).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+
+                    for foaf_post in foaf_posts:
+                        post_list.append(foaf_post)
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
