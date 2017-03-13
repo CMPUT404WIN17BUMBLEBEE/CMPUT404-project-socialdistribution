@@ -89,6 +89,10 @@ DATABASES = {
     }
 }
 
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'] = db_from_env
+
 LOGIN_REDIRECT_URL = '/posts/'
 
 # Internationalization
@@ -120,4 +124,7 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(PROJECT_DIR, 'staticfiles'),
+    os.path.join(PROJECT_ROOT, '../thebuzz/static'),
 )
+
+STATICFILES_STORAGE ='whitenoise.django.GzipManifestStaticFilesStorage'
