@@ -19,7 +19,8 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
 import json
-
+from django.db.models import Lookup
+from itertools import chain
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -143,9 +144,48 @@ def add_friends (request):
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
+	friends = request.user.profile.get_all_friends()
+	posts = Post.objects.all()
+	#print posts
+	#print friends	
+	#print 'those are my friends'
+	#for p in friends:
+	  #print p.id
+
+	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user) 
+
+	possible_friend_posts = ( Post.objects.filter(visibility__exact='FRIENDS') )
+	
+	#clients = Client.objects.filter(name__contains=search)
+	#result = Post.objects.filter(associated_author__in=friends)
+
+	#posts_friends_ids = ( Post.objects.all().values('associated_author') )
+	
+	#for po in posts_friends_ids:
+	#  print po.get('associated_author')
+
+	#for t in posts_friends_ids:
+	#  friend_posts = Post.objects.filter(t.get('associated_author') )
+	
+	
+	for q in friends:
+	  friends_posts = Post.objects.raw("SELECT * FROM Post WHERE associated_author = %s", q.id)
+	  
 	
 
-	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
+	#result_list = ''
+	#for p, q in zip(possible_friend_posts, friends):
+	#  print 'in loop'
+	#  print p.associated_author.id
+	#  print q.id
+	#  if(p.associated_author.id == q.id):
+	    #have a matching pair, keep that post in the set
+	#    print 'AH HA!'
+	#    result_list = list(chain(p, result_list))
+		    
+ 
+	#print possible_friend_posts
+	#print 'ummm'
 
 	#template = loader.get_template('index.html')
 
@@ -300,3 +340,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
 # END POSTS AND COMMENTS
+
+
+#CUSTOM QUERY STUFF ------------------------------------------------
+#from django.db.models.fields import Field
+#Field.register_lookup(Is_My_Friend)
+
+
+#class Is_My_Friend(Lookup):
+#    lookup_name = 'is_my_friend'
+
+#    def as_sql(self, compiler, connection):
+#        lhs, lhs_params = self.process_lhs(compiler, connection)
+#        rhs, rhs_params = self.process_rhs(compiler, connection)
+#        params = lhs_params + rhs_params
+#        return '%s <> %s' % (lhs, rhs), params
+
+#END OF CUSTOM QUERY STUFF -----------------------------------------
+
