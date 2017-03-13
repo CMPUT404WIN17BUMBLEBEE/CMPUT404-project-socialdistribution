@@ -1,0 +1,100 @@
+#form {
+  width: 800px;
+  margin: 25px auto;
+  font-size: 18pt;
+}
+
+#user_select {
+  width: 175px;
+  height: 25px;
+  font-size:10pt;
+  margin: 0px 15px;
+}
+
+#request_btn{
+  width: 150px;
+  height: 35px;
+  font-size:14pt;
+  background-color: #000000;
+  color: #ffd11a;
+}
+
+#requests{
+  display:table;
+  margin:35px 0px;
+  width: 100%;
+}
+
+.request_titles {
+  font-size: 16pt;
+  background-color: #000000;
+  color: #ffd11a;
+  padding: 5px;
+  border: 1px solid;
+}
+
+.request_blocks {
+  display:table-cell;
+  border: 1px solid black;
+  font-size: 14pt;
+  width: 50%;
+}
+
+.request_list {
+  padding: 10px;
+  font-size: 12pt;
+}
+
+.followers_div {
+  width: 100%;
+  display: inline-flex;
+}
+
+.followers_div input[type='submit'], button {
+  background-color: #ffd11a;
+  color: #000000;
+}
+
+.add_btn {
+  text-align: right;
+  width: 25%;
+}
+
+.followers {
+  width: 75%;
+}
+
+.each_friend {
+  width: 100%;
+  display: inline-flex;
+  border-top: 1px solid #ffd11a;
+  padding: 10px 0px;
+}
+
+.friends_name {
+  width: 75%;
+  padding-left: 15px;
+}
+
+.unfrend_btn {
+  text-align: center;
+  width: 25%;
+}
+
+#friends-block {
+  font-size: 16pt;
+  background-color: #000000;
+  color: #fff5cc;
+  padding: 5px;
+}
+
+#friend-title {
+  font-size: 22pt;
+  background-color: #ffd11a;
+  color: #000000;
+  padding: 5px;
+}
+
+#no-friends {
+  padding: 15px;
+}
