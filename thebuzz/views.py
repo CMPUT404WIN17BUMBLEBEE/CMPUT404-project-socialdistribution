@@ -25,32 +25,32 @@ import json
 # SIGNING UP
 
 def register(request):
-     if request.method == 'POST':
-         form = UserCreationForm(request.POST)
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
 
-         if form.is_valid():
-             username = form.cleaned_data['username']
-             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
-             user = User.objects.create(username=username, password=password)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+            user = User.objects.create(username=username, password=password)
 
-             profile = Profile.objects.get(user_id=user.id)
-             profileForm = ProfileForm(request.POST, instance=profile)
-             profileForm.save()
+            profile = Profile.objects.get(user_id=user.id)
+            profileForm = ProfileForm(request.POST, instance=profile)
+            profileForm.save()
 
-             return HttpResponseRedirect('/register/complete')
+            return HttpResponseRedirect('/register/complete')
 
-     else:
-         form = UserCreationForm()
-         profileForm = ProfileForm()
-     token = {}
-     token.update(csrf(request))
-     token['form'] = form
-     token['profileForm'] = profileForm
+    else:
+        form = UserCreationForm()
+        profileForm = ProfileForm()
+    token = {}
+    token.update(csrf(request))
+    token['form'] = form
+    token['profileForm'] = profileForm
 
-     return render_to_response('registration/registration_form.html', token)
+    return render_to_response('registration/registration_form.html', token)
 
 def registration_complete(request):
-     return render_to_response('registration/registration_complete.html')
+    return render_to_response('registration/registration_complete.html')
 
 #for showing the home page/actually logging in
 #3 ways to get here:
@@ -147,19 +147,51 @@ def delete_friend (request, profile_id):
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def posts(request):
-	two_days_ago = datetime.utcnow() - timedelta(days=2)
+    two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	
+    post_list = []
 
-	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
+    author = request.user.profile
+    a = User.objects.get(pk=author.id)
+
+    # get all public posts
+    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    for post in posts:
+        post_list.append(post)
+
+    # get all my private posts
+    posts = Post.objects.filter(associated_author=a)
+    for post in posts:
+        post_list.append(post)
+
+    # get friends post of friends
+    friends  = author.get_all_friends()
+    if len(friends) > 0:
+        for friend in friends:
+            f = User.objects.get(pk=friend.id)
+            posts = Post.objects.filter(associated_author=f)
+            for friend in friends:
+                # get all posts of the friend that are not private
+                posts = Post.objects.filter(associated_author=f).exclude(visibility='PRIVATE')
+
+                for post in posts:
+                    post_list.append(post)
+
+    
+
+	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
-	context = {
-	   'possible_posts_list': possible_posts_list
-	}
+    context = {}
 
-	return render(request, 'posts/posts.html', context)
+    context = {
+        'post_list': set(post_list) # make sure values in list are distinct     
+    }
+
+    print "post_list: " + str(post_list)
+
+    return render(request, 'posts/posts.html', context)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
