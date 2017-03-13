@@ -112,24 +112,23 @@ class Post(models.Model):
 	#text/plain    -> plain ol' post. No images or nothing. Default value for now
 	#application/base64 -> dunno yet, just an image?
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
-	#image/jpeg;base64 ->embedded jpeg. Same as above I assume
+    #image/jpeg;base64 ->embedded jpeg. Same as above I assume
     image = models.ImageField(null=True, blank=True)
     contentType = models.CharField(max_length = 2000, default='text/plain')   
     published = models.DateTimeField(auto_now=True) 
     categories = []
-	# visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
+    # visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
     visibility = models.CharField(default ="PUBLIC", max_length=20)
     visibleTo = models.CharField(max_length = 1000, blank=True) #need to CONVERT this into JSON. Functions below
     unlisted = False
     associated_author = models.ForeignKey(User, blank=True)
 
     def setVisibleTo(self, x): #writes over it for now
-        self.visibleTo = json.dumps(x)
-        print visibleTo
+	    self.visibleTo = json.dumps(x)
+	    print visibleTo
 
     def getVisibleTo(self):
-        return json.loads(self.visibleTo)
-
+	    return json.loads(self.visibleTo)
 
 
 class Img(models.Model):
