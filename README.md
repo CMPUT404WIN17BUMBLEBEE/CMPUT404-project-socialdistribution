@@ -33,10 +33,12 @@ Contributors:
 
 
 Documentation can be found at:
+=============================
 
 thebuzz/docs
 
 Heroku demo:
+============
 https://secret-crag-38714.herokuapp.com/ 
 
 Resources:  
