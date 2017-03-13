@@ -35,7 +35,7 @@ Contributors:
 Documentation can be found at:
 =============================
 
-thebuzz/docs
+https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wiki/API-Documentation
 
 Heroku demo:
 ============
