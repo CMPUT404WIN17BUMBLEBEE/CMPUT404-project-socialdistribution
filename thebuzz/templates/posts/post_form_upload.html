@@ -1,3 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Post Detail</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script>
+ //help with making a textbox appear from
+ //Umesh Patil (http://stackoverflow.com/users/2833565/umesh-patil)
+ //http://stackoverflow.com/questions/9634783/how-to-activate-a-textbox-if-i-select-an-other-option-in-drop-down-box
+
+//checks on entry to the page if the 'visible to' box should be there
+$(document).ready(function(){
+  var privacy_textbox = document.getElementById('privacy_textbox');
+  var dropdown = document.getElementById('vis_dropdown');
+
+  console.log(dropdown.value);
+  if(dropdown.value == 'PRIVATE'){
+    privacy_textbox.disabled = false;
+  }else{
+     privacy_textbox.disabled=true; 
+
+   }
+
+});
+
+//the onChange of the dropdown widget
+function privacyBox(val){ 
+  var privacy_textbox = document.getElementById('privacy_textbox');
+  console.log(val.value);
+  if(val.value=='PRIVATE'){
+    privacy_textbox.disabled = false;
+  }else{
+     privacy_textbox.disabled=true; 
+
+   }
+}
+
+
+
+</script>
+</head>
+<body>
+
+
 {% extends 'base.html' %}
 
 {% load static %}
@@ -5,11 +49,18 @@
 {% block title %}Create Post{% endblock %}
 
 {% block extra_head %}
+  <link href="{% static 'form.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block content %}
-    <form action='/posts/post_form_upload.html' method='post'>{% csrf_token %}
+<div id="form">
+    <form action='/posts/post_form_upload.html' method='post' enctype="multipart/form-data">{% csrf_token %}
       {{ form.as_p }}
-      <input type='submit' value='Submit' />
+      <div id="button">
+        <input type='submit' value='Submit' />
+      </div>
     </form>
+  </div>
 {% endblock %}
+</body>
+</html> 

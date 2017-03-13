@@ -1,10 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Post Detail</title>
-</head>
-<body>
-
 {% extends 'base.html' %}
 
 {% load static %}
@@ -12,34 +5,34 @@
 {% block title %}Post{% endblock %}
 
 {% block extra_head %}
+  <link href="{% static 'post_details.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block content %}
-  <div>
-    <h1>{{ post.title }}</h1>                                                    
-    <h2>{{ post.content | safe }}</h2>                                              
-    <h2>{{ post.published }}</h2>
-    <h2>{{ post.visibility }}</h2>
-    <h2>{{ post.associated_author }}</h2>
-    <h2>{{ post.source }}</h2>
-      <h1>Comments: </h1>
-
+  <div id="detail_content">
+    <div id="post-title-bar">
+      <div id="author">{{ post_author }}</div>
+      <div id="title"><u>{{ post.title }}</u></div>
+    </div>
+    <div id="post_body">{{ post.content | safe }}</div>
+    <div id="date">{{ post.published }}</div>
+    <div id="comment-label">Comments: </div>
       {% if comments %}
-          <ul class='comments'>
-
           {% for comment in comments.all %}
-              <span>{{ comment.content }}</span>
-              <p>{{ comment.date_created }}</p>
+            <div class="comment-sections">
+              <div id="comment-title-bar">
+                <div id="comment_author">{{ comment.author.displayName }}</div>
+                <div id="comment_date">{{ comment.date_created }}</div>
+              </div>
+              <div>{{ comment.content }}</div>
+            </div>
           {% endfor %}
-          </ul>
       {% else %}
-          <span>No comments</span>
+        <div id="no-comments">No comments</div>
       {% endif %}
-      </br>
-      </br>
-      <a href="/posts/{{ post.id }}/add_comment.html">Add Comment</a>
-
+    </br>
+      <a href="/posts/{{ post.id }}/add_comment.html">
+        <button type="button">Add Comment</button>
+      </a>
   </div>
-</body>
-</html> 
 {% endblock %}

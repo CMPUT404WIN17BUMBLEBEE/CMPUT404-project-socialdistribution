@@ -4,7 +4,7 @@ from django import forms
 from django.forms import ModelForm, Textarea
 from datetime import datetime
 import CommonMark
- 
+
 from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):
@@ -25,17 +25,19 @@ class ProfileForm(forms.ModelForm):
 
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)
-    content = forms.CharField(max_length=2000, widget=forms.Textarea)
-    published = forms.DateTimeField()
+    content = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}))
 
     CHOICES=[('PUBLIC','Public'),
          ('FRIENDS','Friends'),
 	 ('FOAF', 'Friend of A Friend'),
 	 ('PRIVATE', 'Private'),
 	 ('SERVERONLY', 'Members of this server only')]
-    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
 
-    #image = forms.ImageField()
+    choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True, widget=forms.Select(attrs={"onChange":'privacyBox(this)', 'id': 'vis_dropdown'}) )
+
+    image_upload = forms.ImageField(label='Image', required=False)
+    
+    privacy_textbox = forms.CharField(label='Visible to', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
 
 class CommentForm(ModelForm):
 
@@ -44,4 +46,7 @@ class CommentForm(ModelForm):
         fields = ['content']
         labels = {
             'content': 'Comment'
+        }
+        widgets = {
+            'content':Textarea(attrs={'cols': 70, 'rows': 10})
         }

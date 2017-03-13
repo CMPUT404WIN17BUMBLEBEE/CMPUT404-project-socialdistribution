@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Add Friend{% endblock %}
+
+{% block extra_head %}
+  <link href="{% static 'friends.css' %}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block content %}
+  <div id="form">
+    <form action = '/friends/' method = 'POST'>{% csrf_token %}
+        <div>
+          <span>Select a user to friend: </span>
+          <select id="user_select" name="befriend">
+            {% for user in users %}
+                {% if user.username != request.user.username %}
+                    <option value='{{user.username}}'>{{ user.username }}</option>
+                {% endif %}
+            {% endfor %}
+          </select>
+          <input id="request_btn" type='submit' value='Send Request'></input>
+        </div>
+    </form>
+
+  <div id="requests">
+    <div class="request_blocks" id="pending_friends">
+      <div class="request_titles">Pending Friend Requests (Waiting on them)</div>
+      <div class="request_list">
+        {% if following %}
+          {% for user in following %}
+            <div>{{ user }}</div>
+          {% endfor %}
+        {% else %}
+          <div>No pending friend requests</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="request_blocks" id="friend_requests">
+      <div class="request_titles">Friend Requests (Respond to)</div>
+      <form action='/friends/' method='POST'>{% csrf_token %}
+        <div class="request_list">
+          {% if followers %}
+            {% for follower in followers %}
+              <div class="followers_div">
+                <div class="followers">
+                  {{ follower }}
+                </div>
+                <!--TODO: Figure out a way to have a button inline with the friend request
+                  <div class="add_btn">
+                    <input type='submit' value='Add'></input>
+                  </div>
+                -->
+              </div>
+            {% endfor %}
+          {% else %}
+            <div>No friend requests waiting</div>
+          {% endif %}
+        </div>
+    </div>
+  </div>
+
+  <div id="friends-block">
+    <div id="friend-title">Friends</div>
+    {% if friends %}
+      {% for friend in friends %}
+        <div class="each_friend">
+          <div class="friends_name">{{ friend }}</div>
+          <div class="unfrend_btn">
+            <a href="/friends/{{ friend.id }}/delete_friend">
+                <button type="button">Unfriend</button>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div id="no-friends">Friends list is empty</div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> <!--Put all script in .js file later -->
+<script type="text/javascript">
+//function addfriend(user){
+//var tmp = "{{request.user.username|escapejs}}";
+//alert(user);
+
+//sendJSONXMLHTTPRequest("/home/", uhhhhh, callback)
+//}
+/*
+function updateFriends(){ //send a POST request to update the server using jQuery
+    var data = {'profile': pieFact};
+    $.post(URL, data, function(response){
+        if(response === 'success'){ alert('Yay!'); }
+        else{ alert('Error! :('); }
+    });
+}*/
+
+/*
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            try {
+                if (xhr.status==200) {
+
+		    if(callback !== null){
+		    callback(JSON.parse(xhr.responseText));
+		    }
+                }
+            }
+            catch(e) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.setRequestHeader("Accept", "*");
+	xhr.send(JSON.stringify(objects));
+	}	*/
+</script>

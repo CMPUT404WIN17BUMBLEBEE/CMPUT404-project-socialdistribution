@@ -4,18 +4,21 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile
+from .models import Post, Comment, Profile, Img
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
-import CommonMark
+import CommonMark, imghdr
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.db.models import Q
+import json
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -71,20 +74,66 @@ def edit_profile(request):
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 # END PROFILE VIEWS
 
+
+
+# ------------ FRIENDS VIEWS ---------------------
+def friends (request):
+        if request.method == 'POST': #for testing purposes only
+
+            # get the person i want to follow
+            friend = User.objects.get(username = request.POST['befriend'])
+            friend_profile = Profile.objects.get(pk=friend.id)
+
+            # follow that person
+            request.user.profile.follow(friend_profile)
+            friend_profile.add_user_following_me(request.user.profile)
+
+        users = User.objects.all() #for testing purposes only
+
+        # get all the people I am currently following
+        following = request.user.profile.get_all_following()
+
+        # get all the people that are following me, that I am not friends with yet
+        followers = request.user.profile.get_all_followers()
+
+        friends = request.user.profile.get_all_friends()
+
+        return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
+
+def add_friends (request):
+    if request.method == 'POST':
+        #TODO: Retrieve form data and save to model
+        return redirect('friends')
+    else:
+        #TODO: Retrieve set correct form
+        form = ""
+
+    return render(request, 'profile/edit_profile_form.html', {'form': form})
+
+def delete_friend (request, profile_id):
+
+    friend = Profile.objects.get(pk=profile_id)
+    request.user.profile.unfriend(friend)
+    return HttpResponseRedirect(reverse('friends'))
+
+# ----------- END FRIENDS VIEWS -------------
+
+
+
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def posts(request):
 	two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	latest_posts_list = Post.objects.filter(published__gt=two_days_ago).all()
+
+
+	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
 	context = {
-
-	'latest_posts_list': latest_posts_list
-
+	   'possible_posts_list': possible_posts_list
 	}
 
 	return render(request, 'posts/posts.html', context)
@@ -103,7 +152,8 @@ def post_detail(request, post_id):
     except Comment.DoesNotExist:
         comments = Comment.objects
 
-    return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
+    displayName = Profile.objects.get(user_id=post.associated_author).displayName
+    return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
 
 
 @login_required(login_url = '/login/')
@@ -137,30 +187,73 @@ def add_comment(request, post_id):
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
+	print 'am I here?'
     else:
         # A POST request: Handle Form Upload
-        form = PostForm(request.POST) # Bind data from request.POST into a PostForm
+        form = PostForm(request.POST, request.FILES) # Bind data from request.POST into a PostForm
+	print 'or am i here?'
 
 	parser = CommonMark.Parser()
 	renderer = CommonMark.HtmlRenderer()
 
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
-	    title = form.cleaned_data['title']
+            title = form.cleaned_data['title']
             content = form.cleaned_data['content']
 	    ast = parser.parse(content)
 	    html = renderer.render(ast)
-            published = form.cleaned_data['published']
-            post = Post.objects.create(title = title,
-                                       content=html,
+            published = timezone.now()
+	    image = form.cleaned_data['image_upload']
+	    visibility = form.cleaned_data['choose_Post_Visibility']
+	    visible_to = ''#[]
+
+	    if(visibility == 'PRIVATE'):
+	      #glean the users by commas for now
+	      entries = form.cleaned_data['privacy_textbox']
+	      #visible_to = form.cleaned_data['privacy_textbox']
+	      entries = entries.split(',')
+
+	      for item in entries:
+		visible_to += item
+                #visible_to.append(item)
+
+
+	    if image:
+	      #create Posts and Img objects here!
+	      #cType = imghdr.what(image.name)
+	      #if(cType == 'png'):
+	      #  contentType = 'image/png;base64'
+	      #elif(cType == 'jpeg'):
+	      #	contentType = 'image/jpeg;base64'
+	      imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
+              post = Post.objects.create(title = title,
+                                       content=html + "<p>" + imgItself,
                                        published=published,
 				       associated_author = request.user,
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
 				       description = content[0:97] + '...',
-				       visibility = form.cleaned_data['choose_Post_Visibility'],
-                                       )
-            return HttpResponseRedirect(reverse('post_detail',
+				       visibility = visibility,
+				       visibleTo = visible_to,
+                                       ) #json.dumps(visible_to)
+              myImg = Img.objects.create(associated_post = post,
+					 myImg = image )
+	      #can't make a whole new post for images, will look funny. Try this??
+
+	    else:
+	      #create a Post without an image here!
+	      post = Post.objects.create(title = title,
+                                       content=html ,
+                                       published=published,
+				       associated_author = request.user,
+				       source = request.META.get('HTTP_REFERER'),
+				       origin = 'huh',
+				       description = content[0:97] + '...',
+				       visibility = visibility,
+				       visibleTo = visible_to,
+                                       ) #json.dumps(visible_to)
+
+	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
 
     return render(request, 'posts/post_form_upload.html', {
