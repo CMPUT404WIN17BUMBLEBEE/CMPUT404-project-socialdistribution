@@ -24,6 +24,7 @@ import json
 # SIGNING UP
 
 def register(request):
+    profileForm = ""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
 
