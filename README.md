@@ -32,6 +32,10 @@ Contributors:
     Sarah Morris
 
 
+Documentation can be found at:
+
+thebuzz/docs
+
 Resources:  
 
 Some code was used and edited appropriately to set up the sign-up pages:
