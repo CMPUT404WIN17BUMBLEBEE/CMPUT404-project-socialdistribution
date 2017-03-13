@@ -42,3 +42,6 @@ https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-u
 
 Using Django's built-in login system:
 https://simpleisbetterthancomplex.com/tutorial/2016/06/27/how-to-use-djangos-built-in-login-system.html
+
+Good resource for doing many things from ModelForms to Testing:
+https://docs.djangoproject.com

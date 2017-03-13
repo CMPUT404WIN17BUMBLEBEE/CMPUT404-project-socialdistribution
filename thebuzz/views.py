@@ -13,6 +13,8 @@ import CommonMark
 from django.db import transaction
 from django.contrib.auth import logout
 from django.views.generic.edit import DeleteView
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 
 #------------------------------------------------------------------
@@ -21,39 +23,30 @@ from django.utils import timezone
 def register(request):
      if request.method == 'POST':
          form = UserCreationForm(request.POST)
+
          if form.is_valid():
-             form.save()
+             username = form.cleaned_data['username']
+             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+             user = User.objects.create(username=username, password=password)
+
+             profile = Profile.objects.get(user_id=user.id)
+             profileForm = ProfileForm(request.POST, instance=profile)
+             profileForm.save()
+
              return HttpResponseRedirect('/register/complete')
 
      else:
          form = UserCreationForm()
+         profileForm = ProfileForm()
      token = {}
      token.update(csrf(request))
      token['form'] = form
+     token['profileForm'] = profileForm
 
      return render_to_response('registration/registration_form.html', token)
 
 def registration_complete(request):
      return render_to_response('registration/registration_complete.html')
-
-#for showing the home page/actually logging in
-#3 ways to get here:
-#-logged in
-#-already logged in, used a cookie
-#-registered
-#otherwise, tell them to log in if theyre not
-#edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
-@login_required(login_url = '/login/')
-def homePage(request):
-	 #if this person has just logged in
-
-			return render(request, 'registration/home.html')
-		#else:
-			#invalid login page -- implement later
-
-	 #else: #change this later to account for the other 2 cases ******
-	 #	return render_to_response('registration/login.html')
-
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
 
 # PROFILE VIEWS
@@ -72,7 +65,7 @@ def edit_profile(request):
 
         return redirect('profile')
     else:
-        profile = Profile.objects.get(pk=request.user.id)
+        profile = Profile.objects.get(user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
@@ -113,9 +106,11 @@ def post_detail(request, post_id):
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments})
 
 
+@login_required(login_url = '/login/')
 def add_comment(request, post_id):
 
     post = get_object_or_404(Post, pk=post_id)
+    author = Profile.objects.get(user_id=request.user.id)
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -123,12 +118,13 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = request.user.profile 
+            comment.author = Profile.objects.get(pk=request.user.id)
             comment.associated_post = post
+            comment.date_created = timezone.now()
             comment.save()
 
-        return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
     else:
         form = CommentForm()
 
@@ -197,7 +193,7 @@ def post_upload(request):
 		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 def DeletePost(request, post_id):
-   post = get_object_or_404(Post, pk=post_id).delete() 
+   post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
 

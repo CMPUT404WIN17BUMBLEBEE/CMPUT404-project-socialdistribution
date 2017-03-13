@@ -1,0 +1,6 @@
+Are you sure you want to delete this post? {{ post.posted_text }}
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, delete it</button>
+</form>

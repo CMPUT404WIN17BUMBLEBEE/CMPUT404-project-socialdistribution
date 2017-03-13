@@ -10,7 +10,7 @@ from .models import Profile, Comment, Post
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['displayName', 'firstName', 'lastName', 'email', 'githubUsername', 'bio']
+        fields = ['displayName', 'firstName', 'lastName', 'email', 'github', 'bio']
         widgets = {
             'bio': Textarea(attrs={'cols': 80, 'rows': 20}),
         }
@@ -19,11 +19,10 @@ class ProfileForm(forms.ModelForm):
             'firstName': 'First Name:',
             'lastName': 'Last Name:',
             'email': 'Email:',
-            'githubUsername': 'GitHub Username:',
+            'github': 'GitHub:',
             'bio': 'About Me:'
         }
 
->>>>>>> 89f05232ed4a09e0e79fa0f003a26acd6326c130
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)
     content = forms.CharField(max_length=2000, widget=forms.Textarea)
@@ -35,7 +34,9 @@ class PostForm(forms.Form):
 	 ('PRIVATE', 'Private'),
 	 ('SERVERONLY', 'Members of this server only')]
     choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True )
-    
+
+    #image = forms.ImageField()
+
 class CommentForm(ModelForm):
 
     class Meta:
