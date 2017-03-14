@@ -31,7 +31,8 @@ urlpatterns = [
     url(r'^friends/add_friends$', 'thebuzz.views.add_friends', name='add_friend'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
 
-    url(r'^/', include('api.urls'))
+    # API urls
+    url(r'^', include('api.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
