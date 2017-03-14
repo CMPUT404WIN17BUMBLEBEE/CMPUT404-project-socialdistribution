@@ -5,8 +5,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 from django.conf import settings
 
-from router import router
-
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
@@ -33,7 +31,7 @@ urlpatterns = [
     url(r'^friends/add_friends$', 'thebuzz.views.add_friends', name='add_friend'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
 
-    url(r'^api/', include(router.urls))
+    url(r'^/', include('api.urls'))
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
