@@ -23,7 +23,7 @@ class PostDetailView(UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(self.queryset, id=kwargs['post_id'])
-        author = get_object_or_404(Author, id=request.user.author.id)
+        author = get_object_or_404(Profile, id=request.user.author.id)
         if is_authenticated_to_read(post, author):
             serializer = self.serializer_class(post)
             return Response(serializer.data)
@@ -45,7 +45,7 @@ class PostsAuthorCanSeeView(ListAPIView):
     pagination_class = PostsPagination
 
     def get_queryset(self):
-        author = get_object_or_404(Author, id=self.request.user.author.id)
+        author = get_object_or_404(Profile, id=self.request.user.author.id)
         return get_readable_posts(author, self.queryset)
 
 
@@ -56,7 +56,7 @@ class AuthorPostsView(ListAPIView):
 
     def get_queryset(self):
         authorposts = self.queryset.filter(author__id=self.kwargs['author_id'])
-        author = get_object_or_404(Author, id=self.request.user.author.id)
+        author = get_object_or_404(Profile, id=self.request.user.author.id)
         return get_readable_posts(author, authorposts)
 
 
@@ -67,14 +67,14 @@ class CommentView(ListAPIView):
 
     def get_queryset(self):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
-        author = get_object_or_404(Author, id=self.request.user.author.id)
+        author = get_object_or_404(Profile, id=self.request.user.author.id)
         if is_authenticated_to_read(post, author):
             return self.queryset.filter(post__id=self.kwargs['post_id']).order_by("-published")
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        author = get_object_or_404(Author, id=request.user.author.id)
+        author = get_object_or_404(Profile, id=request.user.author.id)
         if is_authenticated_to_read(post, author):
             serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
             serializer.is_valid(raise_exception=True)
@@ -95,16 +95,16 @@ class CommentView(ListAPIView):
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Author.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
 
 class FriendViewSet(viewsets.ModelViewSet):
-    queryset = Author.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = FriendSerializer
 
     def list(self, request, *args, **kwargs):
-        author = get_object_or_404(Author, id=kwargs['author_id'])
+        author = get_object_or_404(Profile, id=kwargs['author_id'])
         serializer = self.serializer_class(author.friends, many=True)
         friendlist = []
         for ele in serializer.data:
@@ -116,13 +116,13 @@ class FriendViewSet(viewsets.ModelViewSet):
         return Response(response, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
-        author = get_object_or_404(Author, id=kwargs['author_id'])
-        friend = get_object_or_404(Author, id=kwargs['pk'])
+        author = get_object_or_404(Profile, id=kwargs['author_id'])
+        friend = get_object_or_404(Profile, id=kwargs['pk'])
         if friend in author.friends.all():
             is_friend = True
         else:
             is_friend = False
-        authors = Author.objects.filter(id=kwargs['author_id']) | Author.objects.filter(id=kwargs['pk'])
+        authors = Profile.objects.filter(id=kwargs['author_id']) | Profile.objects.filter(id=kwargs['pk'])
         serializer = self.serializer_class(authors, many=True)
         friendlist = []
         for ele in serializer.data:
@@ -135,12 +135,12 @@ class FriendViewSet(viewsets.ModelViewSet):
         return Response(response, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        author = get_object_or_404(Author, id=kwargs['author_id'])
+        author = get_object_or_404(Profile, id=kwargs['author_id'])
         friends = author.friends.all()
         possible_friends_url = request.data.get('authors')
         friendlist = []
         for possible_friend_url in possible_friends_url:
-            possible_friend = get_object_or_404(Author, url=possible_friend_url)
+            possible_friend = get_object_or_404(Profile, url=possible_friend_url)
             if possible_friend in friends:
                 friendlist.append(possible_friend_url)
         response = OrderedDict([

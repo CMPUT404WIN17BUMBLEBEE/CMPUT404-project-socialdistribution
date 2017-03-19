@@ -78,7 +78,7 @@ def create_user_author(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.author.save()
+    instance.profile.save()
 
 
 @python_2_unicode_compatible

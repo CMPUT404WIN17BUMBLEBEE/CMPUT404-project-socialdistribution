@@ -37,7 +37,6 @@ MEDIA_URL = '/images/'
 INSTALLED_APPS = (
     'rest_framework',
     'thebuzz',
-    'api',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

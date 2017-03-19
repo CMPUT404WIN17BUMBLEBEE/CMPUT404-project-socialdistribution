@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 from rest_framework import routers
-from views import *
+from api_views import *
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/
 router = routers.DefaultRouter()

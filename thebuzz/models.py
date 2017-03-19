@@ -1,13 +1,45 @@
+import ast
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import datetime, uuid
 import json
 
 #---------------------------------------------------------------------------------------------
+
+# From jathanism http://stackoverflow.com/a/7394475
+class ListField(models.TextField):
+    __metaclass__ = models.SubfieldBase
+    description = "Stores a python list"
+
+    def __init__(self, *args, **kwargs):
+        super(ListField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if not value:
+            value = []
+
+        if isinstance(value, list):
+            return value
+
+        return ast.literal_eval(value)
+
+    def get_prep_value(self, value):
+        if value is None:
+            return value
+
+        return unicode(value)
+
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return self.get_db_prep_value(value)
+
+
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
@@ -19,6 +51,9 @@ class Profile(models.Model):
     lastName = models.CharField(max_length=200,blank=True)
     email = models.CharField(max_length=400,blank=True)
     bio = models.CharField(max_length=2000,blank=True)
+
+    host = models.URLField()
+    url = models.URLField()
     
     following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
 
@@ -32,6 +67,7 @@ class Profile(models.Model):
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
 
@@ -76,15 +112,18 @@ class Profile(models.Model):
         #pending = pending.exclude(pk__in=self.friends.all())
         return pending
         
-#class Friends(models.Model):
-#   sourceFriend = models.ForeignKey(Profile, related_name = 'source',default="")
-#   targetFriend = models.ForeignKey(Profile, related_name = 'target',default="")
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
 @receiver(post_save,sender=User)
 def create_user_profile(sender,instance, created, **kwargs):
     if created:
-         Profile.objects.create(user=instance)
+        # Based on  Southpaw Hare & Carl Meyer
+        # http://stackoverflow.com/a/1454986
+        # Todo: Does not work
+        host = Site.objects.get_current().domain
+        id = uuid.uuid4()
+        url = host + '/author/' + str(id)
+        Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender,instance, **kwargs):
@@ -97,31 +136,51 @@ def save_user_profile(sender,instance, **kwargs):
 #POSTS AND COMMENTS
 
 #taking influence from http://pythoncentral.io/writing-models-for-your-first-python-django-application/
-#because I have no idea what im doing
-
+@python_2_unicode_compatible
 class Post(models.Model):
-	#assuming links would go in as text? may have to change later
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4) #OVERRIDDING the primary key id that django implements
+	#OVERRIDDING the primary key id that django implements
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4) 
+    
     title = models.CharField(max_length = 100, default='No Title')
     source = models.CharField(max_length = 2000)
     origin = models.CharField(max_length = 2000)
     description = models.CharField(max_length =100)
+
     content = models.TextField(max_length =2000)
+    contentType_choice = (
+        ('text/markdown', 'text/markdown'),
+        ('text/plain', 'text/plain'),
+        ('application/base64', 'application/base65'),
+        ('image/png;base64', 'image/png;base64'),
+        ('image/jpeg;base64', 'image/jpeg;base64'),
+    )
+    contentType = models.CharField(max_length=2000, default='text/plain', choices=contentType_choice)
+
 	#content types can be:
 	#text/markdown -> included markdown in their post
 	#text/plain    -> plain ol' post. No images or nothing. Default value for now
 	#application/base64 -> dunno yet, just an image?
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
     #image/jpeg;base64 ->embedded jpeg. Same as above I assume
+    
     image = models.ImageField(null=True, blank=True)
-    contentType = models.CharField(max_length = 2000, default='text/plain')   
+
     published = models.DateTimeField(auto_now=True) 
-    categories = []
-    # visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
-    visibility = models.CharField(default ="PUBLIC", max_length=20)
-    visibleTo = models.CharField(max_length = 1000, blank=True) #need to CONVERT this into JSON. Functions below
-    unlisted = False
-    associated_author = models.ForeignKey(User, blank=True)
+    categories = ListField(blank=True)
+
+    visibility_choice = (
+        ('PUBLIC', 'PUBLIC'),
+        ('FOAF', 'FOAF'),
+        ('FRIENDS', 'FRIENDS'),
+        ('PRIVATE', 'PRIVATE'),
+        ('SERVERONLY', 'SERVERONLY'),
+    )
+    visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
+    
+    visibleTo = ListField(blank=True)
+    unlisted = models.BooleanField(default=False)
+    
+    associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def setVisibleTo(self, x): #writes over it for now
 	    self.visibleTo = json.dumps(x)
@@ -129,6 +188,9 @@ class Post(models.Model):
 
     def getVisibleTo(self):
 	    return json.loads(self.visibleTo)
+
+    def __str__(self):  # __unicode__ for Python 2
+        return self.title
 
 
 class Img(models.Model):
@@ -139,21 +201,23 @@ class Comment(models.Model):
 
     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    associated_post= models.ForeignKey(Post, on_delete=models.CASCADE)
+    associated_post= models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     content =  models.TextField(max_length =2000)
+
+    contentType_choice = (
+        ('text/markdown', 'text/markdown'),
+        ('text/plain', 'text/plain'),
+        ('application/base64', 'application/base65'),
+        ('image/png;base64', 'image/png;base64'),
+        ('image/jpeg;base64', 'image/jpeg;base64'),
+    )
+    contentType = models.CharField(max_length=2000, default='text/plain', choices=contentType_choice)	
+
     date_created = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.comment + '    ----' + self.author.displayName
+
+
 # ------------------- END POST AND COMMENTS -----------------------
-
-# ------------------- NODES -----------------------------
-
-class Nodes(models.Model):
-    name = models.CharField(max_length=200)
-    url = models.URLField(unique=True)
-    
-
-
-
-
-# ------------------- NODES -----------------------
