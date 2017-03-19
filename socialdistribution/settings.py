@@ -37,12 +37,14 @@ MEDIA_URL = '/images/'
 INSTALLED_APPS = (
     'rest_framework',
     'thebuzz',
+    'api',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 )
 
 
@@ -89,6 +91,10 @@ DATABASES = {
     }
 }
 
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
+
 LOGIN_REDIRECT_URL = '/posts/'
 
 # Internationalization
@@ -109,7 +115,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(PROJECT_DIR,'static')
+STATIC_ROOT = os.path.join(PROJECT_DIR,'staticfiles')
 
 #help with this from
 #catherine on Stack OverFlow
@@ -119,5 +125,10 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_DIR, 'staticfiles'),
+    os.path.join(PROJECT_DIR, 'static'),
+    os.path.join(PROJECT_ROOT, '../thebuzz/static'),
 )
+
+STATICFILES_STORAGE ='whitenoise.django.GzipManifestStaticFilesStorage'
+
+SITE_ID = 1

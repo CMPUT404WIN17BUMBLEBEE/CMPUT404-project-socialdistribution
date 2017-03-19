@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
 class LoginTestCase(TestCase):
-    user_id = 0
 
     def setUp(self):
         global user_id
@@ -12,7 +11,6 @@ class LoginTestCase(TestCase):
         user_id = user.id
 
     def test_logging_in(self):
-        global user_id
         user = User.objects.get(id=user_id)
 
         response = self.client.login(username='TestUser', password='password123')
@@ -27,7 +25,6 @@ class LoginTestCase(TestCase):
         self.assertFalse(response, "invalid user logged in")
 
     def test_logging_out(self):
-        global user_id
         user = User.objects.get(id=user_id)
         self.client.login(username='TestUser', password='password123')
         self.client.logout()

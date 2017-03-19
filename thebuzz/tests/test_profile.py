@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
 class ProfileTestCase(TestCase):
-    user_id = 0
 
     def setUp(self):
         global user_id
@@ -14,14 +13,12 @@ class ProfileTestCase(TestCase):
 
 
     def test_profile_created_with_user(self):
-        global user_id
         profile = Profile.objects.get(user_id = user_id)
 
         self.assertTrue(profile, "profile is empty")
         self.assertEqual(profile.user_id, user_id, "could not find matching profile")
 
     def test_updating_profile(self):
-        global user_id
         profile = Profile.objects.get(user_id = user_id)
         displayName = "TEST USER"
         fname = "Fname"
@@ -47,3 +44,14 @@ class ProfileTestCase(TestCase):
         self.assertEqual(updateProfile.email, email, "email does not match")
         self.assertEqual(updateProfile.github, github, "github does not match")
         self.assertEqual(updateProfile.bio, bio, "bio does not match")
+
+    def test_get_profile(self):
+        user = User.objects.get(id=user_id)
+
+        response = self.client.get("/profile/")
+        self.assertEquals(response.status_code, 302, "able to get to profile page")
+
+        self.client.login(username='TestUser', password='password123')
+
+        response = self.client.get("/profile/")
+        self.assertEquals(response.status_code, 200, "not able to get to profile page")

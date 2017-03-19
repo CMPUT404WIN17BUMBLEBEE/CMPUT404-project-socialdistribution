@@ -26,32 +26,33 @@ from itertools import chain
 # SIGNING UP
 
 def register(request):
-     if request.method == 'POST':
-         form = UserCreationForm(request.POST)
+    profileForm = ""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
 
-         if form.is_valid():
-             username = form.cleaned_data['username']
-             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
-             user = User.objects.create(username=username, password=password)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
+            user = User.objects.create(username=username, password=password)
 
-             profile = Profile.objects.get(user_id=user.id)
-             profileForm = ProfileForm(request.POST, instance=profile)
-             profileForm.save()
+            profile = Profile.objects.get(user_id=user.id)
+            profileForm = ProfileForm(request.POST, instance=profile)
+            profileForm.save()
 
-             return HttpResponseRedirect('/register/complete')
+            return HttpResponseRedirect('/register/complete')
 
-     else:
-         form = UserCreationForm()
-         profileForm = ProfileForm()
-     token = {}
-     token.update(csrf(request))
-     token['form'] = form
-     token['profileForm'] = profileForm
+    else:
+        form = UserCreationForm()
+        profileForm = ProfileForm()
+    token = {}
+    token.update(csrf(request))
+    token['form'] = form
+    token['profileForm'] = profileForm
 
-     return render_to_response('registration/registration_form.html', token)
+    return render_to_response('registration/registration_form.html', token)
 
 def registration_complete(request):
-     return render_to_response('registration/registration_complete.html')
+    return render_to_response('registration/registration_complete.html')
 
 #for showing the home page/actually logging in
 #3 ways to get here:
@@ -116,13 +117,27 @@ def edit_profile(request):
 
 # ------------ FRIENDS VIEWS ---------------------
 def friends (request):
-    #TODO: add retrieval of friends list and such for viewing
+        if request.method == 'POST': #for testing purposes only
 
-    context = {
-	   #TODO: add your objects here you want to display in the form
-	}
+            # get the person i want to follow
+            friend = User.objects.get(username = request.POST['befriend'])
+            friend_profile = Profile.objects.get(pk=friend.id)
 
-    return render(request, 'friends/friends.html', context)
+            # follow that person
+            request.user.profile.follow(friend_profile)
+            friend_profile.add_user_following_me(request.user.profile)
+
+        users = User.objects.all() #for testing purposes only
+
+        # get all the people I am currently following
+        following = request.user.profile.get_all_following()
+
+        # get all the people that are following me, that I am not friends with yet
+        followers = request.user.profile.get_all_followers()
+
+        friends = request.user.profile.get_all_friends()
+
+        return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
 
 def add_friends (request):
     if request.method == 'POST':
@@ -134,6 +149,12 @@ def add_friends (request):
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
 
+def delete_friend (request, profile_id):
+
+    friend = Profile.objects.get(pk=profile_id)
+    request.user.profile.unfriend(friend)
+    return HttpResponseRedirect(reverse('friends'))
+
 # ----------- END FRIENDS VIEWS -------------
 
 
@@ -142,58 +163,62 @@ def add_friends (request):
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def posts(request):
-	two_days_ago = datetime.utcnow() - timedelta(days=2)
+    two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-	friends = request.user.profile.get_all_friends()
-	posts = Post.objects.all()
-	#print posts
-	#print friends	
-	#print 'those are my friends'
-	#for p in friends:
-	  #print p.id
+    post_list = []
 
-	possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user) 
+    author = request.user.profile
+    
+    a = User.objects.get(pk=author.user.id)
 
-	possible_friend_posts = ( Post.objects.filter(visibility__exact='FRIENDS') )
-	
-	#clients = Client.objects.filter(name__contains=search)
-	#result = Post.objects.filter(associated_author__in=friends)
+    # get all public posts
+    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    for post in posts:
+        post_list.append(post)
 
-	#posts_friends_ids = ( Post.objects.all().values('associated_author') )
-	
-	#for po in posts_friends_ids:
-	#  print po.get('associated_author')
+    # get all my private posts
+    posts = Post.objects.filter(associated_author=a)
+    for post in posts:
+        post_list.append(post)
 
-	#for t in posts_friends_ids:
-	#  friend_posts = Post.objects.filter(t.get('associated_author') )
-	
-	
-	for q in friends:
-	  friends_posts = Post.objects.raw("SELECT * FROM Post WHERE associated_author = %s", q.id)
-	  
-	
+    # get friends post of friends
+    friends  = author.get_all_friends()
+    if len(friends) > 0:
+        for friend in friends:
+            # get all posts for friends
+            f = User.objects.get(pk=friend.id)
+            # get all posts of the friend that are not private
+            posts = Post.objects.filter(associated_author=f).exclude(visibility='PRIVATE')
 
-	#result_list = ''
-	#for p, q in zip(possible_friend_posts, friends):
-	#  print 'in loop'
-	#  print p.associated_author.id
-	#  print q.id
-	#  if(p.associated_author.id == q.id):
-	    #have a matching pair, keep that post in the set
-	#    print 'AH HA!'
-	#    result_list = list(chain(p, result_list))
-		    
- 
-	#print possible_friend_posts
-	#print 'ummm'
+            for post in posts:
+                post_list.append(post)
+
+
+            # get all posts for friends of friends
+            foafs = friend.get_all_friends()
+            if len(foafs) > 0:
+                for foaf in foafs:
+                    foaf_user = User.objects.get(pk=foaf.id)
+                    # get all posts of the foaf that are not private or only for friends
+                    foaf_posts = Post.objects.filter(associated_author=foaf_user).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+
+                    for foaf_post in foaf_posts:
+                        post_list.append(foaf_post)
+
+	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
+
 
 	#template = loader.get_template('index.html')
 
-	context = {
-	   'possible_posts_list': possible_posts_list
-	}
+    context = {}
 
-	return render(request, 'posts/posts.html', context)
+    context = {
+        'post_list': set(post_list) # make sure values in list are distinct     
+    }
+
+    print "post_list: " + str(post_list)
+
+    return render(request, 'posts/posts.html', context)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
@@ -225,24 +250,20 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = Profile.objects.get(pk=request.user.id)
+            comment.author = Profile.objects.get(pk=author.id)
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()
 
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
-
-
     else:
         form = CommentForm()
-
 
     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
-
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark
 @login_required(login_url = '/login/')
 def post_form_upload(request):
@@ -273,7 +294,7 @@ def post_form_upload(request):
 	      entries = form.cleaned_data['privacy_textbox']
 	      #visible_to = form.cleaned_data['privacy_textbox']
 	      entries = entries.split(',')
-              
+
 	      for item in entries:
 		visible_to += item
                 #visible_to.append(item)
@@ -321,11 +342,34 @@ def post_form_upload(request):
         'form': form,
     })
 
+#again parts of code from
+#http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
+# NOT WORKING
+def post_upload(request):
+	if request.method =='GET':
+
+		two_days_ago = datetime.utcnow() - timedelta(days=2)
+
+		latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
+
+		#template = loader.get_template('index.html')
+
+		context = {
+
+		'post_upload': latest_posts_list
+
+		}
+
+		return render(request, 'posts/post_form_upload.html', context)
+	elif request.method == 'POST':
+		#fix after GET is working...
+		post = Post.objects.create(content=request.POST['posted_text'],
+			date_created=datetime.utcnow() )
+		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 def DeletePost(request, post_id):
    post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
-
 
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/

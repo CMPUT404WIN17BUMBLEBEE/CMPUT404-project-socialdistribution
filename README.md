@@ -32,7 +32,17 @@ Contributors:
     Sarah Morris
 
 
+Documentation can be found at:
+=============================
+
+https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wiki/API-Documentation
+
+Heroku demo:
+============
+https://secret-crag-38714.herokuapp.com/ 
+
 Resources:  
+=========
 
 Some code was used and edited appropriately to set up the sign-up pages:
 http://code.techandstartup.com/django/registration/
