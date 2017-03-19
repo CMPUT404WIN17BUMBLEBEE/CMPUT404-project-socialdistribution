@@ -145,3 +145,15 @@ class Comment(models.Model):
     date_created = models.DateTimeField(auto_now=True)
 
 # ------------------- END POST AND COMMENTS -----------------------
+
+# ------------------- NODES -----------------------------
+
+class Nodes(models.Model):
+    name = models.CharField(max_length=200)
+    url = models.URLField(unique=True)
+    
+
+
+
+
+# ------------------- NODES -----------------------
