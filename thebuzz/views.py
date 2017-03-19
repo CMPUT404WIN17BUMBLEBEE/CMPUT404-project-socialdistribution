@@ -19,6 +19,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
 import json
+import requests
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -201,9 +202,16 @@ def posts(request):
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
 
+	    
+        
+
+
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
+
+    print "hello"
+    createGithubPosts(a)
 
     context = {}
 
@@ -214,6 +222,50 @@ def posts(request):
     print "post_list: " + str(post_list)
 
     return render(request, 'posts/posts.html', context)
+
+
+
+def createGithubPosts(user):
+#get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
+    #make a GET request to github for my github name, if I have one
+    if(user.profile.github != ''):
+        rurl = 'https://api.github.com/users/' + user.profile.github + '/events'
+        resp = requests.get(rurl) #gets newest to oldest events
+	jdata = resp.json()
+	avatars = []
+	gtitle = "Github Activity"
+	contents = []
+	pubtime = []
+	
+	#get the data
+        for item in jdata:
+	    #if pubtime < some time
+	    #print (item['actor']['avatar_url'])
+            avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
+	    contents.append("<a href = 'https://github.com/'" + item['repo']['name'] + "'> " + item['type'] + "</a> by " + item['actor']['display_login'] )
+	    
+	    pubtime = item['created_at']
+
+	
+
+	#make posts for the database
+	for i in range(0,len(contents)):
+	    lilavatar = "<img src=\'" + avatars[i] + "\'/>"
+	    print("woo!")
+	    post = Post.objects.create(title = gtitle,
+                                       content=contents[i] + "<p>", #TODO: put avatar image here later,
+                                       published=pubtime[i],
+				       associated_author = user,
+				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
+				       origin = 'huh',
+				       description = contents[i][0:97] + '...',
+				       visibility = 'PUBLIC',
+				       visibleTo = '',
+                                       ) 
+              #myImg = Img.objects.create(associated_post = post, TODO: put avatar image here later,
+					 #myImg = image )
+                     
+
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
