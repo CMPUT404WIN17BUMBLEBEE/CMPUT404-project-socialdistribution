@@ -93,9 +93,16 @@ def homePage(request):
 
 # PROFILE VIEWS
 @login_required(login_url = '/login/')
-def profile(request):
-    profile = Profile.objects.get(user_id=request.user.id)
-    return render(request, 'profile/profile.html', {'profile': profile})
+def profile(request, profile_id):
+    #profile_id = profile_id.replace('-', '')
+    print "profile_id:" + str(profile_id)
+
+    profile = Profile.objects.get(id=profile_id )
+    
+
+    return render(request, 'profile/profile.html', {'profile': profile} )
+
+
 
 @login_required(login_url = '/login/')
 @transaction.atomic
