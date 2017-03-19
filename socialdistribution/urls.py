@@ -38,8 +38,8 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
-    url(r'^profile/$', 'thebuzz.views.profile', name='profile'),
-    url(r'^profile/edit_profile$', 'thebuzz.views.edit_profile', name='edit_profile'),
+    url(r'^author/(?P<profile_id>[0-9a-f-]+)/profile$', 'thebuzz.views.profile', name='profile'),
+    url(r'^profile/(?P<profile_id>[0-9a-f-]+)/edit_profile$', 'thebuzz.views.edit_profile', name='edit_profile'),
 
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.friends', name='friends'),

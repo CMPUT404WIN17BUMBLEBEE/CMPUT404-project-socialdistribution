@@ -19,6 +19,8 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
 import json
+from django.db.models import Lookup
+from itertools import chain
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -91,9 +93,16 @@ def homePage(request):
 
 # PROFILE VIEWS
 @login_required(login_url = '/login/')
-def profile(request):
-    profile = Profile.objects.get(user_id=request.user.id)
-    return render(request, 'profile/profile.html', {'profile': profile})
+def profile(request, profile_id):
+    #profile_id = profile_id.replace('-', '')
+    print "profile_id:" + str(profile_id)
+
+    profile = Profile.objects.get(id=profile_id )
+    
+
+    return render(request, 'profile/profile.html', {'profile': profile} )
+
+
 
 @login_required(login_url = '/login/')
 @transaction.atomic
@@ -166,7 +175,8 @@ def posts(request):
     post_list = []
 
     author = request.user.profile
-    a = User.objects.get(pk=author.id)
+    
+    a = User.objects.get(pk=author.user.id)
 
     # get all public posts
     posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
@@ -190,6 +200,7 @@ def posts(request):
             for post in posts:
                 post_list.append(post)
 
+
             # get all posts for friends of friends
             foafs = friend.get_all_friends()
             if len(foafs) > 0:
@@ -202,6 +213,7 @@ def posts(request):
                         post_list.append(foaf_post)
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
+
 
 	#template = loader.get_template('index.html')
 
@@ -245,7 +257,7 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = Profile.objects.get(pk=request.user.id)
+            comment.author = Profile.objects.get(pk=author.id)
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()
@@ -379,3 +391,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
 # END POSTS AND COMMENTS
+
+
+#CUSTOM QUERY STUFF ------------------------------------------------
+#from django.db.models.fields import Field
+#Field.register_lookup(Is_My_Friend)
+
+
+#class Is_My_Friend(Lookup):
+#    lookup_name = 'is_my_friend'
+
+#    def as_sql(self, compiler, connection):
+#        lhs, lhs_params = self.process_lhs(compiler, connection)
+#        rhs, rhs_params = self.process_rhs(compiler, connection)
+#        params = lhs_params + rhs_params
+#        return '%s <> %s' % (lhs, rhs), params
+
+#END OF CUSTOM QUERY STUFF -----------------------------------------
+
