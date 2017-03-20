@@ -10,7 +10,7 @@
 
 {% block content %}
   <div id="form">
-    <form method="POST" action='/profile/edit_profile'>{% csrf_token %}
+    <form method="POST" action='/author/{{user.profile.id}}/edit_profile'>{% csrf_token %}
       {{ form.as_p }}
       <div id="button">
         <input type="submit" value="save" />
