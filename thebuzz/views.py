@@ -242,18 +242,19 @@ def createGithubPosts(user):
 	    #if pubtime < some time
 	    #print (item['actor']['avatar_url'])
             avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
-	    contents.append("<a href = 'https://github.com/'" + item['repo']['name'] + "'> " + item['type'] + "</a> by " + item['actor']['display_login'] )
+	   
+	    contents.append("<a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['type'] + "</a> by " + item['actor']['display_login'] + " in " + item['repo']['name'])
 	    
-	    pubtime = item['created_at']
+	    pubtime.append(item['created_at'])
 
 	
 
 	#make posts for the database
 	for i in range(0,len(contents)):
 	    lilavatar = "<img src=\'" + avatars[i] + "\'/>"
-	    print("woo!")
+	    
 	    post = Post.objects.create(title = gtitle,
-                                       content=contents[i] + "<p>", #TODO: put avatar image here later,
+                                       content= "<p>" + contents[i] , #TODO: put avatar image here later,
                                        published=pubtime[i],
 				       associated_author = user,
 				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
