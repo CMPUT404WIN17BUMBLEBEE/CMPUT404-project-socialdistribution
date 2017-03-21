@@ -23,7 +23,7 @@ class PostDetailView(UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(self.queryset, id=kwargs['post_id'])
-        author = get_object_or_404(Profile, id=request.user.author.id)
+        author = get_object_or_404(Profile, id=request.user.profile.id)
         if is_authenticated_to_read(post, author):
             serializer = self.serializer_class(post)
             return Response(serializer.data)
@@ -45,7 +45,7 @@ class PostsAuthorCanSeeView(ListAPIView):
     pagination_class = PostsPagination
 
     def get_queryset(self):
-        author = get_object_or_404(Profile, id=self.request.user.author.id)
+        author = get_object_or_404(Profile, id=self.request.user.profile.id)
         return get_readable_posts(author, self.queryset)
 
 
@@ -55,8 +55,8 @@ class AuthorPostsView(ListAPIView):
     pagination_class = PostsPagination
 
     def get_queryset(self):
-        authorposts = self.queryset.filter(author__id=self.kwargs['author_id'])
-        author = get_object_or_404(Profile, id=self.request.user.author.id)
+        authorposts = self.queryset.filter(profile=self.kwargs['author_id'])
+        author = get_object_or_404(Profile, id=self.request.user.profile.id)
         return get_readable_posts(author, authorposts)
 
 
@@ -67,14 +67,14 @@ class CommentView(ListAPIView):
 
     def get_queryset(self):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
-        author = get_object_or_404(Profile, id=self.request.user.author.id)
+        author = get_object_or_404(Profile, id=self.request.user.profile.id)
         if is_authenticated_to_read(post, author):
             return self.queryset.filter(post__id=self.kwargs['post_id']).order_by("-date_created")
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        author = get_object_or_404(Profile, id=request.user.author.id)
+        author = get_object_or_404(Profile, id=request.user.profile.id)
         if is_authenticated_to_read(post, author):
             serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
             serializer.is_valid(raise_exception=True)
@@ -167,19 +167,19 @@ def is_authenticated_to_read(post, author):
     if post.visibility == "PUBLIC":
         return True
     # Server Only
-    if post.visibility == "SERVERONLY" and post.author.host == author.host:
+    if post.visibility == "SERVERONLY" and post.associated_author.host == author.host:
         return True
     # Own
-    if post.author == author:
+    if post.associtated_author == author:
         return True
     # Friends
-    if post.visibility == "FRIENDS" and author in post.author.friends.all():
+    if post.visibility == "FRIENDS" and author in post.associated_author.friends.all():
         return True
     # FOAF
     if post.visibility == "FOAF":
-        if author in post.author.friends.all():
+        if author in post.associated_author.friends.all():
             return True
-        for friend in post.author.friends.all():
+        for friend in post.associated_author.friends.all():
             if author in friend.friends.all():
                 return True
     # Private
@@ -209,9 +209,9 @@ def get_readable_posts(author, posts):
     # Private
     private_posts = queryset.filter(visibility="PRIVATE", visibleTo__contains=author.url)
     # Server Only
-    serveronly_posts = queryset.filter(visibility="SERVERONLY", author__host=author.host)
+    serveronly_posts = queryset.filter(visibility="SERVERONLY", associated_author__host=author.host)
     # Own
-    own_posts = queryset.filter(author=author)
+    own_posts = queryset.filter(associated_author=author)
     posts_author_can_see = public_posts | foaf_posts | friends_posts | private_posts | serveronly_posts | own_posts
 
     return posts_author_can_see.order_by("-published")
