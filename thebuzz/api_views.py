@@ -69,7 +69,7 @@ class CommentView(ListAPIView):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
         author = get_object_or_404(Profile, id=self.request.user.profile.id)
         if is_authenticated_to_read(post, author):
-            return self.queryset.filter(post__id=self.kwargs['post_id']).order_by("-date_created")
+            return self.queryset.filter(associated_post__id=self.kwargs['post_id']).order_by("-date_created")
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
