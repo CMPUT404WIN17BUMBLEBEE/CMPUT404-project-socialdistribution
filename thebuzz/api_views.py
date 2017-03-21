@@ -69,7 +69,7 @@ class CommentView(ListAPIView):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
         author = get_object_or_404(Profile, id=self.request.user.author.id)
         if is_authenticated_to_read(post, author):
-            return self.queryset.filter(post__id=self.kwargs['post_id']).order_by("-published")
+            return self.queryset.filter(post__id=self.kwargs['post_id']).order_by("-date_created")
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
@@ -183,7 +183,7 @@ def is_authenticated_to_read(post, author):
             if author in friend.friends.all():
                 return True
     # Private
-    if post.visibility == "PRIVATE" and author.url in post.visibileTo:
+    if post.visibility == "PRIVATE" and author.url in post.visibleTo:
         return True
 
     return False
@@ -207,7 +207,7 @@ def get_readable_posts(author, posts):
     for friend in author.friends.all():
         friends_posts = friends_posts | queryset.filter(author=friend, visibility="FRIENDS")
     # Private
-    private_posts = queryset.filter(visibility="PRIVATE", visibileTo__contains=author.url)
+    private_posts = queryset.filter(visibility="PRIVATE", visibleTo__contains=author.url)
     # Server Only
     serveronly_posts = queryset.filter(visibility="SERVERONLY", author__host=author.host)
     # Own

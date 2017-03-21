@@ -9,7 +9,8 @@ from rest_framework import serializers
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile 
-        fields = ("id", "url", "host", "displayName", "github")
+        #fields = ("id", "url", "host", "displayName", "github")
+        fields = '__all__'
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -24,7 +25,7 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
     author = AuthorSerializer()
     class Meta:
         model = Comment
-        fields = ('author', 'comment', 'published', 'id')
+        fields = ('author', 'content', 'date_created', 'id')
 
 
 class AddCommentSerializer(serializers.Serializer):
@@ -36,27 +37,28 @@ class AddCommentSerializer(serializers.Serializer):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
         self.comment = CommentSerializer(data=author_data)
-        post = get_object_or_404(Post, id=self.context.get('post_id'))
+        associated_post = get_object_or_404(Post, id=self.context.get('post_id'))
         author = get_object_or_404(Profile, **author_data)
         comment = Comment.objects.create(post=post, author=author, **comment_data)
         return comment
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer()
+    associated_author = AuthorSerializer()
     comments = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
     next = serializers.SerializerMethodField()
 
+
     class Meta:
         model = Post
         fields = ("title", "source", "origin", "description", "contentType", "content",
-                  "author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
-                  "visibileTo", "unlisted")
+                  "associated_author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
+                  "visibleTo", "unlisted")
 
     def get_comments(self, obj):
-        comments = obj.comments.order_by("-published")[:5]
+        comments = obj.comments.order_by("-date_created")[:5]
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
@@ -69,7 +71,7 @@ class PostSerializer(serializers.ModelSerializer):
         return 5
 
     def get_next(self, obj):
-        return obj.author.host + '/posts/' + str(obj.id) + '/comments'
+        return obj.associated_author.host + '/posts/' + str(obj.id) + '/comments'
 
 
 class FriendSerializer(serializers.ModelSerializer):

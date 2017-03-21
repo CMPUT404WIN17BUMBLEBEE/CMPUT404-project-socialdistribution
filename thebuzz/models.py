@@ -59,10 +59,8 @@ class Profile(models.Model):
 
     followers = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='my_followers')
 
-    # people who i am following and is following me
+    # people who i am following and are following me
     friends = models.ManyToManyField('self', blank=True, related_name='my_friends')
-
-    #friends = models.ManyToManyField('self', through = 'Friends', through_fields=("sourceFriend","targetFriend"), symmetrical = False, blank = True)
 
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
@@ -123,6 +121,7 @@ def create_user_profile(sender,instance, created, **kwargs):
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
         url = host + '/author/' + str(id)
+        print "here is the attribute error: " + host
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
 @receiver(post_save, sender=User)

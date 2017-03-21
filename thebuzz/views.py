@@ -176,15 +176,16 @@ def posts(request):
 
     author = request.user.profile
     
-    a = User.objects.get(pk=author.user.id)
+    #a = User.objects.get(pk=author.user.id)
 
     # get all public posts
     posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    print("POSTS: " + str(posts))
     for post in posts:
         post_list.append(post)
 
     # get all my private posts
-    posts = Post.objects.filter(associated_author=a)
+    posts = Post.objects.filter(associated_author=author)
     for post in posts:
         post_list.append(post)
 
@@ -241,7 +242,7 @@ def post_detail(request, post_id):
     except Comment.DoesNotExist:
         comments = Comment.objects
 
-    displayName = Profile.objects.get(user_id=post.associated_author).displayName
+    displayName = Profile.objects.get(id=post.associated_author.id).displayName
     return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
 
 
@@ -334,7 +335,7 @@ def post_form_upload(request):
 	      post = Post.objects.create(title = title,
                                        content=html ,
                                        published=published,
-				       associated_author = request.user,
+				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),
 				       origin = 'huh',
 				       description = content[0:97] + '...',
