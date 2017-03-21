@@ -58,3 +58,10 @@ https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-u
 
 Good resource for doing many things from ModelForms to Testing:
 https://docs.djangoproject.com
+
+Integrating Ajax with Django:
+http://stackoverflow.com/a/20307569
+Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
+
+Querying and ordering the query into ascending order:
+http://stackoverflow.com/a/9834153 Answered by Keith on Stack Overflow (http://stackoverflow.com/users/1215645/keith)

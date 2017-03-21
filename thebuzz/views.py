@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
+import dateutil.parser
 import json
 import requests
 
@@ -210,7 +211,7 @@ def posts(request):
 
 	#template = loader.get_template('index.html')
 
-    print "hello"
+    
     createGithubPosts(a)
 
     context = {}
@@ -219,7 +220,7 @@ def posts(request):
         'post_list': set(post_list) # make sure values in list are distinct     
     }
 
-    print "post_list: " + str(post_list)
+    #print "post_list: " + str(post_list)
 
     return render(request, 'posts/posts.html', context)
 
@@ -229,32 +230,54 @@ def createGithubPosts(user):
 #get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
     #make a GET request to github for my github name, if I have one
     if(user.profile.github != ''):
+
+	#first get the most recent github post, so we can stop if we hit this time or later
+	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
+
+	#print postQuery.published
+
         rurl = 'https://api.github.com/users/' + user.profile.github + '/events'
         resp = requests.get(rurl) #gets newest to oldest events
 	jdata = resp.json()
+	#print jdata[0]
 	avatars = []
 	gtitle = "Github Activity"
 	contents = []
 	pubtime = []
-	
+	#print (jdata[0]['payload'])
+	count = 0
 	#get the data
         for item in jdata:
-	    #if pubtime < some time
-	    #print (item['actor']['avatar_url'])
+	        
+	    if(postQuery is not None):
+		    cmpareDate = dateutil.parser.parse(item['created_at'])
+	            #print cmpareDate
+		    #print " compare "
+		    #print postQuery.published	
+		    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
+                        #print "continue"
+			continue
+
             avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
-	   
-	    contents.append("<a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['type'] + "</a> by " + item['actor']['display_login'] + " in " + item['repo']['name'])
-	    
 	    pubtime.append(item['created_at'])
 
-	
+	    if( "commits" in item['payload'] ):
+	    #if there is commit data
+		    contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+	 #           count += 1
+	    else:
+	    #there is no commit data
+		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+	#            count += 1
+
+        #print count
 
 	#make posts for the database
 	for i in range(0,len(contents)):
-	    lilavatar = "<img src=\'" + avatars[i] + "\'/>"
+	    lilavatar = "<img src='" + avatars[i] + "'/>"
 	    
 	    post = Post.objects.create(title = gtitle,
-                                       content= "<p>" + contents[i] , #TODO: put avatar image here later,
+                                       content= lilavatar + "<p>" + contents[i] , 
                                        published=pubtime[i],
 				       associated_author = user,
 				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
@@ -263,8 +286,8 @@ def createGithubPosts(user):
 				       visibility = 'PUBLIC',
 				       visibleTo = '',
                                        ) 
-              #myImg = Img.objects.create(associated_post = post, TODO: put avatar image here later,
-					 #myImg = image )
+            myImg = Img.objects.create(associated_post = post,
+					 myImg = lilavatar )
                      
 
 

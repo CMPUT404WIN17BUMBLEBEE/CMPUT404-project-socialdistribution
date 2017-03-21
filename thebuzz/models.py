@@ -4,7 +4,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-import datetime, uuid
+from datetime import datetime
+import uuid
 import json
 
 #---------------------------------------------------------------------------------------------
@@ -115,7 +116,7 @@ class Post(models.Model):
     #image/jpeg;base64 ->embedded jpeg. Same as above I assume
     image = models.ImageField(null=True, blank=True)
     contentType = models.CharField(max_length = 2000, default='text/plain')   
-    published = models.DateTimeField(auto_now=True) 
+    published = models.DateTimeField(default=datetime.now)   #auto_now=True) 
     categories = []
     # visibility ["PUBLIC","FOAF","FRIENDS","PRIVATE","SERVERONLY"]
     visibility = models.CharField(default ="PUBLIC", max_length=20)
