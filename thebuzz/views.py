@@ -109,15 +109,19 @@ def profile(request, profile_id):
 
 @login_required(login_url = '/login/')
 @transaction.atomic
-def edit_profile(request):
+def edit_profile(request, profile_id):
     if request.method == 'POST':
-        profile = Profile.objects.get(user_id=request.user.id)
+	print 'Here'
+	print profile_id
+        profile = Profile.objects.get(id =profile_id) #user_id=request.user.id)
         form = ProfileForm(request.POST, instance=profile)
         form.save()
 
-        return redirect('profile')
+        return render(request, 'profile/profile.html', {'profile': profile} ) #redirect('profile')
     else:
-        profile = Profile.objects.get(user_id=request.user.id)
+	print 'here instead'
+	print profile_id
+        profile = Profile.objects.get(id = profile_id ) #user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
     return render(request, 'profile/edit_profile_form.html', {'form': form})
