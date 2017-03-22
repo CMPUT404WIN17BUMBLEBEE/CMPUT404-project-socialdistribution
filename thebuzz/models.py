@@ -55,7 +55,7 @@ class Profile(models.Model):
 
     host = models.URLField()
     url = models.URLField()
-    
+
     following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
 
     followers = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='my_followers')
@@ -110,7 +110,7 @@ class Profile(models.Model):
         # exclude the people we are already friends with
         #pending = pending.exclude(pk__in=self.friends.all())
         return pending
-        
+
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
 @receiver(post_save,sender=User)
@@ -121,7 +121,7 @@ def create_user_profile(sender,instance, created, **kwargs):
         # Todo: Does not work
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
-        url = host + 'author/' + str(id)
+        url = host + '/author/' + str(id)
         print "here is the attribute error: " + host
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
@@ -139,8 +139,8 @@ def save_user_profile(sender,instance, **kwargs):
 @python_2_unicode_compatible
 class Post(models.Model):
 	#OVERRIDDING the primary key id that django implements
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4) 
-    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+
     title = models.CharField(max_length = 100, default='No Title')
     source = models.CharField(max_length = 2000)
     origin = models.CharField(max_length = 2000)
@@ -163,10 +163,10 @@ class Post(models.Model):
 	#image/png;base64 ->an embedded png. It's two posts if a post includes an image
 
     #image/jpeg;base64 ->embedded jpeg. Same as above I assume
-    
+
     image = models.ImageField(null=True, blank=True)
 
-    published = models.DateTimeField(auto_now=True) 
+    published = models.DateTimeField(auto_now=True)
     categories = ListField(blank=True)
 
     visibility_choice = (
@@ -177,10 +177,10 @@ class Post(models.Model):
         ('SERVERONLY', 'SERVERONLY'),
     )
     visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
-    
+
     visibleTo = ListField(blank=True)
     unlisted = models.BooleanField(default=False)
-    
+
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def setVisibleTo(self, x): #writes over it for now
@@ -213,7 +213,7 @@ class Comment(models.Model):
         ('image/png;base64', 'image/png;base64'),
         ('image/jpeg;base64', 'image/jpeg;base64'),
     )
-    contentType = models.CharField(max_length=2000, default='text/plain', choices=contentType_choice)	
+    contentType = models.CharField(max_length=2000, default='text/plain', choices=contentType_choice)
 
     date_created = models.DateTimeField(auto_now=True)
 

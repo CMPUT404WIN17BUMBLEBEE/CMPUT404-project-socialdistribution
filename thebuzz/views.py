@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile, Img, ListField 
+from .models import Post, Comment, Profile, Img, ListField
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
@@ -36,7 +36,9 @@ def register(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
-            user = User.objects.create(username=username, password=password)
+            #sets user to in_active, requiring admin to go in and set them to active before they can log in
+            is_active = False
+            user = User.objects.create(username=username, password=password, is_active=is_active)
 
             profile = Profile.objects.get(user_id=user.id)
             profileForm = ProfileForm(request.POST, instance=profile)
@@ -57,51 +59,12 @@ def register(request):
 def registration_complete(request):
     return render_to_response('registration/registration_complete.html')
 
-#for showing the home page/actually logging in
-#3 ways to get here:
-#-logged in
-#-already logged in, used a cookie
-#-registered
-#edited code from here to log a user in (https://www.fir3net.com/Web-Development/Django/django.html)
-@login_required(login_url = '/login/')
-def homePage(request):
-	 #if this person has just logged in
-    if request.method == 'POST': #for testing purposes only
-        
-        # get the person i want to follow
-        friend = User.objects.get(username = request.POST['befriend'])
-        friend_profile = Profile.objects.get(pk=friend.id)
-
-        # follow that person
-        request.user.profile.follow(friend_profile)
-        friend_profile.add_user_following_me(request.user.profile)
-
-    users = User.objects.all() #for testing purposes only
-    
-    # get all the people I am currently following
-    following = request.user.profile.get_all_following()
-
-    # get all the people that are following me, that I am not friends with yet
-    followers = request.user.profile.get_all_followers()
-
-    friends = request.user.profile.get_all_friends()
-
-    return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
-		
-
-	 #else: #change this later to account for the other 2 cases ******
-	 #	return render_to_response('registration/login.html')
-
 # END LOGIN VIEWS------------------------------------------------------------------------------------------
 
 # PROFILE VIEWS
 @login_required(login_url = '/login/')
 def profile(request, profile_id):
-    #profile_id = profile_id.replace('-', '')
-    print "profile_id:" + str(profile_id)
-
     profile = Profile.objects.get(id=profile_id )
-    
 
     return render(request, 'profile/profile.html', {'profile': profile} )
 
@@ -111,16 +74,12 @@ def profile(request, profile_id):
 @transaction.atomic
 def edit_profile(request, profile_id):
     if request.method == 'POST':
-	print 'Here'
-	print profile_id
         profile = Profile.objects.get(id =profile_id) #user_id=request.user.id)
         form = ProfileForm(request.POST, instance=profile)
         form.save()
 
         return render(request, 'profile/profile.html', {'profile': profile} ) #redirect('profile')
     else:
-	print 'here instead'
-	print profile_id
         profile = Profile.objects.get(id = profile_id ) #user_id=request.user.id)
         form = ProfileForm(instance=profile)
 
@@ -135,7 +94,6 @@ def friends (request):
 
             # get the person i want to follow
             friend = User.objects.get(username = request.POST['befriend'])
-            print "friend id: " + str(friend.id)
             friend_profile = Profile.objects.get(user_id=friend.id)
 
             # follow that person
@@ -153,16 +111,6 @@ def friends (request):
         friends = request.user.profile.get_all_friends()
 
         return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
-
-def add_friends (request):
-    if request.method == 'POST':
-        #TODO: Retrieve form data and save to model
-        return redirect('friends')
-    else:
-        #TODO: Retrieve set correct form
-        form = ""
-
-    return render(request, 'profile/edit_profile_form.html', {'form': form})
 
 def delete_friend (request, profile_id):
 
@@ -183,12 +131,11 @@ def posts(request):
     post_list = []
 
     author = request.user.profile
-    
+
     #a = User.objects.get(pk=author.user.id)
 
     # get all public posts
     posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    print("POSTS: " + str(posts))
     for post in posts:
         post_list.append(post)
 
@@ -219,25 +166,17 @@ def posts(request):
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
 
-	    
-        
-
-
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
-
 
 	#template = loader.get_template('index.html')
 
-    
     createGithubPosts(author)
 
     context = {}
 
     context = {
-        'post_list': set(post_list) # make sure values in list are distinct     
+        'post_list': set(post_list) # make sure values in list are distinct
     }
-
-    #print "post_list: " + str(post_list)
 
     return render(request, 'posts/posts.html', context)
 
@@ -251,28 +190,23 @@ def createGithubPosts(user):
 	#first get the most recent github post, so we can stop if we hit this time or later
 	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
-	#print postQuery.published
-
         rurl = 'https://api.github.com/users/' + user.github + '/events'
         resp = requests.get(rurl) #gets newest to oldest events
 	jdata = resp.json()
-	#print jdata[0]
+
 	avatars = []
 	gtitle = "Github Activity"
 	contents = []
 	pubtime = []
-	#print (jdata[0]['payload'])
 	count = 0
+
 	#get the data
         for item in jdata:
-	        
+
 	    if(postQuery is not None):
 		    cmpareDate = dateutil.parser.parse(item['created_at'])
-	            #print cmpareDate
-		    #print " compare "
-		    #print postQuery.published	
+
 		    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
-                        #print "continue"
 			continue
 
             avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
@@ -294,14 +228,12 @@ def createGithubPosts(user):
 		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 	#            count += 1
 
-        #print count
-
 	#make posts for the database
 	for i in range(0,len(contents)):
 	    lilavatar = "<img src='" + avatars[i] + "'/>"
-	    
+
 	    post = Post.objects.create(title = gtitle,
-                                       content= lilavatar + "<p>" + contents[i] , 
+                                       content= lilavatar + "<p>" + contents[i] ,
                                        published=pubtime[i],
 				       associated_author = user,
 				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
@@ -309,10 +241,10 @@ def createGithubPosts(user):
 				       description = contents[i][0:97] + '...',
 				       visibility = 'PUBLIC',
 				       visibleTo = '',
-                                       ) 
+                                       )
             myImg = Img.objects.create(associated_post = post,
 					 myImg = lilavatar )
-                     
+
 
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -364,11 +296,10 @@ def add_comment(request, post_id):
 def post_form_upload(request):
     if request.method == 'GET':
         form = PostForm()
-	print 'am I here?'
+
     else:
         # A POST request: Handle Form Upload
         form = PostForm(request.POST, request.FILES) # Bind data from request.POST into a PostForm
-	print 'or am i here?'
 
 	parser = CommonMark.Parser()
 	renderer = CommonMark.HtmlRenderer()
@@ -496,4 +427,3 @@ class CommentViewSet(viewsets.ModelViewSet):
 #        return '%s <> %s' % (lhs, rhs), params
 
 #END OF CUSTOM QUERY STUFF -----------------------------------------
-

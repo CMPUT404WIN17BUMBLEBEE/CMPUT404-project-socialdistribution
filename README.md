@@ -39,7 +39,7 @@ https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wi
 
 Heroku demo:
 ============
-https://secret-crag-38714.herokuapp.com/ 
+https://secret-crag-38714.herokuapp.com/
 
 Resources:  
 =========
@@ -66,5 +66,9 @@ Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 Querying and ordering the query into ascending order:
 http://stackoverflow.com/a/9834153 Answered by Keith on Stack Overflow (http://stackoverflow.com/users/1215645/keith)
 
+
 Converting to Datetime:
 http://stackoverflow.com/a/3908349 Answered by Wes Winham on Stack Overflow (http://stackoverflow.com/users/386925/wes-winham)
+
+Linking Profile under User in admin screens:
+https://docs.djangoproject.com/en/1.10/topics/auth/customizing/

@@ -1,8 +1,20 @@
 from django.contrib import admin
-
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from .models import Profile, Post, Comment
 # Register your models here.
 
-admin.site.register(Profile)
+#This Inline code allows profile fields to be put under the User in the admin site
+class AuthorInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'author'
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (AuthorInline, )
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+
 admin.site.register(Post)
 admin.site.register(Comment)
