@@ -121,7 +121,7 @@ def create_user_profile(sender,instance, created, **kwargs):
         # Todo: Does not work
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
-        url = host + '/author/' + str(id)
+        url = host + 'author/' + str(id)
         print "here is the attribute error: " + host
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
