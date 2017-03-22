@@ -9,8 +9,8 @@ from rest_framework import serializers
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile 
-        #fields = ("id", "url", "host", "displayName", "github")
-        fields = '__all__'
+        fields = ("id", "url", "host", "displayName", "github")
+        #fields = '__all__'
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -37,9 +37,9 @@ class AddCommentSerializer(serializers.Serializer):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
         self.comment = CommentSerializer(data=author_data)
-        associated_post = get_object_or_404(Post, id=self.context.get('post_id'))
+        post = get_object_or_404(Post, id=self.context.get('post_id'))
         author = get_object_or_404(Profile, **author_data)
-        comment = Comment.objects.create(post=post, author=author, **comment_data)
+        comment = Comment.objects.create(associated_post=post, author=author, **comment_data)
         return comment
 
 
