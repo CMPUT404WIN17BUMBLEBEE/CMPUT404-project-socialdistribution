@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile, Img, ListField 
+from .models import Post, Comment, Profile, Img, ListField
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
@@ -36,7 +36,9 @@ def register(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = make_password(form.cleaned_data['password1'], salt=None, hasher='default')
-            user = User.objects.create(username=username, password=password)
+            #sets user to in_active, requiring admin to go in and set them to active before they can log in
+            is_active = False
+            user = User.objects.create(username=username, password=password, is_active=is_active)
 
             profile = Profile.objects.get(user_id=user.id)
             profileForm = ProfileForm(request.POST, instance=profile)
@@ -67,7 +69,7 @@ def registration_complete(request):
 def homePage(request):
 	 #if this person has just logged in
     if request.method == 'POST': #for testing purposes only
-        
+
         # get the person i want to follow
         friend = User.objects.get(username = request.POST['befriend'])
         friend_profile = Profile.objects.get(pk=friend.id)
@@ -77,7 +79,7 @@ def homePage(request):
         friend_profile.add_user_following_me(request.user.profile)
 
     users = User.objects.all() #for testing purposes only
-    
+
     # get all the people I am currently following
     following = request.user.profile.get_all_following()
 
@@ -87,7 +89,7 @@ def homePage(request):
     friends = request.user.profile.get_all_friends()
 
     return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
-		
+
 
 	 #else: #change this later to account for the other 2 cases ******
 	 #	return render_to_response('registration/login.html')
@@ -101,7 +103,7 @@ def profile(request, profile_id):
     print "profile_id:" + str(profile_id)
 
     profile = Profile.objects.get(id=profile_id )
-    
+
 
     return render(request, 'profile/profile.html', {'profile': profile} )
 
@@ -183,7 +185,7 @@ def posts(request):
     post_list = []
 
     author = request.user.profile
-    
+
     #a = User.objects.get(pk=author.user.id)
 
     # get all public posts
@@ -219,8 +221,8 @@ def posts(request):
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
 
-	    
-        
+
+
 
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
@@ -228,13 +230,13 @@ def posts(request):
 
 	#template = loader.get_template('index.html')
 
-    
+
     createGithubPosts(author)
 
     context = {}
 
     context = {
-        'post_list': set(post_list) # make sure values in list are distinct     
+        'post_list': set(post_list) # make sure values in list are distinct
     }
 
     #print "post_list: " + str(post_list)
@@ -265,12 +267,12 @@ def createGithubPosts(user):
 	count = 0
 	#get the data
         for item in jdata:
-	        
+
 	    if(postQuery is not None):
 		    cmpareDate = dateutil.parser.parse(item['created_at'])
 	            #print cmpareDate
 		    #print " compare "
-		    #print postQuery.published	
+		    #print postQuery.published
 		    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
                         #print "continue"
 			continue
@@ -292,9 +294,9 @@ def createGithubPosts(user):
 	#make posts for the database
 	for i in range(0,len(contents)):
 	    lilavatar = "<img src='" + avatars[i] + "'/>"
-	    
+
 	    post = Post.objects.create(title = gtitle,
-                                       content= lilavatar + "<p>" + contents[i] , 
+                                       content= lilavatar + "<p>" + contents[i] ,
                                        published=pubtime[i],
 				       associated_author = user,
 				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
@@ -302,10 +304,10 @@ def createGithubPosts(user):
 				       description = contents[i][0:97] + '...',
 				       visibility = 'PUBLIC',
 				       visibleTo = '',
-                                       ) 
+                                       )
             myImg = Img.objects.create(associated_post = post,
 					 myImg = lilavatar )
-                     
+
 
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -489,4 +491,3 @@ class CommentViewSet(viewsets.ModelViewSet):
 #        return '%s <> %s' % (lhs, rhs), params
 
 #END OF CUSTOM QUERY STUFF -----------------------------------------
-
