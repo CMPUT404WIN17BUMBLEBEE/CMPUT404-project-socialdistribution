@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-import datetime, uuid
+from datetime import datetime
+import uuid
 import json
 
 #---------------------------------------------------------------------------------------------
@@ -181,7 +182,6 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False)
     
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-
 
     def setVisibleTo(self, x): #writes over it for now
 	    self.visibleTo = json.dumps(x)

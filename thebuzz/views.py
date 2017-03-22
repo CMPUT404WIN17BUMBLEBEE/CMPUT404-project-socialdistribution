@@ -18,9 +18,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db.models import Q
+import dateutil.parser
 import json
+import requests
 from django.db.models import Lookup
 from itertools import chain
+
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -132,7 +135,8 @@ def friends (request):
 
             # get the person i want to follow
             friend = User.objects.get(username = request.POST['befriend'])
-            friend_profile = Profile.objects.get(pk=friend.id)
+            print "friend id: " + str(friend.id)
+            friend_profile = Profile.objects.get(user_id=friend.id)
 
             # follow that person
             request.user.profile.follow(friend_profile)
@@ -198,9 +202,8 @@ def posts(request):
     if len(friends) > 0:
         for friend in friends:
             # get all posts for friends
-            f = User.objects.get(pk=friend.id)
             # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=f).exclude(visibility='PRIVATE')
+            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
 
             for post in posts:
                 post_list.append(post)
@@ -210,17 +213,23 @@ def posts(request):
             foafs = friend.get_all_friends()
             if len(foafs) > 0:
                 for foaf in foafs:
-                    foaf_user = User.objects.get(pk=foaf.id)
                     # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf_user).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
 
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
+
+	    
+        
+
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 
 	#template = loader.get_template('index.html')
+
+    
+    createGithubPosts(author)
 
     context = {}
 
@@ -228,9 +237,76 @@ def posts(request):
         'post_list': set(post_list) # make sure values in list are distinct     
     }
 
-    print "post_list: " + str(post_list)
+    #print "post_list: " + str(post_list)
 
     return render(request, 'posts/posts.html', context)
+
+
+
+def createGithubPosts(user):
+#get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
+    #make a GET request to github for my github name, if I have one
+    if(user.github != ''):
+
+	#first get the most recent github post, so we can stop if we hit this time or later
+	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
+
+	#print postQuery.published
+
+        rurl = 'https://api.github.com/users/' + user.github + '/events'
+        resp = requests.get(rurl) #gets newest to oldest events
+	jdata = resp.json()
+	#print jdata[0]
+	avatars = []
+	gtitle = "Github Activity"
+	contents = []
+	pubtime = []
+	#print (jdata[0]['payload'])
+	count = 0
+	#get the data
+        for item in jdata:
+	        
+	    if(postQuery is not None):
+		    cmpareDate = dateutil.parser.parse(item['created_at'])
+	            #print cmpareDate
+		    #print " compare "
+		    #print postQuery.published	
+		    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
+                        #print "continue"
+			continue
+
+            avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
+	    pubtime.append(item['created_at'])
+
+	    if( "commits" in item['payload'] ):
+	    #if there is commit data
+		    contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+	 #           count += 1
+	    else:
+	    #there is no commit data
+		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+	#            count += 1
+
+        #print count
+
+	#make posts for the database
+	for i in range(0,len(contents)):
+	    lilavatar = "<img src='" + avatars[i] + "'/>"
+	    
+	    post = Post.objects.create(title = gtitle,
+                                       content= lilavatar + "<p>" + contents[i] , 
+                                       published=pubtime[i],
+				       associated_author = user,
+				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
+				       origin = 'huh',
+				       description = contents[i][0:97] + '...',
+				       visibility = 'PUBLIC',
+				       visibleTo = '',
+                                       ) 
+            myImg = Img.objects.create(associated_post = post,
+					 myImg = lilavatar )
+                     
+
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')

@@ -12,7 +12,8 @@ class post_tests(TestCase):
         user_id = user.id
 
     def test_create_post(self):
-        user = User.objects.get(id=user_id)
+        #user = User.objects.get(id=user_id)
+        user = Profile.objects.get(user__id = user_id)
 
         title = "Test Title"
         source = "http://lastplaceigotthisfrom.com/post/yyyy"
@@ -48,7 +49,7 @@ class post_tests(TestCase):
         post = Post.objects.create(
             content = "test post text",
             published = datetime.now(),
-            associated_author = User.objects.get(id=user_id)
+            associated_author = Profile.objects.get(user_id=user_id)
         )
 
         author = Profile.objects.get(user_id=user_id)

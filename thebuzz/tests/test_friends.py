@@ -40,8 +40,8 @@ class FriendsTestCase(TestCase):
         profile1.save()
 
         following = profile1.get_all_following()
-        self.assertEqual(following[0], profile2, "not following TestUser2")
-        self.assertEqual(following[1], profile3, "not following TestUser3")
+        self.assertTrue(profile2 in following, "test user 2 no in following")
+        self.assertTrue(profile3 in following, "test user 3 no in following")
 
     def test_be_followed(self):
         self.assertFalse(profile1.get_all_followers(), "no one should be following")
@@ -58,8 +58,8 @@ class FriendsTestCase(TestCase):
         profile1.save()
 
         followers = profile1.get_all_followers()
-        self.assertEqual(followers[0], profile4, "TestUser4 is not following")
-        self.assertEqual(followers[1], profile5, "TestUser5 is not following")
+        self.assertTrue(profile4 in followers, "test user 4 no in followers")
+        self.assertTrue(profile5 in followers, "test user 5 no in followers")
 
     def test_friends(self):
         profile1.follow(profile2)
@@ -82,15 +82,15 @@ class FriendsTestCase(TestCase):
 
         profile1Friends = profile1.get_all_friends()
         self.assertEqual(len(profile1Friends), 2, "TestUser1 should have 2 friend")
-        self.assertEqual(profile1Friends[0], profile2, "TestUser1 should have TestUser2 as friend")
-        self.assertEqual(profile1Friends[1], profile4, "TestUser1 should have TestUser4 as friend")
+        self.assertTrue(profile2 in profile1Friends, "TestUser1 should have TestUser2 as friend")
+        self.assertTrue(profile4 in profile1Friends, "TestUser1 should have TestUser4 as friend")
 
         profile2Friends = profile2.get_all_friends()
         self.assertEqual(len(profile2Friends), 1, "TestUser2 should have 1 friend")
-        self.assertEqual(profile2Friends[0], profile1, "TestUser1 should have TestUser1 as friend")
+        self.assertTrue(profile1 in profile2Friends, "TestUser2 should have TestUser1 as friend")
 
         profile2.unfriend(profile1)
         self.assertFalse(profile2.get_all_friends(), "TestUser2 should not have friends")
         profile1Friends = profile1.get_all_friends()
         self.assertEqual(len(profile1Friends), 1, "TestUser1 should only have 1 friend now")
-        self.assertEqual(profile1Friends[0], profile4, "TestUser1 should have TestUser4 as friend")
+        self.assertTrue(profile4 in profile1Friends, "TestUser1 should have TestUser4 as friend")
