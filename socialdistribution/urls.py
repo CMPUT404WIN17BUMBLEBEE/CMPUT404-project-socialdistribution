@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from rest_framework import routers
-#from thebuzz import api_views, views 
+#from thebuzz import api_views, views
 
 from thebuzz.api_views import *
 import thebuzz.views
@@ -43,7 +43,6 @@ urlpatterns = [
 
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.friends', name='friends'),
-    url(r'^friends/add_friends$', 'thebuzz.views.add_friends', name='add_friend'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
 
     # API urls
