@@ -39,6 +39,8 @@ class PostForm(forms.Form):
     
     privacy_textbox = forms.CharField(label='Visible to', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
 
+    markdown = forms.BooleanField(required=False)
+
 class CommentForm(ModelForm):
 
     class Meta:

@@ -307,9 +307,15 @@ def post_form_upload(request):
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
             title = form.cleaned_data['title']
+	    title = makeSafe(title)
             content = form.cleaned_data['content']
-	    ast = parser.parse(content)
-	    html = renderer.render(ast)
+	    markdown = form.cleaned_data['markdown']
+	    if markdown:
+	      ast = parser.parse(content)
+	      html = renderer.render(ast)
+	    else:
+	      #protective measures applied here
+	      html = makeSafe(content)
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
 	    visibility = form.cleaned_data['choose_Post_Visibility']
@@ -367,6 +373,26 @@ def post_form_upload(request):
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
+
+#makes a string of stuff safe to post
+def makeSafe(content):
+
+  problematics = ['"', '&', '<', '>']
+  #Credit to ghostdog74 for the makeup of this function
+  #http://stackoverflow.com/questions/3411771/multiple-character-replace-with-python
+  #http://stackoverflow.com/users/131527/ghostdog74 
+  for c in problematics:
+    if c in content:
+      if(c == '"'):
+        content = content.replace(c, '&quot;')
+      elif(c == '&'):
+        content = content.replace(c, '&amp;')
+      elif(c == '<'):
+        content = content.replace(c, '&lt;')
+      elif(c == '>'):
+        content = content.replace(c, '&gt;')
+  
+  return content
 
 #again parts of code from
 #http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/
