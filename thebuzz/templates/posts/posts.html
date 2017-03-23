@@ -9,10 +9,10 @@
 
 <!-- Store variables needed by Javascript (Ajax) here, as suggested by http://stackoverflow.com/a/3340578-->
   <script type = "text/javascript">
-  var githubname = "{{ user_obj.username }}";
+  var githubname = "{{ user_obj.profile.github }}";
   </script>
   <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
 {% endblock %}
 
 
