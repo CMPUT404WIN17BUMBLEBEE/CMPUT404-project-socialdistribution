@@ -214,10 +214,6 @@ def createGithubPosts(user):
 
 	    if( "commits" in item['payload'] ):
 	    #if there is commit data
-		    print item['payload']
-		    print "\n"
-
-
 		    if( not item['payload']['commits']):
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 		    else:
@@ -380,7 +376,7 @@ def makeSafe(content):
   problematics = ['"', '&', '<', '>']
   #Credit to ghostdog74 for the makeup of this function
   #http://stackoverflow.com/questions/3411771/multiple-character-replace-with-python
-  #http://stackoverflow.com/users/131527/ghostdog74 
+  #http://stackoverflow.com/users/131527/ghostdog74
   for c in problematics:
     if c in content:
       if(c == '"'):
@@ -391,7 +387,7 @@ def makeSafe(content):
         content = content.replace(c, '&lt;')
       elif(c == '>'):
         content = content.replace(c, '&gt;')
-  
+
   return content
 
 #again parts of code from

@@ -122,7 +122,6 @@ def create_user_profile(sender,instance, created, **kwargs):
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
         url = host + '/author/' + str(id)
-        print "here is the attribute error: " + host
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
 @receiver(post_save, sender=User)
@@ -185,7 +184,6 @@ class Post(models.Model):
 
     def setVisibleTo(self, x): #writes over it for now
 	    self.visibleTo = json.dumps(x)
-	    print visibleTo
 
     def getVisibleTo(self):
 	    return json.loads(self.visibleTo)
