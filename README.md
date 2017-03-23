@@ -66,9 +66,11 @@ Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 Querying and ordering the query into ascending order:
 http://stackoverflow.com/a/9834153 Answered by Keith on Stack Overflow (http://stackoverflow.com/users/1215645/keith)
 
-
 Converting to Datetime:
 http://stackoverflow.com/a/3908349 Answered by Wes Winham on Stack Overflow (http://stackoverflow.com/users/386925/wes-winham)
 
 Linking Profile under User in admin screens:
 https://docs.djangoproject.com/en/1.10/topics/auth/customizing/
+
+How to use Django variables in Javascript:
+http://stackoverflow.com/a/3340578 Answered by Pointy on Stack Overflow (http://stackoverflow.com/users/182668/pointy)

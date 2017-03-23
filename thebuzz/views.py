@@ -177,6 +177,7 @@ def posts(request):
     context = {
         'post_list': set(post_list) # make sure values in list are distinct
     }
+    context['user_obj'] = request.user
 
     return render(request, 'posts/posts.html', context)
 
@@ -214,11 +215,7 @@ def createGithubPosts(user):
 
 	    if( "commits" in item['payload'] ):
 	    #if there is commit data
-		    print item['payload']
-		    print "\n"
-
-
-		    if( not item['payload']['commits']):
+		    if( not item['payload']['commits']): #empty commit
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 		    else:
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")

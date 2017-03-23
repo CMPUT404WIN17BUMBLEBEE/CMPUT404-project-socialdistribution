@@ -6,8 +6,13 @@
 
 {% block extra_head %}
   <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
-  <!--<script type="text/javascript" src="{% static 'jquery/dist/jquery-3.1.1.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> -->
+
+<!-- Store variables needed by Javascript (Ajax) here, as suggested by http://stackoverflow.com/a/3340578-->
+  <script type = "text/javascript">
+  var githubname = "{{ user_obj.username }}";
+  </script>
+  <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script>
 {% endblock %}
 
 
