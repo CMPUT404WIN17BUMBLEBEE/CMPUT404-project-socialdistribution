@@ -44,7 +44,7 @@ class AddCommentSerializer(serializers.Serializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    associated_author = AuthorSerializer()
+    author = AuthorSerializer(source='associated_author')
     comments = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
@@ -54,7 +54,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("title", "source", "origin", "description", "contentType", "content",
-                  "associated_author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
+                  "author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
                   "visibleTo", "unlisted")
 
     def get_comments(self, obj):
