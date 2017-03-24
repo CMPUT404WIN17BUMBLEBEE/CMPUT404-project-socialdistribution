@@ -34,23 +34,64 @@ $.ajaxSetup({
 http://stackoverflow.com/a/20307569
 Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 */
-//send GET 
+//send GET
+var incoming = document.getElementById("incoming");
+var data;
+ 
 var checkGithub = function(){
 $.ajax({
     url: '/createGithubPosts',
     type: 'get', 
     success: function(data) {
-        alert(data);
-    },
-    failure: function(data) { 
-        alert('error');
-    }
+        //alert(data);
+	if(data === null){ //either no data or youve hit github's api limit - in that case, can't check for an hour
+		alert("wait an hour"); //remove this after testing!
+		return;
+	}
+
+	//console.log(incoming.children().find("incomingButton").length);
+	//if incoming has no children
+	if($("incoming").find("#incomingButton").length===0){ //checks if it has a button as a child
+		createButton();
+	}
+
+    }//,
+    //failure: function(data) { 
+     //   alert('error');
+   // }
 }); 
 };
 
 //interval of checking...3 minutes
-var interval = 1000 * 60 * 3; 
+var interval = 1000 * 60 * 3;  
 setInterval(checkGithub, interval);
+
+
+function showPosts(){
+//displays the posts once the button was clicked
+	//delete the button
+	$("#incomingButton").remove();	
+	var i;	
+	for(i=0;i<data.length();i++){
+	incoming.appendChild(data[i]);
+	}
+
+	
+	
+}
+
+function createButton(){
+//create the new posts button
+alert("button!");
+var btn = document.createElement("button");
+btn.id = "incomingButton";
+var text = document.createTextNode("New Posts");
+btn.appendChild(text);
+incoming.appendChild(btn);
+btn.onclick = showPosts;
+
+}
+
 
 //next POST to the posts page, update the page with the info in the response
 

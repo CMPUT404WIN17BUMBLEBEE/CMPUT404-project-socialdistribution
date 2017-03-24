@@ -4,16 +4,7 @@
 
 {% block title %}News Feed{% endblock %}
 
-{% block extra_head %}
-  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
 
-<!-- Store variables needed by Javascript (Ajax) here, as suggested by http://stackoverflow.com/a/3340578-->
-  <script type = "text/javascript">
-  var githubname = "{{ user_obj.profile.github }}";
-  </script>
-  <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
-{% endblock %}
 
 
 {% block content %}
@@ -49,4 +40,13 @@
         <p id="no-posts">No post is made during the past two days.</p>
     {% endif %}
   </div>
+
+{% block extra_head %}
+  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
+<!-- Store variables needed by Javascript (Ajax) here, as suggested by http://stackoverflow.com/a/3340578-->
+  <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+{% endblock %}
+
+
 {% endblock %}

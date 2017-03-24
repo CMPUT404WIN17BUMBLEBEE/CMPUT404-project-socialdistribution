@@ -196,6 +196,7 @@ def createGithubPosts(request):
 		postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
 		rurl = 'https://api.github.com/users/' + user.github + '/events'
+		print(rurl)
 		resp = requests.get(rurl) #gets newest to oldest events
 		jdata = resp.json()
 
@@ -205,10 +206,11 @@ def createGithubPosts(request):
 		pubtime = []
 		count = 0
 		postlist = [] #for sending a response
+		if('https://developer.github.com/v3/#rate-limiting' in jdata): #limit has been exceeded, wait 1 hour
+		    return postlist	
 
 		#get the data
 		for item in jdata:
-
 		    if(postQuery is not None):
 			    cmpareDate = dateutil.parser.parse(item['created_at'])
 
