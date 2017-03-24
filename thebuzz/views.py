@@ -170,7 +170,7 @@ def posts(request):
 
 	#template = loader.get_template('index.html')
 
-    createGithubPosts(author)
+    #createGithubPosts(author)
 
     context = {}
 
@@ -182,66 +182,75 @@ def posts(request):
     return render(request, 'posts/posts.html', context)
 
 
+@login_required(login_url = '/login/')
+def createGithubPosts(request):
+#get github activity of myself - and create posts to store in the database
+    print request
+    if request.method == 'GET':
+	    user = request.user.profile
+	    print(user.github)
+	    #make a GET request to github for my github name, if I have one
+	    if(user.github != ''):
 
-def createGithubPosts(user):
-#get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
-    #make a GET request to github for my github name, if I have one
-    if(user.github != ''):
+		#first get the most recent github post, so we can stop if we hit this time or later
+		postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
-	#first get the most recent github post, so we can stop if we hit this time or later
-	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
+		rurl = 'https://api.github.com/users/' + user.github + '/events'
+		resp = requests.get(rurl) #gets newest to oldest events
+		jdata = resp.json()
 
-        rurl = 'https://api.github.com/users/' + user.github + '/events'
-        resp = requests.get(rurl) #gets newest to oldest events
-	jdata = resp.json()
+		avatars = []
+		gtitle = "Github Activity"
+		contents = []
+		pubtime = []
+		count = 0
+		postlist = [] #for sending a response
 
-	avatars = []
-	gtitle = "Github Activity"
-	contents = []
-	pubtime = []
-	count = 0
+		#get the data
+		for item in jdata:
 
-	#get the data
-        for item in jdata:
+		    if(postQuery is not None):
+			    cmpareDate = dateutil.parser.parse(item['created_at'])
 
-	    if(postQuery is not None):
-		    cmpareDate = dateutil.parser.parse(item['created_at'])
+			    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
+				continue
 
-		    if(cmpareDate<=postQuery.published): #is the latest github post newer than the retrieved ones?dont create duplicates
-			continue
+		    avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
+		    pubtime.append(item['created_at'])
 
-            avatars.append(item['actor']['avatar_url']) #TODO:implement this after images with text is fixed
-	    pubtime.append(item['created_at'])
-
-	    if( "commits" in item['payload'] ):
-	    #if there is commit data
-		    if( not item['payload']['commits']): #empty commit
-			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+		    if( "commits" in item['payload'] ):
+		    #if there is commit data
+			    if( not item['payload']['commits']): #empty commit
+				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+			    else:
+				    contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+			 #           count += 1
 		    else:
-			    contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-		 #           count += 1
-	    else:
-	    #there is no commit data
-		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-	#            count += 1
+		    #there is no commit data
+			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+		#            count += 1
 
-	#make posts for the database
-	for i in range(0,len(contents)):
-	    lilavatar = "<img src='" + avatars[i] + "'/>"
+		#make posts for the database
+		for i in range(0,len(contents)):
+		    lilavatar = "<img src='" + avatars[i] + "'/>"
 
-	    post = Post.objects.create(title = gtitle,
-                                       content= lilavatar + "<p>" + contents[i] ,
-                                       published=pubtime[i],
-				       associated_author = user,
-				       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
-				       origin = 'huh',
-				       description = contents[i][0:97] + '...',
-				       visibility = 'PUBLIC',
-				       visibleTo = '',
-                                       )
-            myImg = Img.objects.create(associated_post = post,
-					 myImg = lilavatar )
+		    post = Post.objects.create(title = gtitle,
+		                               content= lilavatar + "<p>" + contents[i] ,
+		                               published=pubtime[i],
+					       associated_author = user,
+					       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
+					       origin = 'huh',
+					       description = contents[i][0:97] + '...',
+					       visibility = 'PUBLIC',
+					       visibleTo = '',
+		                               )
+		    myImg = Img.objects.create(associated_post = post,
+						 myImg = lilavatar )
+		    postlist.append(post)
+		#return render(request, {'postlist':postlist})
+		return HttpResponse(postlist)
 
+		
 
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/

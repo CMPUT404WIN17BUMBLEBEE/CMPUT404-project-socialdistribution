@@ -32,6 +32,7 @@ urlpatterns = [
 
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
     url(r'^posts/(?P<post_id>[0-9A-Fa-f-]+)/delete/$', 'thebuzz.views.DeletePost', name="delete_comment"),
+    url(r'^createGithubPosts/$', 'thebuzz.views.createGithubPosts', name='createGithubPosts'),
 
     url(r'^register/$', 'thebuzz.views.register', name='register'),
     url(r'^register/complete/$', 'thebuzz.views.registration_complete', name='registration_complete'),

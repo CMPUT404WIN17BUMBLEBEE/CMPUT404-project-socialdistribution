@@ -74,3 +74,12 @@ https://docs.djangoproject.com/en/1.10/topics/auth/customizing/
 
 How to use Django variables in Javascript:
 http://stackoverflow.com/a/3340578 Answered by Pointy on Stack Overflow (http://stackoverflow.com/users/182668/pointy)
+
+Getting the csrf cookie with JQuery and setting the header:
+https://docs.djangoproject.com/en/1.10/ref/csrf/
+
+Referenced for how to get Django and Ajax to play together:
+http://www.tangowithdjango.com/book/chapters/ajax.html
+
+Set a time interval for Ajax:
+http://stackoverflow.com/a/4930470 Answered by Ben of Stack Overflow (http://stackoverflow.com/users/335032/ben)
