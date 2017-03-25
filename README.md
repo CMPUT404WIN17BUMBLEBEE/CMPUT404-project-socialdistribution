@@ -82,4 +82,4 @@ Referenced for how to get Django and Ajax to play together:
 http://www.tangowithdjango.com/book/chapters/ajax.html
 
 Set a time interval for Ajax:
-http://stackoverflow.com/a/4930470 Answered by Ben of Stack Overflow (http://stackoverflow.com/users/335032/ben)
+http://stackoverflow.com/a/38397952 Answered by kapantzak on Stack Overflow (http://stackoverflow.com/users/1221792/kapantzak)

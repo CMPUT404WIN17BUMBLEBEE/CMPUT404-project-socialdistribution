@@ -1,4 +1,8 @@
-//lets put some ajax in here
+
+//global variables
+var incoming;
+var receivedData;
+var interval; 
 
 //code for getting the csrf cookie from https://docs.djangoproject.com/en/1.10/ref/csrf/
 function getCookie(name) {
@@ -34,46 +38,53 @@ $.ajaxSetup({
 http://stackoverflow.com/a/20307569
 Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 */
-//send GET
-var incoming = document.getElementById("incoming");
-var data;
- 
+//send GET request to recieve github posts in response
 var checkGithub = function(){
+console.log("Ive been called!");
 $.ajax({
     url: '/createGithubPosts',
     type: 'get', 
     success: function(data) {
-        //alert(data);
-	if(data === null){ //either no data or youve hit github's api limit - in that case, can't check for an hour
+	console.log(data);
+	console.log("success!");
+        receivedData = data;
+	if(data === null){ //youve hit github's api limit - in that case, can't check for an hour
 		alert("wait an hour"); //remove this after testing!
 		return;
 	}
+	//TODO: stop it from proceeding if the data is empty
 
-	//console.log(incoming.children().find("incomingButton").length);
-	//if incoming has no children
 	if($("incoming").find("#incomingButton").length===0){ //checks if it has a button as a child
 		createButton();
 	}
-
-    }//,
-    //failure: function(data) { 
-     //   alert('error');
-   // }
+	setTimeout(function(){checkGithub()}, interval);
+    },
+    failure: function(data) { 
+	setTimeout(function(){checkGithub()}, interval);
+        return;
+    }
 }); 
-};
+}
 
+$(document).ready(
+function(){
 //interval of checking...3 minutes
-var interval = 1000 * 60 * 3;  
-setInterval(checkGithub, interval);
+interval = 1000 * 60 * 3;
+incoming = document.getElementById("incoming");
+setTimeout(checkGithub, interval);
+});
+
+
 
 
 function showPosts(){
-//displays the posts once the button was clicked
+//displays the new posts once the button was clicked
 	//delete the button
 	$("#incomingButton").remove();	
 	var i;	
-	for(i=0;i<data.length();i++){
-	incoming.appendChild(data[i]);
+	for(i=0;i<receivedData.length;i++){
+	console.log(receivedData[i]);
+	//incoming.appendChild(receivedData[i]);
 	}
 
 	
