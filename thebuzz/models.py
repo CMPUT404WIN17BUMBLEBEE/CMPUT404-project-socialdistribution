@@ -88,7 +88,7 @@ class Profile(models.Model):
             self.friend(user_whos_following)
         else:
             self.followers.add(user_whos_following)
-        self.save
+        self.save()
 
     def friend(self, user_to_befriend):
         self.friends.add(user_to_befriend)
@@ -121,8 +121,7 @@ def create_user_profile(sender,instance, created, **kwargs):
         # Todo: Does not work
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
-        url = host + '/author/' + str(id)
-        print "here is the attribute error: " + host
+        url = host + 'author/' + str(id)
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
 @receiver(post_save, sender=User)
@@ -185,7 +184,6 @@ class Post(models.Model):
 
     def setVisibleTo(self, x): #writes over it for now
 	    self.visibleTo = json.dumps(x)
-	    print visibleTo
 
     def getVisibleTo(self):
 	    return json.loads(self.visibleTo)
@@ -198,12 +196,21 @@ class Img(models.Model):
 	associated_post = models.ForeignKey(Post, on_delete=models.CASCADE)
 	myImg = models.ImageField() #upload_to='images'
 
+
+
+class CommentAuthor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField()
+    host = models.URLField()
+    displayName = models.CharField(max_length=200)
+    github = models.CharField(max_length=200, blank=True)
+
 class Comment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(CommentAuthor, on_delete=models.CASCADE)
     content =  models.TextField(max_length =2000)
 
     contentType_choice = (
@@ -218,7 +225,22 @@ class Comment(models.Model):
     date_created = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.comment + '    ----' + self.author.displayName
+        return self.content + '    ----' + self.author.displayName
 
 
 # ------------------- END POST AND COMMENTS -----------------------
+
+# ----------------------- Node Site User -------------------------
+
+class Site_API_User(models.Model):
+    id = models.AutoField(primary_key=True)
+    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    username = models.CharField(max_length = 150)
+    password = models.CharField(max_length = 72)
+
+    def __str__(self):
+        return str(self.site)
+
+
+# ----------------------- End Node Site User -------------------------
+

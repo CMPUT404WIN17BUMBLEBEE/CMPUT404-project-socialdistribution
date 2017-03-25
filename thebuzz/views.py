@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile, Img, ListField
+from .models import *
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
@@ -23,7 +23,8 @@ import json
 import requests
 from django.db.models import Lookup
 from itertools import chain
-
+from django.contrib.sites.models import Site
+from django.core import serializers
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -132,8 +133,6 @@ def posts(request):
 
     author = request.user.profile
 
-    #a = User.objects.get(pk=author.user.id)
-
     # get all public posts
     posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
     for post in posts:
@@ -166,16 +165,31 @@ def posts(request):
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
 
+    #Remove duplicate posts from above code before adding non-local posts
+    post_list = list(set(post_list))
+
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
+
+    # retrieve posts from node sites
+    sites = Site.objects.filter(id__gt=1).all()
+    if len(sites) > 0 :
+        for site in sites:
+            api_url = str(site) + "posts/"
+            resp = requests.get(api_url)
+            data = json.loads(resp.text)
+            posts = data["posts"]
+
+            for p in posts:
+                post_list.append(p)
 
     createGithubPosts(author)
 
     context = {}
 
     context = {
-        'post_list': set(post_list) # make sure values in list are distinct
+        'post_list': post_list
     }
 
     return render(request, 'posts/posts.html', context)
@@ -187,7 +201,7 @@ def createGithubPosts(user):
     #make a GET request to github for my github name, if I have one
     if(user.github != ''):
 
-	#first get the most recent github post, so we can stop if we hit this time or later
+    #first get the most recent github post, so we can stop if we hit this time or later
 	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
         rurl = 'https://api.github.com/users/' + user.github + '/events'
@@ -214,10 +228,6 @@ def createGithubPosts(user):
 
 	    if( "commits" in item['payload'] ):
 	    #if there is commit data
-		    print item['payload']
-		    print "\n"
-
-
 		    if( not item['payload']['commits']):
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 		    else:
@@ -246,29 +256,53 @@ def createGithubPosts(user):
 					 myImg = lilavatar )
 
 
+def get_Post(post_id):
+    post = {}
+    sites = Site.objects.all()
+    for site in sites:
+        api_url = str(site) + "posts/" + post_id + "/"
+
+        global isPostData
+        isPostData = True
+        post = {}
+        try:
+            api_user = Site_API_User.objects.get(site_id = site.id)
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+            post = resp.json()
+            print(str(post))
+        #Results in an AttributeError if the object does not exist at that site
+        except AttributeError:
+            #Setting isPostData to False since that site didn't have the data
+            isPostData = False
+            pass
+
+        #Check if we found the object and break out of searching for it
+        if isPostData and not post == {u'detail': u'Not found.'}:
+            break
+
+    return post
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def post_detail(request, post_id):
-    try:
-        post = Post.objects.get(pk=post_id)
-    except Post.DoesNotExist:
-        # If no Post has id post_id, we raise an HTTP 404 error.
+    post = get_Post(post_id)
+
+    #Check that we did find a post, if not raise a 404
+    if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
-    try :
-        comments  = Comment.objects.filter(associated_post=post_id)
-    except Comment.DoesNotExist:
-        comments = Comment.objects
-
-    displayName = Profile.objects.get(id=post.associated_author.id).displayName
-    return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
+    #Posts returned from api's have comments on them no need to retrieve them separately
+    return render(request, 'posts/detail.html', {'post': post})
 
 
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
+    post = get_Post(post_id)
 
-    post = get_object_or_404(Post, pk=post_id)
+    #Check that we did find a post, if not raise a 404
+    if post == {} or post == {u'detail': u'Not found.'}:
+        raise Http404
+
     author = Profile.objects.get(user_id=request.user.id)
 
     if request.method == 'POST':
@@ -277,11 +311,10 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = Profile.objects.get(pk=author.id)
+            comment.author = CommentAuthor.objects.get(pk=author.id)
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()
-
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
     else:
@@ -380,7 +413,7 @@ def makeSafe(content):
   problematics = ['"', '&', '<', '>']
   #Credit to ghostdog74 for the makeup of this function
   #http://stackoverflow.com/questions/3411771/multiple-character-replace-with-python
-  #http://stackoverflow.com/users/131527/ghostdog74 
+  #http://stackoverflow.com/users/131527/ghostdog74
   for c in problematics:
     if c in content:
       if(c == '"'):
@@ -391,7 +424,7 @@ def makeSafe(content):
         content = content.replace(c, '&lt;')
       elif(c == '>'):
         content = content.replace(c, '&gt;')
-  
+
   return content
 
 #again parts of code from
