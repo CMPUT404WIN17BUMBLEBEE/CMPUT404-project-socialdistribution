@@ -299,7 +299,7 @@ def add_comment(request, post_id):
     post = get_Post(post_id)
 
     #Check that we did find a post, if not raise a 404
-    if post == {} or post == {u'detail': u'Not found.'}:
+   if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
     author = Profile.objects.get(user_id=request.user.id)
@@ -310,7 +310,7 @@ def add_comment(request, post_id):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.content = form.cleaned_data['content']
-            comment.author = Profile.objects.get(pk=author.id)
+            comment.author = CommentAuthor.objects.get(pk=author.id)
             comment.associated_post = post
             comment.date_created = timezone.now()
             comment.save()

@@ -201,7 +201,7 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(CommentAuthor, on_delete=models.CASCADE)
     content =  models.TextField(max_length =2000)
 
     contentType_choice = (
@@ -216,7 +216,7 @@ class Comment(models.Model):
     date_created = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.comment + '    ----' + self.author.displayName
+        return self.content + '    ----' + self.author.displayName
 
 
 # ------------------- END POST AND COMMENTS -----------------------
@@ -234,3 +234,10 @@ class Site_API_User(models.Model):
 
 
 # ----------------------- End Node Site User -------------------------
+
+class CommentAuthor(models.Model):
+    id = models.UUIDField(primaty_key=True, default=uuid.uudi4, editable=False)
+    url = models.URLField()
+    host = models.URLFIeld()
+    displayName = models.CharField(max_length=200)
+    github = models.CharField(max_length=200, blank=True)
