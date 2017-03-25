@@ -45,6 +45,7 @@ class AddCommentSerializer(serializers.Serializer):
     def create(self, validated_data):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
+
         self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))
         # author = get_object_or_404(Profile, **author_data)
