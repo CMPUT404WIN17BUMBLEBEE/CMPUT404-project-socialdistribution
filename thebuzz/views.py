@@ -328,9 +328,8 @@ def add_comment(request, post_id):
                     "id":str(uuid.uuid4())
                 }
             }
-            resp = requests.post(api_url, data=json.dumps(data), auth=('testuser', 'testuser'), headers={'Content-Type':'application/json'})
-            print(json.dumps(data))
-            print(str(resp))
+            api_user = Site_API_User.objects.get(site__domain__contains=post_host)
+            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
     else:
