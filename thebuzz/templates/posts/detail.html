@@ -11,7 +11,7 @@
 {% block content %}
   <div id="detail_content">
     <div id="post-title-bar">
-      <div id="author">{{ post.associated_author.displayName }}</div>
+      <div id="author">{{ post.author.displayName }}</div>
       <div id="title"><u>{{ post.title }}</u></div>
     </div>
     <div id="post_body">{{ post.content | safe }}</div>
