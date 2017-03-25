@@ -202,8 +202,10 @@ class CommentAuthor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     url = models.URLField()
     host = models.URLField()
-    displayName = models.CharField(max_length=200)
+    displayName = models.CharField(max_length=200, blank=True)
     github = models.CharField(max_length=200, blank=True)
+    def __str__(self):
+        return self.displayName
 
 class Comment(models.Model):
 

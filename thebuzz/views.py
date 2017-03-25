@@ -269,7 +269,6 @@ def get_Post(post_id):
             api_user = Site_API_User.objects.get(site_id = site.id)
             resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             post = resp.json()
-            print(str(post))
         #Results in an AttributeError if the object does not exist at that site
         except AttributeError:
             #Setting isPostData to False since that site didn't have the data
@@ -310,13 +309,30 @@ def add_comment(request, post_id):
 
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.content = form.cleaned_data['content']
-            comment.author = CommentAuthor.objects.get(pk=author.id)
-            comment.associated_post = post
-            comment.date_created = timezone.now()
-            comment.save()
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+            post_host = post.get('author').get('host')
+            api_url = str(post_host) + 'api/posts/' + str(post.get('id')) + '/comments/'
+            data = {
+                "query": "addComment",
+                "post": post_host + str(post.get('id')) + '/',
+                "comment":{
+                    "author": {
+                        "id": str(author.id),
+                        "url": author.url,
+                        "host": author.host,
+                        "displayName": author.displayName,
+                        "github": author.github
+                    },
+                    "comment":form.cleaned_data['content'],
+                    "published":str(timezone.now()),
+                    "id":str(uuid.uuid4())
+                }
+            }
+            resp = requests.post(api_url, data=json.dumps(data), auth=('testuser', 'testuser'), headers={'Content-Type':'application/json'})
+            print(json.dumps(data))
+            print(str(resp))
+
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
     else:
         form = CommentForm()
 
