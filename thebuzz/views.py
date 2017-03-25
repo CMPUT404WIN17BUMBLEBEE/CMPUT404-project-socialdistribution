@@ -250,7 +250,7 @@ def createGithubPosts(request):
 						 myImg = lilavatar )
 		    postlist.append(post)
 		#return render(request, {'postlist':postlist})
-		return HttpResponse(postlist)
+		return HttpResponse(json.dumps(postlist))
 
 		
 

@@ -48,8 +48,8 @@ $.ajax({
 	console.log(data);
 	console.log("success!");
         receivedData = data;
-	if(data === null){ //youve hit github's api limit - in that case, can't check for an hour
-		alert("wait an hour"); //remove this after testing!
+	if(data === ""){ //youve hit github's api limit - in that case, can't check for an hour
+		console.log("no new github posts");
 		return;
 	}
 	//TODO: stop it from proceeding if the data is empty
@@ -69,7 +69,7 @@ $.ajax({
 $(document).ready(
 function(){
 //interval of checking...3 minutes
-interval = 1000 * 60 * 3;
+interval = 1000 * 60 * 1;
 incoming = document.getElementById("incoming");
 setTimeout(checkGithub, interval);
 });
