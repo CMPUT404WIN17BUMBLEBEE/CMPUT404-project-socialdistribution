@@ -88,7 +88,7 @@ class Profile(models.Model):
             self.friend(user_whos_following)
         else:
             self.followers.add(user_whos_following)
-        self.save
+        self.save()
 
     def friend(self, user_to_befriend):
         self.friends.add(user_to_befriend)
@@ -121,7 +121,7 @@ def create_user_profile(sender,instance, created, **kwargs):
         # Todo: Does not work
         host = Site.objects.get_current().domain
         id = uuid.uuid4()
-        url = host + '/author/' + str(id)
+        url = host + 'author/' + str(id)
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
 
 @receiver(post_save, sender=User)
