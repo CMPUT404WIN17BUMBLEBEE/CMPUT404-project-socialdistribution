@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
@@ -23,7 +23,9 @@ import json
 import requests
 from django.db.models import Lookup
 from itertools import chain
-
+from django.core import serializers
+from django.forms import model_to_dict
+import base64
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -199,7 +201,7 @@ def createGithubPosts(request):
 		print(rurl)
 		resp = requests.get(rurl) #gets newest to oldest events
 		jdata = resp.json()
-
+		
 		avatars = []
 		gtitle = "Github Activity"
 		contents = []
@@ -207,8 +209,8 @@ def createGithubPosts(request):
 		count = 0
 		postlist = [] #for sending a response
 		if('https://developer.github.com/v3/#rate-limiting' in jdata): #limit has been exceeded, wait 1 hour
-		    return postlist	
-
+		    return HttpResponse(json.dumps({"postlist" : postlist}),content_type = "application/json")	
+		
 		#get the data
 		for item in jdata:
 		    if(postQuery is not None):
@@ -249,8 +251,28 @@ def createGithubPosts(request):
 		    myImg = Img.objects.create(associated_post = post,
 						 myImg = lilavatar )
 		    postlist.append(post)
-		#return render(request, {'postlist':postlist})
-		return HttpResponse(json.dumps(postlist))
+		
+		#if there is nothing new to send, send an empty array
+		if(len(postlist) is 0):
+		    print("no new github posts")	
+		    return HttpResponse(json.dumps({"postlist" : postlist}),content_type = "application/json")	
+
+		jtmp = []
+		#print(len(postlist))
+		print(postlist[0])
+		
+		index = 0
+		while(index<len(postlist)):
+		    print(postlist[index])
+		    print index
+   		    jtmp.append(model_to_dict(postlist[index]))
+		    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
+		    jtmp[index]['associated_author'] = str(jtmp[index]['associated_author'])
+		    jtmp[index]['id'] = str(jtmp[index]['id'])
+		    index += 1
+
+		print(jtmp)
+		return HttpResponse(json.dumps(jtmp),content_type = "application/json")
 
 		
 

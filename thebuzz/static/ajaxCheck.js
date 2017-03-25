@@ -40,19 +40,19 @@ Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 */
 //send GET request to recieve github posts in response
 var checkGithub = function(){
-console.log("Ive been called!");
 $.ajax({
     url: '/createGithubPosts',
     type: 'get', 
+    dataType: 'json',
     success: function(data) {
 	console.log(data);
 	console.log("success!");
         receivedData = data;
-	if(data === ""){ //youve hit github's api limit - in that case, can't check for an hour
+	if(( !$.isArray(data) || !data.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
 		console.log("no new github posts");
+		setTimeout(function(){checkGithub()}, interval);
 		return;
 	}
-	//TODO: stop it from proceeding if the data is empty
 
 	if($("incoming").find("#incomingButton").length===0){ //checks if it has a button as a child
 		createButton();
@@ -60,6 +60,7 @@ $.ajax({
 	setTimeout(function(){checkGithub()}, interval);
     },
     failure: function(data) { 
+	console.log("failure!");
 	setTimeout(function(){checkGithub()}, interval);
         return;
     }
@@ -76,14 +77,13 @@ setTimeout(checkGithub, interval);
 
 
 
-
 function showPosts(){
 //displays the new posts once the button was clicked
 	//delete the button
 	$("#incomingButton").remove();	
 	var i;	
 	for(i=0;i<receivedData.length;i++){
-	console.log(receivedData[i]);
+	//console.log(receivedData[i]);
 	//incoming.appendChild(receivedData[i]);
 	}
 

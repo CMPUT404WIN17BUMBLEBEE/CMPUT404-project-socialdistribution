@@ -83,3 +83,6 @@ http://www.tangowithdjango.com/book/chapters/ajax.html
 
 Set a time interval for Ajax:
 http://stackoverflow.com/a/38397952 Answered by kapantzak on Stack Overflow (http://stackoverflow.com/users/1221792/kapantzak)
+
+Check if returned JSON is empty or not:
+http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
