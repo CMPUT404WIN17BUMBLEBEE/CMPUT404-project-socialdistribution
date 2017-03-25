@@ -215,4 +215,3 @@ def get_readable_posts(author, posts):
     posts_author_can_see = public_posts | foaf_posts | friends_posts | private_posts | serveronly_posts | own_posts
 
     return posts_author_can_see.order_by("-published")
-

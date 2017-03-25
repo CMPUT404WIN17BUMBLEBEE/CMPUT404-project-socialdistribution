@@ -220,3 +220,17 @@ class Comment(models.Model):
 
 
 # ------------------- END POST AND COMMENTS -----------------------
+
+# ----------------------- Node Site User -------------------------
+
+class Site_API_User(models.Model):
+    id = models.AutoField(primary_key=True)
+    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    username = models.CharField(max_length = 150)
+    password = models.CharField(max_length = 72)
+
+    def __str__(self):
+        return str(self.site)
+
+
+# ----------------------- End Node Site User -------------------------
