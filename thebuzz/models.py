@@ -196,6 +196,15 @@ class Img(models.Model):
 	associated_post = models.ForeignKey(Post, on_delete=models.CASCADE)
 	myImg = models.ImageField() #upload_to='images'
 
+
+
+class CommentAuthor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField()
+    host = models.URLField()
+    displayName = models.CharField(max_length=200)
+    github = models.CharField(max_length=200, blank=True)
+
 class Comment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -235,9 +244,3 @@ class Site_API_User(models.Model):
 
 # ----------------------- End Node Site User -------------------------
 
-class CommentAuthor(models.Model):
-    id = models.UUIDField(primaty_key=True, default=uuid.uudi4, editable=False)
-    url = models.URLField()
-    host = models.URLFIeld()
-    displayName = models.CharField(max_length=200)
-    github = models.CharField(max_length=200, blank=True)

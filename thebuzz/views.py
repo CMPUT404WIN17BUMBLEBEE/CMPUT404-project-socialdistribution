@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile, Img, ListField, Site_API_User
+from .models import *
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
@@ -201,7 +201,7 @@ def createGithubPosts(user):
     #make a GET request to github for my github name, if I have one
     if(user.github != ''):
 
-	#first get the most recent github post, so we can stop if we hit this time or later
+    #first get the most recent github post, so we can stop if we hit this time or later
 	postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
         rurl = 'https://api.github.com/users/' + user.github + '/events'
@@ -269,6 +269,7 @@ def get_Post(post_id):
             api_user = Site_API_User.objects.get(site_id = site.id)
             resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             post = resp.json()
+            print(str(post))
         #Results in an AttributeError if the object does not exist at that site
         except AttributeError:
             #Setting isPostData to False since that site didn't have the data
@@ -299,7 +300,7 @@ def add_comment(request, post_id):
     post = get_Post(post_id)
 
     #Check that we did find a post, if not raise a 404
-   if post == {} or post == {u'detail': u'Not found.'}:
+    if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
     author = Profile.objects.get(user_id=request.user.id)

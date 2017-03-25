@@ -22,12 +22,19 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ("id", "host", "displayName", "url", "friends", "github", "firstName", "lastName",
                   "email", "bio")
 
+class CommentAuthorSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=False)
+    class Meta:
+        model = CommentAuthor
+        fields = '__all__'
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-    author = AuthorSerializer()
+    author = CommentAuthorSerializer()
+    published = serializers.DateTimeField(source='date_created')
+    comment = serializers.CharField(source='content')
     class Meta:
         model = Comment
-        fields = ('author', 'content', 'date_created', 'id')
+        fields = ('author', 'comment', 'published', 'id')
 
 
 class AddCommentSerializer(serializers.Serializer):
@@ -40,7 +47,8 @@ class AddCommentSerializer(serializers.Serializer):
         author_data = comment_data.pop('author')
         self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))
-        author = get_object_or_404(Profile, **author_data)
+        # author = get_object_or_404(Profile, **author_data)
+        author, created = CommentAuthor.objects.get_or_create(**author_data)
         comment = Comment.objects.create(associated_post=post, author=author, **comment_data)
         return comment
 
