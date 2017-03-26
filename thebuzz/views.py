@@ -183,6 +183,12 @@ def posts(request):
         posts = data["posts"]
 
         for p in posts:
+            split = p['id'].split("/")
+            actual_id = split[0]
+            if len(split) > 1:
+                actual_id = split[4]
+
+            p['id'] = actual_id
             p['published'] = dateutil.parser.parse(p.get('published'))
             post_list.append(p)
 
@@ -408,9 +414,10 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
+	      
+	      post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
-	      post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	      post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	      post.save()
 
 	    #can't make a whole new post for images, will look funny. Try this??
@@ -428,8 +435,8 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
 
 	    #update post object to proper origin and source
-	    post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	    post.save()
 
 	    print request.get_host()

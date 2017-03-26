@@ -120,7 +120,6 @@ def create_user_profile(sender,instance, created, **kwargs):
         # http://stackoverflow.com/a/1454986
         # Todo: Does not work
         host = Site.objects.get_current().domain
-        host = host[:-4]
         id = uuid.uuid4()
         url = host + 'author/' + str(id)
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
