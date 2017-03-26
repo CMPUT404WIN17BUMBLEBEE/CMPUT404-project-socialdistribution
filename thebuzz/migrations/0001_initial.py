@@ -24,6 +24,16 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='CommentAuthor',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
+                ('url', models.URLField()),
+                ('host', models.URLField()),
+                ('displayName', models.CharField(max_length=200, blank=True)),
+                ('github', models.CharField(max_length=200, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Img',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -66,6 +76,15 @@ class Migration(migrations.Migration):
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        migrations.CreateModel(
+            name='Site_API_User',
+            fields=[
+                ('id', models.AutoField(serialize=False, primary_key=True)),
+                ('api_site', models.CharField(max_length=2000)),
+                ('username', models.CharField(max_length=150)),
+                ('password', models.CharField(max_length=72)),
+            ],
+        ),
         migrations.AddField(
             model_name='post',
             name='associated_author',
@@ -84,6 +103,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='comment',
             name='author',
-            field=models.ForeignKey(to='thebuzz.Profile'),
+            field=models.ForeignKey(to='thebuzz.CommentAuthor'),
         ),
     ]
