@@ -46,9 +46,11 @@ $.ajax({
     dataType: 'json',
     success: function(data) {
 	console.log(data);
+	console.log(data[0]);
+	//console.log(data["published"]);
 	console.log("success!");
         receivedData = data;
-	if(( !$.isArray(data) || !data.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
+	if(( !$.isArray(receivedData) || !receivedData.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
 		console.log("no new github posts");
 		setTimeout(function(){checkGithub()}, interval);
 		return;
@@ -72,19 +74,53 @@ function(){
 //interval of checking...3 minutes
 interval = 1000 * 60 * 1;
 incoming = document.getElementById("incoming");
+receivedData = "";
 setTimeout(checkGithub, interval);
 });
 
+function createPost(postInfo){
+//creates a post to be appended to the page
+var container = document.createElement("div");
+container.id = "post-blocks";
+var bar = document.createElement("div");
+bar.id = "post-title-bar";
+container.appendChild(bar);
+
+var author = document.createElement("div");
+author.id = "author";
+author.textContent = postInfo["associated_author"];
+var postTitle = document.createElement("div");
+postTitle.id = "post-title";
+postTitle.textContent = "<a href = \"/posts/" + postInfo["id"] + "/detail.html\">" + postInfo["title"] +"</a>"
+var postDate = document.createElement("div");
+postDate.id = "post-date";
+postDate.textContent = postInfo["published"];
+bar.appendChild(author);
+bar.appendChild(postTitle);
+bar.appendChild(postDate);
+
+var postContents = document.createElement("div");
+postContents.textContent = postInfo["content"];
+bar.appendChild(postContents);
+
+var postDelete = document.createElement("div");
+postDelete.id = "delet-div";
+postDelete.textContent = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
+bar.appendChild(postDelete);
+return container;
+
+
+}
 
 
 function showPosts(){
 //displays the new posts once the button was clicked
 	//delete the button
 	$("#incomingButton").remove();	
-	var i;	
+	var i, newpost;	
 	for(i=0;i<receivedData.length;i++){
-	//console.log(receivedData[i]);
-	//incoming.appendChild(receivedData[i]);
+	newpost = createPost(receivedData[i]);
+	incoming.appendChild(newpost);
 	}
 
 	

@@ -255,7 +255,7 @@ def createGithubPosts(request):
 		#if there is nothing new to send, send an empty array
 		if(len(postlist) is 0):
 		    print("no new github posts")	
-		    return HttpResponse(json.dumps({"postlist" : postlist}),content_type = "application/json")	
+		    return HttpResponse(json.dumps(postlist),content_type = "application/json")	
 
 		jtmp = []
 		#print(len(postlist))
@@ -269,9 +269,10 @@ def createGithubPosts(request):
 		    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
 		    jtmp[index]['associated_author'] = str(jtmp[index]['associated_author'])
 		    jtmp[index]['id'] = str(jtmp[index]['id'])
+		    jtmp[index]['published'] = str(pubtime[index])
 		    index += 1
 
-		print(jtmp)
+		print(json.dumps(jtmp))
 		return HttpResponse(json.dumps(jtmp),content_type = "application/json")
 
 		
