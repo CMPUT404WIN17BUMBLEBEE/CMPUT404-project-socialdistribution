@@ -323,10 +323,10 @@ def add_comment(request, post_id):
             comment = form.save(commit=False)
 
             post_host = post.get('author').get('host')
-            api_url = str(post_host) + 'api/posts/' + str(post.get('id')) + '/comments/'
+            api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
             data = {
                 "query": "addComment",
-                "post": post_host + str(post.get('id')) + '/',
+                "post": post_host + '/posts/' + str(post_id) + '/',
                 "comment":{
                     "author": {
                         "id": str(author.id),
@@ -335,12 +335,14 @@ def add_comment(request, post_id):
                         "displayName": author.displayName,
                         "github": author.github
                     },
-                    "comment":form.cleaned_data['content'],
+                    "comment":form.cleaned_data['comment'],
                     "published":str(timezone.now()),
                     "id":str(uuid.uuid4())
                 }
             }
-            api_user = Site_API_User.objects.get(site__domain__contains=post_host)
+
+            api_user = Site_API_User.objects.get(api_site=post_host)
+
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
@@ -414,7 +416,7 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
-	      
+
 	      post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	      post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
@@ -439,9 +441,7 @@ def post_form_upload(request):
 	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	    post.save()
 
-	    print request.get_host()
 	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    print test
 
 
 	    return HttpResponseRedirect(reverse('post_detail',

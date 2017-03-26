@@ -36,7 +36,7 @@ class PostForm(forms.Form):
     choose_Post_Visibility = forms.ChoiceField(choices=CHOICES, required=True, widget=forms.Select(attrs={"onChange":'privacyBox(this)', 'id': 'vis_dropdown'}) )
 
     image_upload = forms.ImageField(label='Image', required=False)
-    
+
     privacy_textbox = forms.CharField(label='Visible to', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
 
     markdown = forms.BooleanField(required=False)
@@ -45,10 +45,10 @@ class CommentForm(ModelForm):
 
     class Meta:
         model = Comment
-        fields = ['content']
+        fields = ['comment']
         labels = {
-            'content': 'Comment'
+            'comment': 'Comment'
         }
         widgets = {
-            'content':Textarea(attrs={'cols': 70, 'rows': 10})
+            'comment':Textarea(attrs={'cols': 70, 'rows': 10})
         }

@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from serializers import *
 from pagination import *
 
+from .models import *
 
 class PostListView(ListCreateAPIView):
     queryset = Post.objects.filter(visibility="PUBLIC", unlisted=False).order_by('-published')
@@ -73,28 +74,11 @@ class CommentView(ListAPIView):
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
-        post = get_object_or_404(Post, id=kwargs['post_id'])
-        # author = get_object_or_404(Profile, id=request.user.profile.id)
-        # if is_authenticated_to_read(post, author):
-        #     serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
-        #     serializer.is_valid(raise_exception=True)
-        #     serializer.save()
-        #     response = OrderedDict([
-        #         ("query", "addComment"),
-        #         ("success", True),
-        #         ("message", "Comment Added"),
-        #     ])
-        #     return Response(response, status=status.HTTP_200_OK)
-        # else:
-        #     response = OrderedDict([
-        #         ("query", "addComment"),
-        #         ("success", False),
-        #         ("message", "Comment not allowed"),
-        #     ])
-        #     return Response(response, status=status.HTTP_403_FORBIDDEN)
+
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         response = OrderedDict([
             ("query", "addComment"),
             ("success", True),
