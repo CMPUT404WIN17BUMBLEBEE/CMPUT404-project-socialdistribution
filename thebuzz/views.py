@@ -187,6 +187,7 @@ def posts(request):
 @login_required(login_url = '/login/')
 def createGithubPosts(request):
 #get github activity of myself - and create posts to store in the database
+
     print request
     if request.method == 'GET':
 	    user = request.user.profile
@@ -198,7 +199,6 @@ def createGithubPosts(request):
 		postQuery = Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first()
 
 		rurl = 'https://api.github.com/users/' + user.github + '/events'
-		print(rurl)
 		resp = requests.get(rurl) #gets newest to oldest events
 		jdata = resp.json()
 		
@@ -208,6 +208,7 @@ def createGithubPosts(request):
 		pubtime = []
 		count = 0
 		postlist = [] #for sending a response
+
 		if('https://developer.github.com/v3/#rate-limiting' in jdata): #limit has been exceeded, wait 1 hour
 		    return HttpResponse(json.dumps({"postlist" : postlist}),content_type = "application/json")	
 		
@@ -242,7 +243,7 @@ def createGithubPosts(request):
 		                               content= lilavatar + "<p>" + contents[i] ,
 		                               published=pubtime[i],
 					       associated_author = user,
-					       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
+					       source = 'http://127.0.0.1:8000/',
 					       origin = 'huh',
 					       description = contents[i][0:97] + '...',
 					       visibility = 'FRIENDS',
@@ -252,9 +253,10 @@ def createGithubPosts(request):
 						 myImg = lilavatar )
 		    postlist.append(post)
 		
+		createFriendsGithubs( user ) #returns postlist of ppl youre following
+
 		#if there is nothing new to send, send an empty array
-		if(len(postlist) is 0):
-		    print("no new github posts")	
+		if(len(postlist) is 0):	
 		    return HttpResponse(json.dumps(postlist),content_type = "application/json")	
 #prepare the new posts to be sent to the Ajax
 		jtmp = []
@@ -263,11 +265,9 @@ def createGithubPosts(request):
 		
 		index = 0
 		while(index<len(postlist)):
-		    print(postlist[index])
-		    print index
-   		    jtmp.append(model_to_dict(postlist[index]))
+		    jtmp.append(model_to_dict(postlist[index]))
 		    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-		    jtmp[index]['associated_author'] = User.objects.get(profile__id = jtmp[index]['associated_author']).username#str(jtmp[index]['associated_author']) #replace with username
+		    jtmp[index]['associated_author'] = User.objects.get(profile__id = jtmp[index]['associated_author']).username
 		    jtmp[index]['id'] = str(jtmp[index]['id'])
 		    jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
 		    jtmp[index]['published'] = jtmp[index]['published'][1:-1]
@@ -276,7 +276,32 @@ def createGithubPosts(request):
 		print(json.dumps(jtmp))
 		return HttpResponse(json.dumps(jtmp),content_type = "application/json")
 
-		
+def createFriendsGithubs(user):
+#generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
+#creates and returns a list of posts of ones that haven't been posted yet
+
+    print len(user.get_all_friends())
+    friends = user.get_all_friends() #array of usernames of my friends
+    #next, get their githubs, if they have them, otherwise don't bother keeping them
+    fgithubs = []
+    mostRecent = [] #keeps track of most recent post by each friend
+    index = 0
+    while(index<len(friends)):
+	tmp =  Profile.objects.get(user__username=friends[index]).github
+	if(tmp is not ""):
+	    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author = user).order_by('-published').first())
+            fgithubs.append(tmp)
+	index += 1
+
+    #jdata = [][]
+    #index = 0
+    #while(index<len(fgithubs)):
+     #   resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+	#jdata[] = resp.json()
+	#if('https://developer.github.com/v3/#rate-limiting' in jdata[index]): #limit has been exceeded, wait 1 hour
+
+	#index += 1
+
 
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/

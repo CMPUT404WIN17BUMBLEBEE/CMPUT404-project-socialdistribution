@@ -46,8 +46,6 @@ $.ajax({
     dataType: 'json',
     success: function(data) {
 	console.log(data);
-	console.log(data[0]);
-	//console.log(data["published"]);
 	console.log("success!");
         receivedData = data;
 	if(( !$.isArray(receivedData) || !receivedData.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
@@ -119,7 +117,6 @@ function showPosts(){
 //displays the new posts once the button was clicked
 	//delete the button
 	$("#incomingButton").remove();
-	console.log($("#no-posts").length);
 	if($("#no-posts").length!==0){ 
 		$("#no-posts").remove(); //remove the part about there being no posts
 	}	
@@ -136,7 +133,6 @@ function showPosts(){
 
 function createButton(){
 //create the new posts button
-alert("button!");
 var btn = document.createElement("button");
 btn.id = "incomingButton";
 var text = document.createTextNode("New Posts");
