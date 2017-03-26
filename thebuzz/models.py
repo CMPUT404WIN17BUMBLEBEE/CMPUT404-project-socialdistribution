@@ -237,7 +237,7 @@ class Comment(models.Model):
 
 class Site_API_User(models.Model):
     id = models.AutoField(primary_key=True)
-    api_site = models.CharField(max_length = 2000)
+    api_site = models.CharField(max_length = 2000, blank=True)
     username = models.CharField(max_length = 150)
     password = models.CharField(max_length = 72)
 
