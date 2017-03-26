@@ -133,47 +133,47 @@ def posts(request):
 
     author = request.user.profile
 
-    # get all public posts
-    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    for post in posts:
-        post_list.append(post)
-
-    # get all my private posts
-    posts = Post.objects.filter(associated_author=author)
-    for post in posts:
-        post_list.append(post)
-
-    # get friends post of friends
-    friends  = author.get_all_friends()
-    if len(friends) > 0:
-        for friend in friends:
-            # get all posts for friends
-            # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
-
-            for post in posts:
-                post_list.append(post)
-
-
-            # get all posts for friends of friends
-            foafs = friend.get_all_friends()
-            if len(foafs) > 0:
-                for foaf in foafs:
-                    # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
-
-                    for foaf_post in foaf_posts:
-                        post_list.append(foaf_post)
-
-    #Remove duplicate posts from above code before adding non-local posts
-    post_list = list(set(post_list))
+    # # get all public posts
+    # posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get all my private posts
+    # posts = Post.objects.filter(associated_author=author)
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get friends post of friends
+    # friends  = author.get_all_friends()
+    # if len(friends) > 0:
+    #     for friend in friends:
+    #         # get all posts for friends
+    #         # get all posts of the friend that are not private
+    #         posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+    #
+    #         for post in posts:
+    #             post_list.append(post)
+    #
+    #
+    #         # get all posts for friends of friends
+    #         foafs = friend.get_all_friends()
+    #         if len(foafs) > 0:
+    #             for foaf in foafs:
+    #                 # get all posts of the foaf that are not private or only for friends
+    #                 foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+    #
+    #                 for foaf_post in foaf_posts:
+    #                     post_list.append(foaf_post)
+    #
+    # #Remove duplicate posts from above code before adding non-local posts
+    # post_list = list(set(post_list))
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
     # retrieve posts from node sites
-    sites = Site.objects.filter(id__gt=1).all()
+    sites = Site.objects.all()
     if len(sites) > 0 :
         for site in sites:
             api_user = Site_API_User.objects.get(site_id = site.id)
@@ -183,7 +183,12 @@ def posts(request):
             posts = data["posts"]
 
             for p in posts:
+                p['published'] = dateutil.parser.parse(p.get('published'))
                 post_list.append(p)
+
+    # Based on code from alecxe
+    # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
+    post_list.sort(key=lambda k: k['published'], reverse=True)
 
     createGithubPosts(author)
 
@@ -192,7 +197,6 @@ def posts(request):
     context = {
         'post_list': post_list
     }
-
     return render(request, 'posts/posts.html', context)
 
 
@@ -364,13 +368,15 @@ def post_form_upload(request):
 	    if markdown:
 	      ast = parser.parse(content)
 	      html = renderer.render(ast)
+	      contentType = 'text/markdown'
 	    else:
 	      #protective measures applied here
 	      html = makeSafe(content)
+	      contentType = 'text/plain'
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
 	    visibility = form.cleaned_data['choose_Post_Visibility']
-	    visible_to = ''#[]
+	    visible_to = ''
 
 	    if(visibility == 'PRIVATE'):
 	      #glean the users by commas for now
@@ -394,17 +400,21 @@ def post_form_upload(request):
               post = Post.objects.create(title = title,
                                        content=html + "<p>" + imgItself,
                                        published=published,
-				       associated_author = request.user,
-				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       associated_author = request.user.profile,
+				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
-	      #can't make a whole new post for images, will look funny. Try this??
+	      
+	      post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.save()
 
+	    #can't make a whole new post for images, will look funny. Try this??
 	    else:
 	      #create a Post without an image here!
 	      post = Post.objects.create(title = title,
@@ -412,11 +422,21 @@ def post_form_upload(request):
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
+
+	    #update post object to proper origin and source
+	    post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.save()
+
+	    print request.get_host()
+	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    print test
+
 
 	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
