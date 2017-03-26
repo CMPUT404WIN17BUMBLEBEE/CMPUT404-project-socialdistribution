@@ -45,6 +45,8 @@ class Friend(models.Model):
     displayName = models.CharField(max_length=200,blank=True)
     host = models.URLField()
     url = models.URLField()
+    def __str__(self):
+        return self.displayName
 
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible

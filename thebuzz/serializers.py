@@ -30,13 +30,12 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
         fields = '__all__'
     def create(self, validated_data):
         comment_author, created = CommentAuthor.objects.get_or_create(id=validated_data.get('id'))
-
         # Update the comment author
-
         comment_author = self.update(comment_author, validated_data)
         return comment_author
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=False)
     author = CommentAuthorSerializer()
     published = serializers.DateTimeField(source='date_created')
     comment = serializers.CharField(source='content')
@@ -97,13 +96,19 @@ class PostSerializer(serializers.ModelSerializer):
 # Todo
 class FriendURLSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile 
+        model = Friend
         fields = ("url",)
 
 class FriendSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=False)
     class Meta:
         model = Friend
         fields = '__all__'
+    def create(self, validated_data):
+        friend, created = Friend.objects.get_or_create(id=validated_data.get('id'))
+        # Update the comment author
+        friend = self.update(friend, validated_data)
+        return friend
 
 # Get request of post from remote hosts
 # Todo: test needed. Works on local
@@ -181,14 +186,19 @@ class FriendRequestSerializer(serializers.Serializer):
     friend = FriendSerializer()
 
     def handle(self):
-        author_data = self.validated_data.get('author')
+        requestor_data = self.validated_data.get('author')
+        friend_serializer = FriendSerializer(data=requestor_data)
+        friend_serializer.is_valid()
+        friend_serializer.save()
+        requestor = Friend.objects.get(id=requestor_data.get('id'))
+
         friend_data = self.validated_data.get('friend')
-        author, remote_requestor = Friend.objects.get_or_create(**author_data)
         friend = get_object_or_404(Profile, **friend_data)
 
-        friend.follow(author)
 
-            # If the friend is on the remote server, send another friend request to the remote server
+        friend.add_user_following_me(requestor)
+
+        # If the friend is on the remote server, send another friend request to the remote server
         # Todo: test needed. Local friend request works
         # if remote_friend:
         #     remote_host = friend.host

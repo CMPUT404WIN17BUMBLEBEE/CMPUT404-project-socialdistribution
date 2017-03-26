@@ -104,37 +104,37 @@ def friends (request):
             friend_profile.add_user_following_me(request.user.profile)
 
             # Todo: get remote friend id. Test needed
-            profile_url = request.POST['befriendremote']
-            profile_url = "http://127.0.0.1:8000/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
-            host = urlparse(profile_url).hostname
-            api_user = Site_API_User.objects.get(site__domain__contains = host)
-            resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
-            try:
-                profile = resp.json()
-            except Exception as e:
-                raise e
-
-            data = {
-                "query":"friendrequest",
-                "author": {
-                    "id": request.user.profile.id,
-                    "host": request.user.profile.host,
-                    "displayName": request.user.profile.displayName,
-                    "url": request.user.profile.url
-                },
-                "friend": {
-                    "id": profile.get('id'),
-                    "host": profile.get('host'),
-                    "displayName": profile.get('displayName'),
-                    "url": profile.get('url')
-                }
-            }
-            api_url = api_user.site.domain + 'friendrequest/'
-            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
-                             headers={'Content-Type': 'application/json'})
-
-            friend = Friend.objects.get_or_create(id=profile.get('id'),host=profile.get('host'),displayName=profile.get('displayName'),url=profile.get('url'))
-            request.user.profile.follow(friend)
+            # profile_url = request.POST['befriendremote']
+            # profile_url = "http://127.0.0.1:8000/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
+            # host = urlparse(profile_url).hostname
+            # api_user = Site_API_User.objects.get(site__domain__contains = host)
+            # resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
+            # try:
+            #     profile = resp.json()
+            # except Exception as e:
+            #     raise e
+            #
+            # data = {
+            #     "query":"friendrequest",
+            #     "author": {
+            #         "id": request.user.profile.id,
+            #         "host": request.user.profile.host,
+            #         "displayName": request.user.profile.displayName,
+            #         "url": request.user.profile.url
+            #     },
+            #     "friend": {
+            #         "id": profile.get('id'),
+            #         "host": profile.get('host'),
+            #         "displayName": profile.get('displayName'),
+            #         "url": profile.get('url')
+            #     }
+            # }
+            # api_url = api_user.site.domain + 'friendrequest/'
+            # resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+            #                  headers={'Content-Type': 'application/json'})
+            #
+            # friend = Friend.objects.get_or_create(id=profile.get('id'),host=profile.get('host'),displayName=profile.get('displayName'),url=profile.get('url'))
+            # request.user.profile.follow(friend)
 
         # #Todo: Get all users
         # for site in Site.objects.all():
