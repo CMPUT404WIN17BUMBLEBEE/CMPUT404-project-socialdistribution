@@ -366,13 +366,15 @@ def post_form_upload(request):
 	    if markdown:
 	      ast = parser.parse(content)
 	      html = renderer.render(ast)
+	      contentType = 'text/markdown'
 	    else:
 	      #protective measures applied here
 	      html = makeSafe(content)
+	      contentType = 'text/plain'
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
 	    visibility = form.cleaned_data['choose_Post_Visibility']
-	    visible_to = ''#[]
+	    visible_to = ''
 
 	    if(visibility == 'PRIVATE'):
 	      #glean the users by commas for now
@@ -396,17 +398,21 @@ def post_form_upload(request):
               post = Post.objects.create(title = title,
                                        content=html + "<p>" + imgItself,
                                        published=published,
-				       associated_author = request.user,
-				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       associated_author = request.user.profile,
+				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
-	      #can't make a whole new post for images, will look funny. Try this??
+	      
+	      post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.save()
 
+	    #can't make a whole new post for images, will look funny. Try this??
 	    else:
 	      #create a Post without an image here!
 	      post = Post.objects.create(title = title,
@@ -414,11 +420,21 @@ def post_form_upload(request):
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
+
+	    #update post object to proper origin and source
+	    post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.save()
+
+	    print request.get_host()
+	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    print test
+
 
 	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
