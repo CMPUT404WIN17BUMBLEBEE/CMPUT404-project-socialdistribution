@@ -183,6 +183,12 @@ def posts(request):
         posts = data["posts"]
 
         for p in posts:
+            split = p['id'].split("/")
+            actual_id = split[0]
+            if len(split) > 1:
+                actual_id = split[4]
+
+            p['id'] = actual_id
             p['published'] = dateutil.parser.parse(p.get('published'))
             post_list.append(p)
 
