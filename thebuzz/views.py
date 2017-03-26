@@ -245,7 +245,7 @@ def createGithubPosts(request):
 					       source = 'http://127.0.0.1:8000/',#request.META.get('HTTP_REFERER'), TODO: fix me
 					       origin = 'huh',
 					       description = contents[i][0:97] + '...',
-					       visibility = 'PUBLIC',
+					       visibility = 'FRIENDS',
 					       visibleTo = '',
 		                               )
 		    myImg = Img.objects.create(associated_post = post,
@@ -256,7 +256,7 @@ def createGithubPosts(request):
 		if(len(postlist) is 0):
 		    print("no new github posts")	
 		    return HttpResponse(json.dumps(postlist),content_type = "application/json")	
-
+#prepare the new posts to be sent to the Ajax
 		jtmp = []
 		#print(len(postlist))
 		print(postlist[0])
@@ -267,9 +267,10 @@ def createGithubPosts(request):
 		    print index
    		    jtmp.append(model_to_dict(postlist[index]))
 		    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-		    jtmp[index]['associated_author'] = str(jtmp[index]['associated_author'])
+		    jtmp[index]['associated_author'] = User.objects.get(profile__id = jtmp[index]['associated_author']).username#str(jtmp[index]['associated_author']) #replace with username
 		    jtmp[index]['id'] = str(jtmp[index]['id'])
-		    jtmp[index]['published'] = str(pubtime[index])
+		    jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
+		    jtmp[index]['published'] = jtmp[index]['published'][1:-1]
 		    index += 1
 
 		print(json.dumps(jtmp))

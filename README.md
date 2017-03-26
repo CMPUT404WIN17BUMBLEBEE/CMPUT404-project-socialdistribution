@@ -89,3 +89,6 @@ http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow h
 
 Model to Dictionary:
 http://stackoverflow.com/a/16790455 Answered by alecxe on Stack Overflow (http://stackoverflow.com/users/771848/alecxe)
+
+Serializing a Datetime:
+http://stackoverflow.com/a/23595986 Answered by Eugene Soldatov on Stack Overflow (http://stackoverflow.com/users/1031981/eugene-soldatov)
