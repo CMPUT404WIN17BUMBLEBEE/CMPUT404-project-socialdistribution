@@ -176,8 +176,9 @@ def posts(request):
     sites = Site.objects.filter(id__gt=1).all()
     if len(sites) > 0 :
         for site in sites:
+            api_user = Site_API_User.objects.get(site_id = site.id)
             api_url = str(site) + "posts/"
-            resp = requests.get(api_url)
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             data = json.loads(resp.text)
             posts = data["posts"]
 
