@@ -55,7 +55,7 @@ class AuthorPostsView(ListAPIView):
     pagination_class = PostsPagination
 
     def get_queryset(self):
-        authorposts = self.queryset.filter(profile=self.kwargs['author_id'])
+        authorposts = self.queryset.filter(associated_author__id=self.kwargs['author_id'])
         author = get_object_or_404(Profile, id=self.request.user.profile.id)
         return get_readable_posts(author, authorposts)
 
@@ -168,8 +168,9 @@ class FriendRequestView(GenericAPIView):
         serializer.handle()
         return Response(serializer.data)
 
-
+#Todo
 def is_authenticated_to_read(post, author):
+    # admin
     if author.user.is_superuser:
         return True
 
@@ -198,7 +199,7 @@ def is_authenticated_to_read(post, author):
 
     return False
 
-
+#Todo
 def get_readable_posts(author, posts):
     if author.user.is_superuser:
         return posts

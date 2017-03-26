@@ -177,56 +177,62 @@ def posts(request):
 
     author = request.user.profile
 
-    # get all public posts
-    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    for post in posts:
-        post_list.append(post)
-
-    # get all my private posts
-    posts = Post.objects.filter(associated_author=author)
-    for post in posts:
-        post_list.append(post)
-
-    # get friends post of friends
-    friends  = author.get_all_friends()
-    if len(friends) > 0:
-        for friend in friends:
-            # get all posts for friends
-            # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
-
-            for post in posts:
-                post_list.append(post)
-
-
-            # get all posts for friends of friends
-            foafs = friend.get_all_friends()
-            if len(foafs) > 0:
-                for foaf in foafs:
-                    # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
-
-                    for foaf_post in foaf_posts:
-                        post_list.append(foaf_post)
-
-    #Remove duplicate posts from above code before adding non-local posts
-    post_list = list(set(post_list))
+    # # get all public posts
+    # posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get all my private posts
+    # posts = Post.objects.filter(associated_author=author)
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get friends post of friends
+    # friends  = author.get_all_friends()
+    # if len(friends) > 0:
+    #     for friend in friends:
+    #         # get all posts for friends
+    #         # get all posts of the friend that are not private
+    #         posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+    #
+    #         for post in posts:
+    #             post_list.append(post)
+    #
+    #
+    #         # get all posts for friends of friends
+    #         foafs = friend.get_all_friends()
+    #         if len(foafs) > 0:
+    #             for foaf in foafs:
+    #                 # get all posts of the foaf that are not private or only for friends
+    #                 foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+    #
+    #                 for foaf_post in foaf_posts:
+    #                     post_list.append(foaf_post)
+    #
+    # #Remove duplicate posts from above code before adding non-local posts
+    # post_list = list(set(post_list))
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
     # retrieve posts from node sites
-    sites = Site.objects.filter(id__gt=1).all()
+    sites = Site.objects.all()
     if len(sites) > 0 :
         for site in sites:
+            api_user = Site_API_User.objects.get(site_id = site.id)
             api_url = str(site) + "posts/"
-            resp = requests.get(api_url)
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             data = json.loads(resp.text)
             posts = data["posts"]
 
             for p in posts:
+                p['published'] = dateutil.parser.parse(p.get('published'))
                 post_list.append(p)
+
+    # Based on code from alecxe
+    # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
+    post_list.sort(key=lambda k: k['published'], reverse=True)
 
     createGithubPosts(author)
 
@@ -235,7 +241,6 @@ def posts(request):
     context = {
         'post_list': post_list
     }
-
     return render(request, 'posts/posts.html', context)
 
 
