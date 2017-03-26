@@ -88,25 +88,27 @@ container.appendChild(bar);
 
 var author = document.createElement("div");
 author.id = "author";
-author.textContent = postInfo["associated_author"];
+author.innerHTML = postInfo["associated_author"];
 var postTitle = document.createElement("div");
 postTitle.id = "post-title";
-postTitle.textContent = "<a href = \"/posts/" + postInfo["id"] + "/detail.html\">" + postInfo["title"] +"</a>"
+postTitle.innerHTML = "<a href = \"/posts/" + postInfo["id"] + "/detail.html\">" + postInfo["title"] +"</a>"
 var postDate = document.createElement("div");
 postDate.id = "post-date";
-postDate.textContent = postInfo["published"];
+postDate.innerHTML = postInfo["published"];
 bar.appendChild(author);
 bar.appendChild(postTitle);
 bar.appendChild(postDate);
 
 var postContents = document.createElement("div");
-postContents.textContent = postInfo["content"];
-bar.appendChild(postContents);
+postContents.innerHTML = postInfo["content"];
+//bar.appendChild(postContents);
+container.appendChild(postContents);
 
 var postDelete = document.createElement("div");
 postDelete.id = "delet-div";
-postDelete.textContent = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
-bar.appendChild(postDelete);
+postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
+//bar.appendChild(postDelete);
+container.appendChild(postDelete);
 return container;
 
 
