@@ -104,9 +104,55 @@ class post_tests(TestCase):
         self.assertIsInstance(dateutil.parser.parse(comment['published']), datetime, "Published is not in datetime format")
         self.assertEqual(comment['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
 
-class profile_tests(TestCase):
+#class profile_tests(TestCase):
 #	def test_username(self):
 
 class friend_tests(TestCase):
-	def test_friend_request(self):	
+	def setUp(self): #does it remember other users between tests? Ans: no.
+	  password = make_password('test')
+          user = User.objects.create(username='test_1', password=password)
+          author = Profile.objects.get(user=user)
+          author.host = "http://testserver.com/"
+          author.url = author.host+str(author.id)
+          author.save()
 
+	  #second person
+	  password = make_password('test')
+          user = User.objects.create(username='test_2', password=password)
+          author = Profile.objects.get(user=user)
+          author.host = "http://testserver.com/"
+          author.url = author.host+str(author.id)
+          author.save()
+
+          self.client.login(username='test_1', password='test')
+	  
+	def test_friend_request(self):
+	  user_id = User.objects.get(username='test_1').id
+	  friend_id = User.objects.get(username='test_2').id
+	  author = Profile.objects.get(user=user_id)
+	  friend = Profile.objects.get(user=friend_id).id
+	  Aid = author.host + str(author.id)
+
+	  data = {"query":"friendrequest",
+		 "author": {
+				"id": Aid,
+				"host": author.host,
+				"displayName": author.displayName
+                		"url":author.host + 'author/' + str(author.id),
+			  },
+		 "friend": {
+			    "id": friend.host + str(friend.id),
+			    "host": friend.host,
+			    "displayName": friend.displayName,
+	               	    "url": author.host + 'author/' + str(author.id),
+
+			  }	
+       	}
+ #       response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
+        #  self.assertEquals(response.status_code, 200, 'Failed to add the comments')
+
+
+
+	#  response = self.client.post('/api/friendrequest')
+	#  print response.status_code
+        #  self.assertEquals(response.status_code, 200, 'Failed to get the public posts')
