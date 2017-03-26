@@ -168,8 +168,9 @@ class FriendRequestView(GenericAPIView):
         serializer.handle()
         return Response(serializer.data)
 
-
+#Todo
 def is_authenticated_to_read(post, author):
+    # admin
     if author.user.is_superuser:
         return True
 
@@ -198,7 +199,7 @@ def is_authenticated_to_read(post, author):
 
     return False
 
-
+#Todo
 def get_readable_posts(author, posts):
     if author.user.is_superuser:
         return posts

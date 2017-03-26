@@ -27,6 +27,13 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentAuthor
         fields = '__all__'
+    def create(self, validated_data):
+        comment_author, created = CommentAuthor.objects.get_or_create(id=validated_data.get('id'))
+
+        # Update the comment author
+
+        comment_author = self.update(comment_author, validated_data)
+        return comment_author
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     author = CommentAuthorSerializer()
@@ -46,10 +53,12 @@ class AddCommentSerializer(serializers.Serializer):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
 
-        self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))
         # author = get_object_or_404(Profile, **author_data)
-        author, created = CommentAuthor.objects.get_or_create(**author_data)
+        comment_author_serializer = CommentAuthorSerializer(data=author_data)
+        comment_author_serializer.is_valid()
+        comment_author_serializer.save()
+        author = CommentAuthor.objects.get(id=author_data.get('id'))
         comment = Comment.objects.create(associated_post=post, author=author, **comment_data)
         return comment
 
