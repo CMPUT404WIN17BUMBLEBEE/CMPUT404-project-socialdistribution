@@ -1,3 +1,5 @@
+from urlparse import urlparse
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -101,6 +103,48 @@ def friends (request):
             request.user.profile.follow(friend_profile)
             friend_profile.add_user_following_me(request.user.profile)
 
+            # Todo: get remote friend id. Test needed
+            profile_url = request.POST['befriendremote']
+            profile_url = "http://127.0.0.1:8000/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
+            host = urlparse(profile_url).hostname
+            api_user = Site_API_User.objects.get(site__domain__contains = host)
+            resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
+            try:
+                profile = resp.json()
+            except Exception as e:
+                raise e
+
+            data = {
+                "query":"friendrequest",
+                "author": {
+                    "id": request.user.profile.id,
+                    "host": request.user.profile.host,
+                    "displayName": request.user.profile.displayName,
+                    "url": request.user.profile.url
+                },
+                "friend": {
+                    "id": profile.get('id'),
+                    "host": profile.get('host'),
+                    "displayName": profile.get('displayName'),
+                    "url": profile.get('url')
+                }
+            }
+            api_url = api_user.site.domain + 'friendrequest/'
+            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+                             headers={'Content-Type': 'application/json'})
+
+            friend = Friend.objects.get_or_create(id=profile.get('id'),host=profile.get('host'),displayName=profile.get('displayName'),url=profile.get('url'))
+            request.user.profile.follow(friend)
+
+        # #Todo: Get all users
+        # for site in Site.objects.all():
+        #     profile_list_url = site.domain + 'author/'
+        #     api_user = Site_API_User.objects.get(site_id = site.id)
+        #     resp = requests.get(profile_list_url, auth=(api_user.username, api_user.password))
+        #     try:
+        #         profile_list = resp.json()
+        #     except Exception as e:
+        #         pass
         users = User.objects.all() #for testing purposes only
 
         # get all the people I am currently following

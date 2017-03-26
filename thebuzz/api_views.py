@@ -110,7 +110,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 class FriendViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer_class = FriendSerializer
+    serializer_class = FriendURLSerializer
 
     def list(self, request, *args, **kwargs):
         author = get_object_or_404(Profile, id=kwargs['author_id'])

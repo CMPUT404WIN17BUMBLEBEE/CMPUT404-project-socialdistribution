@@ -24,6 +24,15 @@
         </div>
     </form>
 
+    <form action = '/friends/' method = 'POST'>{% csrf_token %}
+        <div>
+          <span>Select a user to friend: </span>
+          <input id="remote_user_id" type="text" name="befriendremote">
+          </input>
+          <input id="request_btn" type='submit' value='Send Request'></input>
+        </div>
+    </form>
+
   <div id="requests">
     <div class="request_blocks" id="pending_friends">
       <div class="request_titles">Pending Friend Requests (Waiting on them)</div>

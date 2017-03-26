@@ -9,6 +9,7 @@ from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=False)
+    github = serializers.CharField(required=False)
     class Meta:
         model = Profile 
         fields = ("id", "url", "host", "displayName", "github")
@@ -84,11 +85,16 @@ class PostSerializer(serializers.ModelSerializer):
     def get_next(self, obj):
         return obj.associated_author.host + 'posts/' + str(obj.id) + '/comments'
 
-
-class FriendSerializer(serializers.ModelSerializer):
+# Todo
+class FriendURLSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile 
         fields = ("url",)
+
+class FriendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Friend
+        fields = '__all__'
 
 # Get request of post from remote hosts
 # Todo: test needed. Works on local
@@ -163,25 +169,28 @@ class GetPostSerializer(serializers.Serializer):
 class FriendRequestSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=20)
     author = AuthorSerializer()
-    friend = AuthorSerializer()
+    friend = FriendSerializer()
 
     def handle(self):
         author_data = self.validated_data.get('author')
         friend_data = self.validated_data.get('friend')
-        author, remote_requestor = Profile.objects.get_or_create(**author_data)
-        friend, remote_friend = Profile.objects.get_or_create(**friend_data)
-        # If the friend is on the remote server, send another friend request to the remote server
+        author, remote_requestor = Friend.objects.get_or_create(**author_data)
+        friend = get_object_or_404(Profile, **friend_data)
+
+        friend.follow(author)
+
+            # If the friend is on the remote server, send another friend request to the remote server
         # Todo: test needed. Local friend request works
-        if remote_friend:
-            remote_host = friend.host
-            request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
-            response = urllib2.urlopen(request, self.validated_data)
-        if friend in author.followers.all():
-            author.friends.add(friend)
-            author.followers.remove(friend)
-            friend.following.remove(author)
-        else:
-            author.following.add(friend)
-            friend.followers.add(author)
+        # if remote_friend:
+        #     remote_host = friend.host
+        #     request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
+        #     response = urllib2.urlopen(request, self.validated_data)
+        # if friend in author.followers.all():
+        #     author.friends.add(friend)
+        #     author.followers.remove(friend)
+        #     friend.following.remove(author)
+        # else:
+        #     author.following.add(friend)
+        #     friend.followers.add(author)
 
 
