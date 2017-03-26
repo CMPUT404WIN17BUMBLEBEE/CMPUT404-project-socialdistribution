@@ -103,3 +103,10 @@ class post_tests(TestCase):
         self.assertEqual(comment['comment'], 'test', 'Comment does not match')
         self.assertIsInstance(dateutil.parser.parse(comment['published']), datetime, "Published is not in datetime format")
         self.assertEqual(comment['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
+
+class profile_tests(TestCase):
+#	def test_username(self):
+
+class friend_tests(TestCase):
+	def test_friend_request(self):	
+
