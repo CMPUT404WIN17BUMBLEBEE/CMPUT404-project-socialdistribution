@@ -118,11 +118,16 @@ return container;
 function showPosts(){
 //displays the new posts once the button was clicked
 	//delete the button
-	$("#incomingButton").remove();	
+	$("#incomingButton").remove();
+	console.log($("#no-posts").length);
+	if($("#no-posts").length!==0){ 
+		$("#no-posts").remove(); //remove the part about there being no posts
+	}	
 	var i, newpost;	
 	for(i=0;i<receivedData.length;i++){
 	newpost = createPost(receivedData[i]);
-	incoming.appendChild(newpost);
+	//incoming.appendChild(newpost);
+	$(newpost).insertAfter(incoming);
 	}
 
 	
