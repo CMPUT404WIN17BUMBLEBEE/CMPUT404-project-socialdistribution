@@ -22,7 +22,7 @@
       {% for post in post_list %}
           <div id="post-blocks">
               <div id="post-title-bar">
-                <div id="author">{{ post.associated_author.displayName }}</div>
+                <div id="author">{{ post.author.displayName }}</div>
                 <div id="post-title">
                   <a href="/posts/{{ post.id }}/detail.html">{{ post.title }}</a>
                 </div>
