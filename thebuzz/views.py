@@ -273,7 +273,9 @@ def get_Post(post_id):
         try:
             api_user = Site_API_User.objects.get(site_id = site.id)
             resp = requests.get(api_url, auth=(api_user.username, api_user.password))
-            post = resp.json()
+            #post = resp.json()
+            data = json.loads(resp.text)
+            post = data["post"]
         #Results in an AttributeError if the object does not exist at that site
         except AttributeError:
             #Setting isPostData to False since that site didn't have the data
