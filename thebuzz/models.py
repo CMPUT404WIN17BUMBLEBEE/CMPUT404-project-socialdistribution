@@ -237,13 +237,12 @@ class Comment(models.Model):
 
 class Site_API_User(models.Model):
     id = models.AutoField(primary_key=True)
-    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    api_site = models.CharField(max_length = 2000)
     username = models.CharField(max_length = 150)
     password = models.CharField(max_length = 72)
 
     def __str__(self):
-        return str(self.site)
+        return str(self.api_site)
 
 
 # ----------------------- End Node Site User -------------------------
-
