@@ -120,7 +120,6 @@ def create_user_profile(sender,instance, created, **kwargs):
         # http://stackoverflow.com/a/1454986
         # Todo: Does not work
         host = Site.objects.get_current().domain
-        host = host[:-4]
         id = uuid.uuid4()
         url = host + 'author/' + str(id)
         Profile.objects.create(user=instance, id=id, host=host, url=url, displayName=instance.username)
@@ -237,13 +236,12 @@ class Comment(models.Model):
 
 class Site_API_User(models.Model):
     id = models.AutoField(primary_key=True)
-    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    api_site = models.CharField(max_length = 2000)
     username = models.CharField(max_length = 150)
     password = models.CharField(max_length = 72)
 
     def __str__(self):
-        return str(self.site)
+        return str(self.api_site)
 
 
 # ----------------------- End Node Site User -------------------------
-

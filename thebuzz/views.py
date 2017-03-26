@@ -173,18 +173,24 @@ def posts(request):
 	#template = loader.get_template('index.html')
 
     # retrieve posts from node sites
-    sites = Site.objects.all()
-    if len(sites) > 0 :
-        for site in sites:
-            api_user = Site_API_User.objects.get(site_id = site.id)
-            api_url = str(site) + "posts/"
-            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
-            data = json.loads(resp.text)
-            posts = data["posts"]
+    sites = Site_API_User.objects.all()
+    for site in sites:
+        api_user = site.username
+        api_password = site.password
+        api_url = site.api_site + "posts/"
+        resp = requests.get(api_url, auth=(api_user, api_password))
+        data = json.loads(resp.text)
+        posts = data["posts"]
 
-            for p in posts:
-                p['published'] = dateutil.parser.parse(p.get('published'))
-                post_list.append(p)
+        for p in posts:
+            split = p['id'].split("/")
+            actual_id = split[0]
+            if len(split) > 1:
+                actual_id = split[4]
+
+            p['id'] = actual_id
+            p['published'] = dateutil.parser.parse(p.get('published'))
+            post_list.append(p)
 
     # Based on code from alecxe
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
@@ -263,16 +269,17 @@ def createGithubPosts(user):
 
 def get_Post(post_id):
     post = {}
-    sites = Site.objects.all()
+    sites = Site_API_User.objects.all()
     for site in sites:
-        api_url = str(site) + "posts/" + post_id + "/"
+        api_url = site.api_site + "posts/" + post_id + "/"
 
         global isPostData
         isPostData = True
         post = {}
         try:
-            api_user = Site_API_User.objects.get(site_id = site.id)
-            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+            api_user = site.username
+            api_password = site.password
+            resp = requests.get(api_url, auth=(api_user, api_password))
             post = resp.json()
         #Results in an AttributeError if the object does not exist at that site
         except AttributeError:
@@ -410,8 +417,9 @@ def post_form_upload(request):
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
 	      
-	      post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	      post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+
 	      post.save()
 
 	    #can't make a whole new post for images, will look funny. Try this??
@@ -429,8 +437,8 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
 
 	    #update post object to proper origin and source
-	    post.origin = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    post.source = request.get_host() + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	    post.save()
 
 	    print request.get_host()
