@@ -182,6 +182,7 @@ def posts(request):
             posts = data["posts"]
 
             for p in posts:
+                p['published'] = dateutil.parser.parse(p.get('published'))
                 post_list.append(p)
 
     createGithubPosts(author)
@@ -191,7 +192,6 @@ def posts(request):
     context = {
         'post_list': post_list
     }
-
     return render(request, 'posts/posts.html', context)
 
 
