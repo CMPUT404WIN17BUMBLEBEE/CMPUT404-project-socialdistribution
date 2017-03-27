@@ -37,6 +37,7 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AddCommentSerializer(serializers.Serializer):
+    print "BEGINNING OF SERIALIZERS"
     query = serializers.CharField(max_length=20)
     post = serializers.URLField(required=False)
     comment = CommentSerializer()
