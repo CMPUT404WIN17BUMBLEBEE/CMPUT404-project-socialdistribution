@@ -135,40 +135,40 @@ def posts(request):
 
     author = request.user.profile
 
-    # # get all public posts
-    # posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    # for post in posts:
-    #     post_list.append(post)
-    #
-    # # get all my private posts
-    # posts = Post.objects.filter(associated_author=author)
-    # for post in posts:
-    #     post_list.append(post)
-    #
-    # # get friends post of friends
-    # friends  = author.get_all_friends()
-    # if len(friends) > 0:
-    #     for friend in friends:
-    #         # get all posts for friends
-    #         # get all posts of the friend that are not private
-    #         posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
-    #
-    #         for post in posts:
-    #             post_list.append(post)
-    #
-    #
-    #         # get all posts for friends of friends
-    #         foafs = friend.get_all_friends()
-    #         if len(foafs) > 0:
-    #             for foaf in foafs:
-    #                 # get all posts of the foaf that are not private or only for friends
-    #                 foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
-    #
-    #                 for foaf_post in foaf_posts:
-    #                     post_list.append(foaf_post)
-    #
-    # #Remove duplicate posts from above code before adding non-local posts
-    # post_list = list(set(post_list))
+    # get all public posts
+    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    for post in posts:
+        post_list.append(post)
+
+    # get all my private posts
+    posts = Post.objects.filter(associated_author=author)
+    for post in posts:
+        post_list.append(post)
+
+    # get friends post of friends
+    friends  = author.get_all_friends()
+    if len(friends) > 0:
+        for friend in friends:
+            # get all posts for friends
+            # get all posts of the friend that are not private
+            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+
+            for post in posts:
+                post_list.append(post)
+
+
+            # get all posts for friends of friends
+            foafs = friend.get_all_friends()
+            if len(foafs) > 0:
+                for foaf in foafs:
+                    # get all posts of the foaf that are not private or only for friends
+                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+
+                    for foaf_post in foaf_posts:
+                        post_list.append(foaf_post)
+
+    #Remove duplicate posts from above code before adding non-local posts
+    post_list = list(set(post_list))
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
@@ -196,7 +196,7 @@ def posts(request):
 
     # Based on code from alecxe
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
-    post_list.sort(key=lambda k: k['published'], reverse=True)
+    #post_list.sort(key=lambda k: k['published'], reverse=True)
 
     context = {}
 
@@ -334,6 +334,7 @@ def createFriendsGithubs(user):
 def get_Post(post_id):
     post = {}
     sites = Site_API_User.objects.all()
+
     for site in sites:
         api_url = site.api_site + "posts/" + post_id + "/"
 
@@ -345,8 +346,12 @@ def get_Post(post_id):
             api_password = site.password
             resp = requests.get(api_url, auth=(api_user, api_password))
             post = resp.json()
+
+            if resp.status_code == 404:
+                isPostData = False
+                pass
         #Results in an AttributeError if the object does not exist at that site
-        except AttributeError:
+        except  AttributeError:
             #Setting isPostData to False since that site didn't have the data
             isPostData = False
             pass
@@ -355,6 +360,14 @@ def get_Post(post_id):
         if isPostData and not post == {u'detail': u'Not found.'}:
             break
 
+    split = post['id'].split("/")
+    actual_id = split[0]
+
+    if len(split) > 1:
+        actual_id = split[4]
+
+    post['id'] = actual_id
+
     return post
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -362,9 +375,13 @@ def get_Post(post_id):
 def post_detail(request, post_id):
     post = get_Post(post_id)
 
+    print "post: " + str(post)
+
     #Check that we did find a post, if not raise a 404
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
+    
+    post['published'] = dateutil.parser.parse(post.get('published'))
 
     #Posts returned from api's have comments on them no need to retrieve them separately
     return render(request, 'posts/detail.html', {'post': post})
@@ -387,27 +404,37 @@ def add_comment(request, post_id):
             comment = form.save(commit=False)
 
             post_host = post.get('author').get('host')
-            api_url = str(post_host) + 'api/posts/' + str(post.get('id')) + '/comments/'
+            if not post_host.endswith("/"):
+                post_host = post_host + "/"
+
+            id = str(author.id)
+            if not post_host == Site.objects.get_current().domain:
+                id = author.url
+
+            api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
             data = {
                 "query": "addComment",
-                "post": post_host + str(post.get('id')) + '/',
+                "post": post_host + 'posts/' + str(post_id) + '/',
                 "comment":{
                     "author": {
-                        "id": str(author.id),
+                        "id": id,
                         "url": author.url,
                         "host": author.host,
                         "displayName": author.displayName,
                         "github": author.github
                     },
-                    "comment":form.cleaned_data['content'],
+                    "comment":form.cleaned_data['comment'],
+                    "contentType": "text/plain",
                     "published":str(timezone.now()),
                     "id":str(uuid.uuid4())
                 }
             }
-            api_user = Site_API_User.objects.get(site__domain__contains=post_host)
+
+            api_user = Site_API_User.objects.get(api_site=post_host)
+
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
     else:
         form = CommentForm()
 
@@ -478,7 +505,7 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
-	      
+
 	      post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	      post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
@@ -503,9 +530,7 @@ def post_form_upload(request):
 	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	    post.save()
 
-	    print request.get_host()
 	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    print test
 
 
 	    return HttpResponseRedirect(reverse('post_detail',

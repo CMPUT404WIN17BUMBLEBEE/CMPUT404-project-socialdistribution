@@ -213,7 +213,7 @@ class Comment(models.Model):
 
     associated_post= models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(CommentAuthor, on_delete=models.CASCADE)
-    content =  models.TextField(max_length =2000)
+    comment =  models.TextField(max_length =2000)
 
     contentType_choice = (
         ('text/markdown', 'text/markdown'),
@@ -236,7 +236,7 @@ class Comment(models.Model):
 
 class Site_API_User(models.Model):
     id = models.AutoField(primary_key=True)
-    api_site = models.CharField(max_length = 2000)
+    api_site = models.CharField(max_length = 2000, blank=True)
     username = models.CharField(max_length = 150)
     password = models.CharField(max_length = 72)
 

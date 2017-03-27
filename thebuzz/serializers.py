@@ -10,7 +10,7 @@ from rest_framework import serializers
 class AuthorSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=False)
     class Meta:
-        model = Profile 
+        model = Profile
         fields = ("id", "url", "host", "displayName", "github")
         #fields = '__all__'
 
@@ -18,7 +18,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     friends = AuthorSerializer(many=True)
     class Meta:
-        model = Profile 
+        model = Profile
         fields = ("id", "host", "displayName", "url", "friends", "github", "firstName", "lastName",
                   "email", "bio")
 
@@ -31,7 +31,6 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     author = CommentAuthorSerializer()
     published = serializers.DateTimeField(source='date_created')
-    comment = serializers.CharField(source='content')
     class Meta:
         model = Comment
         fields = ('author', 'comment', 'published', 'id')
@@ -43,6 +42,7 @@ class AddCommentSerializer(serializers.Serializer):
     comment = CommentSerializer()
 
     def create(self, validated_data):
+        print "here"
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
 
@@ -87,7 +87,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class FriendSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile 
+        model = Profile
         fields = ("url",)
 
 # Get request of post from remote hosts
@@ -183,5 +183,3 @@ class FriendRequestSerializer(serializers.Serializer):
         else:
             author.following.add(friend)
             friend.followers.add(author)
-
-
