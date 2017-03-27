@@ -23,14 +23,12 @@ class ProfileSerializer(serializers.ModelSerializer):
                   "email", "bio")
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
-    print "IN COMMENT AUTHOR SERIALIZER"
     id = serializers.UUIDField(read_only=False)
     class Meta:
         model = CommentAuthor
         fields = '__all__'
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-    print "IN COMMENT SERIALIZER"
     author = CommentAuthorSerializer()
     published = serializers.DateTimeField(source='date_created')
     class Meta:
@@ -39,20 +37,14 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AddCommentSerializer(serializers.Serializer):
-    print "BEGINNING OF SERIALIZERS"
     query = serializers.CharField(max_length=20)
     post = serializers.URLField(required=False)
     comment = CommentSerializer()
 
-    print "BACK IN ADD COMMENT"
 
     def create(self, validated_data):
-        print "IN SERIALIZER"
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
-
-        print "AUTHOR DATA: " + str(author_data)
-        print "COMMENT_DATA: " + str(comment_data)
 
         self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))

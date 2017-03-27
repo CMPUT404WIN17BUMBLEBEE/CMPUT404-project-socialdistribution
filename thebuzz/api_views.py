@@ -76,11 +76,6 @@ class CommentView(ListAPIView):
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
-        print "METHOD: " + request.method
-        print "HERE!" 
-        print ("REQUEST DATA: " + str(request.data))
-        print ("REQUEST POST: " + str(request.POST.get('query')))
-        print ("REQUEST AUTHOR: " + str(request.data.get('comment').get('author').get('id')))
 
         split = request.data.get('comment').get('author').get('id').split("/")
         actual_id = split[0]
@@ -88,21 +83,13 @@ class CommentView(ListAPIView):
         if len(split) > 1:
             actual_id = split[4]
 
-        print "ACTUAL ID: " + actual_id
-        #request.data.get('comment').get('author').get('id').__setitem__(actual_id)
 
         d = (request.data)
         d['comment']['author']['id'] = actual_id
 
-        #print ("REQUEST TEXT: " + str(request.text))
-        #print ("REQUEST BODY: " + str(request.body))
-        print ("POST ID: " + str(kwargs['post_id']))
-        print "REQUEST DATA AGAIN: " + str(request.data)
-
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        print "SERIALIZER ERRORS: " + str(serializer.errors)
 
         response = OrderedDict([
             ("query", "addComment"),
