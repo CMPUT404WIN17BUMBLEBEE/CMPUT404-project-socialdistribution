@@ -130,29 +130,26 @@ class friend_tests(TestCase):
 	  user_id = User.objects.get(username='test_1').id
 	  friend_id = User.objects.get(username='test_2').id
 	  author = Profile.objects.get(user=user_id)
-	  friend = Profile.objects.get(user=friend_id).id
+	  friend = Profile.objects.get(user=friend_id)
 	  Aid = author.host + str(author.id)
+	  Aurl = author.host + 'author/' + str(author.id)
+	  Bid = friend.host + str(friend.id)
+	  Burl = author.host + 'author/' + str(author.id)
 
 	  data = {"query":"friendrequest",
 		 "author": {
 				"id": Aid,
 				"host": author.host,
-				"displayName": author.displayName
-                		"url":author.host + 'author/' + str(author.id),
+				"displayName": author.displayName,
+                		"url": Aurl,
 			  },
 		 "friend": {
-			    "id": friend.host + str(friend.id),
+			    "id": Bid,
 			    "host": friend.host,
 			    "displayName": friend.displayName,
-	               	    "url": author.host + 'author/' + str(author.id),
+	               	    "url": Burl,
 
 			  }	
        	}
- #       response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
-        #  self.assertEquals(response.status_code, 200, 'Failed to add the comments')
-
-
-
-	#  response = self.client.post('/api/friendrequest')
-	#  print response.status_code
-        #  self.assertEquals(response.status_code, 200, 'Failed to get the public posts')
+	  response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
+          self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
