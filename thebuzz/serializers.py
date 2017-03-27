@@ -44,6 +44,8 @@ class AddCommentSerializer(serializers.Serializer):
     post = serializers.URLField(required=False)
     comment = CommentSerializer()
 
+    print "BACK IN ADD COMMENT"
+
     def create(self, validated_data):
         print "IN SERIALIZER"
         comment_data = validated_data.get('comment')
