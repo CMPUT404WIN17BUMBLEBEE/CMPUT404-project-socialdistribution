@@ -75,7 +75,17 @@ class CommentView(ListAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
+        postId = kwargs['post_id']
+
+        split = postId.split("/")
+        actual_id = split[0]
+
+        if len(split) > 1:
+            actual_id = split[4]
+
+        postId = actual_id
+
+        serializer = AddCommentSerializer(data=request.data, context={'post_id': postId})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
