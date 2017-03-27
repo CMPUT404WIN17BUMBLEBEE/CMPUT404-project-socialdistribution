@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='Comment',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
-                ('content', models.TextField(max_length=2000)),
+                ('comment', models.TextField(max_length=2000)),
                 ('contentType', models.CharField(default=b'text/plain', max_length=2000, choices=[(b'text/markdown', b'text/markdown'), (b'text/plain', b'text/plain'), (b'application/base64', b'application/base65'), (b'image/png;base64', b'image/png;base64'), (b'image/jpeg;base64', b'image/jpeg;base64')])),
                 ('date_created', models.DateTimeField(auto_now=True)),
             ],
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
             name='Site_API_User',
             fields=[
                 ('id', models.AutoField(serialize=False, primary_key=True)),
-                ('api_site', models.CharField(max_length=2000)),
+                ('api_site', models.CharField(max_length=2000, blank=True)),
                 ('username', models.CharField(max_length=150)),
                 ('password', models.CharField(max_length=72)),
             ],
