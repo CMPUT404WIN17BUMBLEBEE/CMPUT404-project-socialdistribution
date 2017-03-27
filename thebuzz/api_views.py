@@ -12,6 +12,8 @@ from pagination import *
 
 from .models import *
 
+import sys
+
 class PostListView(ListCreateAPIView):
     queryset = Post.objects.filter(visibility="PUBLIC", unlisted=False).order_by('-published')
     serializer_class = PostSerializer
@@ -87,6 +89,9 @@ class CommentView(ListAPIView):
             ("success", True),
             ("message", "Comment Added"),
         ])
+
+        sys.stdout.flush()
+
         return Response(response, status=status.HTTP_200_OK)
 
 
