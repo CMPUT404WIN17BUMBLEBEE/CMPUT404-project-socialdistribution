@@ -104,8 +104,22 @@ class post_tests(TestCase):
         self.assertIsInstance(dateutil.parser.parse(comment['published']), datetime, "Published is not in datetime format")
         self.assertEqual(comment['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
 
-#class profile_tests(TestCase):
-#	def test_username(self):
+
+class profile_tests(TestCase):
+    def setUp(self):
+        password = make_password('test')
+        user = User.objects.create(username='test', password=password)
+        self.author = Profile.objects.get(user=user)
+        self.author.host = "http://testserver.com/"
+        self.author.url = self.author.host + str(self.author.id)
+        self.author.save()
+        self.client.login(username='test', password='test')
+
+    def test_username(self):
+            response = self.client.get('/api/author/'+str(self.author.id)+'/')
+            response = json.loads(response.content)
+            self.assertEqual(response['displayName'], 'test')
+
 
 class friend_tests(TestCase):
 	def setUp(self): #does it remember other users between tests? Ans: no.
