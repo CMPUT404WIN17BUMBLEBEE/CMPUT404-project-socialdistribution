@@ -295,7 +295,7 @@ def createGithubPosts(request):
 		while(index<len(postlist)):
 		    jtmp.append(model_to_dict(postlist[index]))
 		    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-		    jtmp[index]['associated_author'] = User.objects.get(profile__id = jtmp[index]['associated_author']).username
+		    jtmp[index]['associated_author'] = Profile.objects.get(id = jtmp[index]['associated_author']).displayName
 		    jtmp[index]['id'] = str(jtmp[index]['id'])
 		    jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
 		    jtmp[index]['published'] = jtmp[index]['published'][1:-1]
