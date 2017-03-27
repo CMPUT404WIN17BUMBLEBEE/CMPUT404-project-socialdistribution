@@ -76,6 +76,8 @@ class CommentView(ListAPIView):
         return self.queryset.none()
 
     def post(self, request, *args, **kwargs):
+        print "METHOD: " + request.method
+        print "META: " + request.meta
 
         print "HERE!" 
         print ("REQUEST DATA: " + str(request.data))
