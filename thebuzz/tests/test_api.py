@@ -128,6 +128,9 @@ class profile_tests(TestCase):
     def test_displayname(self):
         self.assertEqual(self.response['displayName'], 'test')
 
+    def test_firstname(self):
+        self.assertEqual(self.response['firstName'], 'testuser')
+
     def test_user_host(self):
         self.assertEqual(self.response['host'], 'http://testserver.com/')
 
