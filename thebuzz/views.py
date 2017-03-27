@@ -278,7 +278,7 @@ def createGithubPosts(request):
 						 myImg = lilavatar )
 		    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	            post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-
+		    post.save()
 		    postlist.append(post)
 		
 		createFriendsGithubs( user ) #returns postlist of ppl youre following
