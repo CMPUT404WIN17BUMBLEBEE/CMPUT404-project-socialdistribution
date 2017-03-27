@@ -39,7 +39,8 @@ https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wi
 
 Heroku demo:
 ============
-https://mysterious-taiga-11180.herokuapp.com/
+https://secret-crag-38714.herokuapp.com/
+
 
 Resources:  
 =========
