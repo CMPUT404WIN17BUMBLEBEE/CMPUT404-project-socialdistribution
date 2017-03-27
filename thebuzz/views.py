@@ -311,8 +311,6 @@ def get_Post(post_id):
 def post_detail(request, post_id):
     post = get_Post(post_id)
 
-    print "post: " + str(post)
-
     #Check that we did find a post, if not raise a 404
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
