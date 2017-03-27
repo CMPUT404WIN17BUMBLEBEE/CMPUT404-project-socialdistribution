@@ -81,6 +81,15 @@ class CommentView(ListAPIView):
         print ("REQUEST DATA: " + str(request.data))
         print ("REQUEST POST: " + str(request.POST.get('query')))
         print ("REQUEST AUTHOR: " + str(request.data.get('comment').get('author').get('id')))
+
+        split = request.data.get('comment').get('author').get('id').split("/")
+        actual_id = split[0]
+
+        if len(split) > 1:
+            actual_id = split[4]
+
+        request.data.get('comment').get('author').get('id) = actual_id
+
         #print ("REQUEST TEXT: " + str(request.text))
         #print ("REQUEST BODY: " + str(request.body))
         print ("POST ID: " + str(kwargs['post_id']))
