@@ -78,8 +78,8 @@ class CommentView(ListAPIView):
     def post(self, request, *args, **kwargs):
 
         print "HERE!" 
-        sys.stdout.write("REQUEST DATA: " + request.data)
-        sys.stdout.write("POST ID: " + kwargs['post_id'])
+        print ("REQUEST DATA: " + str(request.data))
+        print ("POST ID: " + str(kwargs['post_id']))
 
         postId = kwargs['post_id']
 
