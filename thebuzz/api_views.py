@@ -86,7 +86,7 @@ class CommentView(ListAPIView):
         actual_id = split[0]
 
         if len(split) > 1:
-            actual_id = split[4]
+            actual_id = split[5]
 
         postId = actual_id
 
