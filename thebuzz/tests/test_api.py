@@ -120,7 +120,7 @@ class profile_tests(TestCase):
         self.response = json.loads(response.content)
 
     def test_profile_exist(self):
-        self.assertEqual(self.responseCode, 200)
+        self.assertEqual(self.responseCode, 200, 'Profile does not exist')
 
     def test_id(self):
         self.assertEqual(self.response['id'], str(self.author.id))
