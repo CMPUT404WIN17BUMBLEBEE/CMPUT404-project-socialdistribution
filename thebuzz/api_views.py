@@ -77,8 +77,8 @@ class CommentView(ListAPIView):
 
     def post(self, request, *args, **kwargs):
         
-        print "REQUEST DATA: " + request.data
-        print "POST ID: " + kwargs['post_id']
+        sys.stdout.write("REQUEST DATA: " + request.data)
+        sys.stdout.write("POST ID: " + kwargs['post_id'])
 
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
@@ -89,8 +89,6 @@ class CommentView(ListAPIView):
             ("success", True),
             ("message", "Comment Added"),
         ])
-
-        sys.stdout.flush()
 
         return Response(response, status=status.HTTP_200_OK)
 
