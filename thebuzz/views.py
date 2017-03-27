@@ -291,6 +291,13 @@ def get_Post(post_id):
         if isPostData and not post == {u'detail': u'Not found.'}:
             break
 
+    split = post['id'].split("/")
+    actual_id = split[0]
+    if len(split) > 1:
+        actual_id = split[4]
+
+    post['id'] = actual_id
+
     return post
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
@@ -323,19 +330,30 @@ def add_comment(request, post_id):
             comment = form.save(commit=False)
 
             post_host = post.get('author').get('host')
+            if not post_host.endswith("/"):
+                post_host = post_host + "/"
+
+            print post_host
+            print Site.objects.get_current().domain
+
+            id = str(author.id)
+            if not post_host == Site.objects.get_current().domain:
+                id = author.url
+
             api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
             data = {
                 "query": "addComment",
-                "post": post_host + '/posts/' + str(post_id) + '/',
+                "post": post_host + 'posts/' + str(post_id) + '/',
                 "comment":{
                     "author": {
-                        "id": str(author.id),
+                        "id": id,
                         "url": author.url,
                         "host": author.host,
                         "displayName": author.displayName,
                         "github": author.github
                     },
                     "comment":form.cleaned_data['comment'],
+                    "contentType": "text/plain",
                     "published":str(timezone.now()),
                     "id":str(uuid.uuid4())
                 }
@@ -343,9 +361,15 @@ def add_comment(request, post_id):
 
             api_user = Site_API_User.objects.get(api_site=post_host)
 
+            print api_url
+            print api_user.username
+            print api_user.password
+
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
+            print resp
+            print resp.text
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
     else:
         form = CommentForm()
 
