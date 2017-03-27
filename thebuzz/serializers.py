@@ -23,12 +23,14 @@ class ProfileSerializer(serializers.ModelSerializer):
                   "email", "bio")
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
+    print "IN COMMENT AUTHOR SERIALIZER"
     id = serializers.UUIDField(read_only=False)
     class Meta:
         model = CommentAuthor
         fields = '__all__'
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
+    print "IN COMMENT SERIALIZER"
     author = CommentAuthorSerializer()
     published = serializers.DateTimeField(source='date_created')
     class Meta:
