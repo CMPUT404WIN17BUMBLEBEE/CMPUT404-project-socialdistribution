@@ -316,6 +316,8 @@ def post_detail(request, post_id):
     #Check that we did find a post, if not raise a 404
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
+    
+    post['published'] = dateutil.parser.parse(post.get('published'))
 
     #Posts returned from api's have comments on them no need to retrieve them separately
     return render(request, 'posts/detail.html', {'post': post})
