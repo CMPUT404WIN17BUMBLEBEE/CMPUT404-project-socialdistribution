@@ -84,8 +84,8 @@ class CommentView(ListAPIView):
         print ("POST ID: " + str(kwargs['post_id']))
 
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
-        print "SERIALIZER ERRORS: " + serializer.errors
         serializer.is_valid(raise_exception=True)
+        print "SERIALIZER ERRORS: " + str(serializer.errors)
         serializer.save()
 
         response = OrderedDict([
