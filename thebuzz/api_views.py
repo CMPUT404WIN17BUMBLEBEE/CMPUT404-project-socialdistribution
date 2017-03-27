@@ -81,7 +81,7 @@ class CommentView(ListAPIView):
         print ("REQUEST DATA: " + str(request.data))
         print ("POST ID: " + str(kwargs['post_id']))
         author = json.loads(request.data)
-        print ("AUTHOR ID: " + str(author))
+        print ("AUTHOR ID: " + str(json.dumps(author)))
 
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
