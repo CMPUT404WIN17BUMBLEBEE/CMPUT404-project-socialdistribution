@@ -80,6 +80,7 @@ class CommentView(ListAPIView):
         print "HERE!" 
         print ("REQUEST DATA: " + str(request.data))
         print ("REQUEST TEXT: " + str(request.text))
+        print ("REQUEST BODY: " + str(request.body))
         print ("POST ID: " + str(kwargs['post_id']))
         author = json.loads(request.data)
         print ("AUTHOR ID: " + str(json.dumps(author)))
