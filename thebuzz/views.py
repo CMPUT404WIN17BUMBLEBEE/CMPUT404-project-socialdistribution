@@ -129,44 +129,44 @@ def delete_friend (request, profile_id):
 def posts(request):
     two_days_ago = datetime.utcnow() - timedelta(days=2)
 
-    post_list = []
+    post_list = list()
 
     author = request.user.profile
-
-    # get all public posts
-    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    for post in posts:
-        post_list.append(post)
-
-    # get all my private posts
-    posts = Post.objects.filter(associated_author=author)
-    for post in posts:
-        post_list.append(post)
-
-    # get friends post of friends
-    friends  = author.get_all_friends()
-    if len(friends) > 0:
-        for friend in friends:
-            # get all posts for friends
-            # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
-
-            for post in posts:
-                post_list.append(post)
-
-
-            # get all posts for friends of friends
-            foafs = friend.get_all_friends()
-            if len(foafs) > 0:
-                for foaf in foafs:
-                    # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
-
-                    for foaf_post in foaf_posts:
-                        post_list.append(foaf_post)
-
-    #Remove duplicate posts from above code before adding non-local posts
-    post_list = list(set(post_list))
+    #
+    # # get all public posts
+    # posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get all my private posts
+    # posts = Post.objects.filter(associated_author=author)
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get friends post of friends
+    # friends  = author.get_all_friends()
+    # if len(friends) > 0:
+    #     for friend in friends:
+    #         # get all posts for friends
+    #         # get all posts of the friend that are not private
+    #         posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+    #
+    #         for post in posts:
+    #             post_list.append(post)
+    #
+    #
+    #         # get all posts for friends of friends
+    #         foafs = friend.get_all_friends()
+    #         if len(foafs) > 0:
+    #             for foaf in foafs:
+    #                 # get all posts of the foaf that are not private or only for friends
+    #                 foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+    #
+    #                 for foaf_post in foaf_posts:
+    #                     post_list.append(foaf_post)
+    #
+    # #Remove duplicate posts from above code before adding non-local posts
+    # post_list = list(set(post_list))
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
@@ -189,19 +189,21 @@ def posts(request):
                 actual_id = split[4]
 
             p['id'] = actual_id
+
             p['published'] = dateutil.parser.parse(p.get('published'))
             post_list.append(p)
 
     # Based on code from alecxe
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
-    #post_list.sort(key=lambda k: k['published'], reverse=True)
+    post_list.sort(key=lambda k: k['published'], reverse=True)
 
-    createGithubPosts(author)
+    #createGithubPosts(author)
 
     context = {}
 
     context = {
-        'post_list': post_list
+        'post_list': post_list,
+        'author_id': str(author.id)
     }
     return render(request, 'posts/posts.html', context)
 

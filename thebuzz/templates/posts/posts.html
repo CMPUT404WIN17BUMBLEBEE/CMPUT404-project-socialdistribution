@@ -32,7 +32,7 @@
                 {{ post.content | safe }}
               </div>
               <div id="delet-div">
-                {% if post.associated_author.id == request.user.profile.id %}
+                {% if post.author.id == author_id %}
                   <a href="/posts/{{ post.id }}/delete">
                     <button type="button">Delete</button>
                   </a>
