@@ -1,47 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Post Detail</title>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<script>
- //help with making a textbox appear from
- //Umesh Patil (http://stackoverflow.com/users/2833565/umesh-patil)
- //http://stackoverflow.com/questions/9634783/how-to-activate-a-textbox-if-i-select-an-other-option-in-drop-down-box
-
-//checks on entry to the page if the 'visible to' box should be there
-$(document).ready(function(){
-  var privacy_textbox = document.getElementById('privacy_textbox');
-  var dropdown = document.getElementById('vis_dropdown');
-
-  console.log(dropdown.value);
-  if(dropdown.value == 'PRIVATE'){
-    privacy_textbox.disabled = false;
-  }else{
-     privacy_textbox.disabled=true; 
-
-   }
-
-});
-
-//the onChange of the dropdown widget
-function privacyBox(val){ 
-  var privacy_textbox = document.getElementById('privacy_textbox');
-  console.log(val.value);
-  if(val.value=='PRIVATE'){
-    privacy_textbox.disabled = false;
-  }else{
-     privacy_textbox.disabled=true; 
-
-   }
-}
-
-
-
-</script>
-</head>
-<body>
-
-
 {% extends 'base.html' %}
 
 {% load static %}
@@ -50,6 +6,42 @@ function privacyBox(val){
 
 {% block extra_head %}
   <link href="{% static 'form.css' %}" rel="stylesheet" type="text/css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script>
+   //help with making a textbox appear from
+   //Umesh Patil (http://stackoverflow.com/users/2833565/umesh-patil)
+   //http://stackoverflow.com/questions/9634783/how-to-activate-a-textbox-if-i-select-an-other-option-in-drop-down-box
+
+  //checks on entry to the page if the 'visible to' box should be there
+  $(document).ready(function(){
+    var privacy_textbox = document.getElementById('privacy_textbox');
+    var dropdown = document.getElementById('vis_dropdown');
+
+    console.log(dropdown.value);
+    if(dropdown.value == 'PRIVATE'){
+      privacy_textbox.disabled = false;
+    }else{
+       privacy_textbox.disabled=true;
+
+     }
+
+  });
+
+  //the onChange of the dropdown widget
+  function privacyBox(val){
+    var privacy_textbox = document.getElementById('privacy_textbox');
+    console.log(val.value);
+    if(val.value=='PRIVATE'){
+      privacy_textbox.disabled = false;
+    }else{
+       privacy_textbox.disabled=true;
+
+     }
+  }
+
+
+
+  </script>
 {% endblock %}
 
 {% block content %}
@@ -63,4 +55,4 @@ function privacyBox(val){
   </div>
 {% endblock %}
 </body>
-</html> 
+</html>

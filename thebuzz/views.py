@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.template import Context, loader
-from .models import Post, Comment, Profile, Img, ListField
+from .models import *
 from .forms import PostForm, CommentForm, ProfileForm
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
@@ -23,9 +23,10 @@ import json
 import requests
 from django.db.models import Lookup
 from itertools import chain
-from django.core import serializers
 from django.forms import model_to_dict
 import base64
+from django.contrib.sites.models import Site
+from django.core import serializers
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -134,51 +135,75 @@ def posts(request):
 
     author = request.user.profile
 
-    #a = User.objects.get(pk=author.user.id)
-
-    # get all public posts
-    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
-    for post in posts:
-        post_list.append(post)
-
-    # get all my private posts
-    posts = Post.objects.filter(associated_author=author)
-    for post in posts:
-        post_list.append(post)
-
-    # get friends post of friends
-    friends  = author.get_all_friends()
-    if len(friends) > 0:
-        for friend in friends:
-            # get all posts for friends
-            # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
-
-            for post in posts:
-                post_list.append(post)
-
-
-            # get all posts for friends of friends
-            foafs = friend.get_all_friends()
-            if len(foafs) > 0:
-                for foaf in foafs:
-                    # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
-
-                    for foaf_post in foaf_posts:
-                        post_list.append(foaf_post)
+    # # get all public posts
+    # posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get all my private posts
+    # posts = Post.objects.filter(associated_author=author)
+    # for post in posts:
+    #     post_list.append(post)
+    #
+    # # get friends post of friends
+    # friends  = author.get_all_friends()
+    # if len(friends) > 0:
+    #     for friend in friends:
+    #         # get all posts for friends
+    #         # get all posts of the friend that are not private
+    #         posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+    #
+    #         for post in posts:
+    #             post_list.append(post)
+    #
+    #
+    #         # get all posts for friends of friends
+    #         foafs = friend.get_all_friends()
+    #         if len(foafs) > 0:
+    #             for foaf in foafs:
+    #                 # get all posts of the foaf that are not private or only for friends
+    #                 foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+    #
+    #                 for foaf_post in foaf_posts:
+    #                     post_list.append(foaf_post)
+    #
+    # #Remove duplicate posts from above code before adding non-local posts
+    # post_list = list(set(post_list))
 
 	#possible_posts_list = Post.objects.filter(visibility__exact='PUBLIC').all() | ( Post.objects.filter(visibility__exact='PRIVATE').all() & Post.objects.filter(associated_author__exact=request.user).all() ) | Post.objects.filter(visibleTo__contains=request.user)
 
 	#template = loader.get_template('index.html')
 
-    #createGithubPosts(author)
+    # retrieve posts from node sites
+    sites = Site_API_User.objects.all()
+    for site in sites:
+        api_user = site.username
+        api_password = site.password
+        api_url = site.api_site + "posts/"
+        resp = requests.get(api_url, auth=(api_user, api_password))
+        data = json.loads(resp.text)
+        posts = data["posts"]
+
+        for p in posts:
+            split = p['id'].split("/")
+            actual_id = split[0]
+            if len(split) > 1:
+                actual_id = split[4]
+
+            p['id'] = actual_id
+            p['published'] = dateutil.parser.parse(p.get('published'))
+            post_list.append(p)
+
+    # Based on code from alecxe
+    # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
+    post_list.sort(key=lambda k: k['published'], reverse=True)
 
     context = {}
 
     context = {
-        'post_list': set(post_list) # make sure values in list are distinct
+        'post_list': post_list
     }
+
     context['user_obj'] = request.user
 
     return render(request, 'posts/posts.html', context)
@@ -251,6 +276,9 @@ def createGithubPosts(request):
 		                               )
 		    myImg = Img.objects.create(associated_post = post,
 						 myImg = lilavatar )
+		    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	            post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+
 		    postlist.append(post)
 		
 		createFriendsGithubs( user ) #returns postlist of ppl youre following
@@ -303,29 +331,53 @@ def createFriendsGithubs(user):
 	#index += 1
 
 
+def get_Post(post_id):
+    post = {}
+    sites = Site_API_User.objects.all()
+    for site in sites:
+        api_url = site.api_site + "posts/" + post_id + "/"
+
+        global isPostData
+        isPostData = True
+        post = {}
+        try:
+            api_user = site.username
+            api_password = site.password
+            resp = requests.get(api_url, auth=(api_user, api_password))
+            post = resp.json()
+        #Results in an AttributeError if the object does not exist at that site
+        except AttributeError:
+            #Setting isPostData to False since that site didn't have the data
+            isPostData = False
+            pass
+
+        #Check if we found the object and break out of searching for it
+        if isPostData and not post == {u'detail': u'Not found.'}:
+            break
+
+    return post
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def post_detail(request, post_id):
-    try:
-        post = Post.objects.get(pk=post_id)
-    except Post.DoesNotExist:
-        # If no Post has id post_id, we raise an HTTP 404 error.
+    post = get_Post(post_id)
+
+    #Check that we did find a post, if not raise a 404
+    if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
-    try :
-        comments  = Comment.objects.filter(associated_post=post_id)
-    except Comment.DoesNotExist:
-        comments = Comment.objects
-
-    displayName = Profile.objects.get(id=post.associated_author.id).displayName
-    return render(request, 'posts/detail.html', {'post': post, 'comments': comments, 'post_author': displayName})
+    #Posts returned from api's have comments on them no need to retrieve them separately
+    return render(request, 'posts/detail.html', {'post': post})
 
 
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
+    post = get_Post(post_id)
 
-    post = get_object_or_404(Post, pk=post_id)
+    #Check that we did find a post, if not raise a 404
+    if post == {} or post == {u'detail': u'Not found.'}:
+        raise Http404
+
     author = Profile.objects.get(user_id=request.user.id)
 
     if request.method == 'POST':
@@ -333,14 +385,29 @@ def add_comment(request, post_id):
 
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.content = form.cleaned_data['content']
-            comment.author = Profile.objects.get(pk=author.id)
-            comment.associated_post = post
-            comment.date_created = timezone.now()
-            comment.save()
 
+            post_host = post.get('author').get('host')
+            api_url = str(post_host) + 'api/posts/' + str(post.get('id')) + '/comments/'
+            data = {
+                "query": "addComment",
+                "post": post_host + str(post.get('id')) + '/',
+                "comment":{
+                    "author": {
+                        "id": str(author.id),
+                        "url": author.url,
+                        "host": author.host,
+                        "displayName": author.displayName,
+                        "github": author.github
+                    },
+                    "comment":form.cleaned_data['content'],
+                    "published":str(timezone.now()),
+                    "id":str(uuid.uuid4())
+                }
+            }
+            api_user = Site_API_User.objects.get(site__domain__contains=post_host)
+            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+            return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.get('id')) }))
     else:
         form = CommentForm()
 
@@ -364,13 +431,21 @@ def post_form_upload(request):
         # If data is valid, proceeds to create a new post and redirect the user
         if form.is_valid():
             title = form.cleaned_data['title']
+	    title = makeSafe(title)
             content = form.cleaned_data['content']
-	    ast = parser.parse(content)
-	    html = renderer.render(ast)
+	    markdown = form.cleaned_data['markdown']
+	    if markdown:
+	      ast = parser.parse(content)
+	      html = renderer.render(ast)
+	      contentType = 'text/markdown'
+	    else:
+	      #protective measures applied here
+	      html = makeSafe(content)
+	      contentType = 'text/plain'
             published = timezone.now()
 	    image = form.cleaned_data['image_upload']
 	    visibility = form.cleaned_data['choose_Post_Visibility']
-	    visible_to = ''#[]
+	    visible_to = ''
 
 	    if(visibility == 'PRIVATE'):
 	      #glean the users by commas for now
@@ -394,17 +469,22 @@ def post_form_upload(request):
               post = Post.objects.create(title = title,
                                        content=html + "<p>" + imgItself,
                                        published=published,
-				       associated_author = request.user,
-				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       associated_author = request.user.profile,
+				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
-	      #can't make a whole new post for images, will look funny. Try this??
+	      
+	      post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	      post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
+	      post.save()
+
+	    #can't make a whole new post for images, will look funny. Try this??
 	    else:
 	      #create a Post without an image here!
 	      post = Post.objects.create(title = title,
@@ -412,11 +492,21 @@ def post_form_upload(request):
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),
-				       origin = 'huh',
+				       origin = request.META.get('HTTP_REFERER'),
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
                                        ) #json.dumps(visible_to)
+
+	    #update post object to proper origin and source
+	    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    post.save()
+
+	    print request.get_host()
+	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    print test
+
 
 	    return HttpResponseRedirect(reverse('post_detail',
                                                 kwargs={'post_id': str(post.id) }))
@@ -424,6 +514,26 @@ def post_form_upload(request):
     return render(request, 'posts/post_form_upload.html', {
         'form': form,
     })
+
+#makes a string of stuff safe to post
+def makeSafe(content):
+
+  problematics = ['"', '&', '<', '>']
+  #Credit to ghostdog74 for the makeup of this function
+  #http://stackoverflow.com/questions/3411771/multiple-character-replace-with-python
+  #http://stackoverflow.com/users/131527/ghostdog74
+  for c in problematics:
+    if c in content:
+      if(c == '"'):
+        content = content.replace(c, '&quot;')
+      elif(c == '&'):
+        content = content.replace(c, '&amp;')
+      elif(c == '<'):
+        content = content.replace(c, '&lt;')
+      elif(c == '>'):
+        content = content.replace(c, '&gt;')
+
+  return content
 
 #again parts of code from
 #http://pythoncentral.io/writing-views-to-upload-posts-for-your-first-python-django-application/

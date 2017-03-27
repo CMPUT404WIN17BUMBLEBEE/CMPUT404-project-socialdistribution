@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^$', auth_views.login, name='login'),
 
     url(r'^posts/$', 'thebuzz.views.posts', name='posts'),
-    url(r'^posts/(?P<post_id>[0-9a-f-]+)/detail.html$', 'thebuzz.views.post_detail', name='post_detail'),
+    url(r'^posts/(?P<post_id>[0-9a-f-]+)$', 'thebuzz.views.post_detail', name='post_detail'),
     url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
 
 

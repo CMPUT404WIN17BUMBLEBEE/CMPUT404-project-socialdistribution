@@ -74,24 +74,33 @@ class CommentView(ListAPIView):
 
     def post(self, request, *args, **kwargs):
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        author = get_object_or_404(Profile, id=request.user.profile.id)
-        if is_authenticated_to_read(post, author):
-            serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            response = OrderedDict([
-                ("query", "addComment"),
-                ("success", True),
-                ("message", "Comment Added"),
-            ])
-            return Response(response, status=status.HTTP_200_OK)
-        else:
-            response = OrderedDict([
-                ("query", "addComment"),
-                ("success", False),
-                ("message", "Comment not allowed"),
-            ])
-            return Response(response, status=status.HTTP_403_FORBIDDEN)
+        # author = get_object_or_404(Profile, id=request.user.profile.id)
+        # if is_authenticated_to_read(post, author):
+        #     serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
+        #     serializer.is_valid(raise_exception=True)
+        #     serializer.save()
+        #     response = OrderedDict([
+        #         ("query", "addComment"),
+        #         ("success", True),
+        #         ("message", "Comment Added"),
+        #     ])
+        #     return Response(response, status=status.HTTP_200_OK)
+        # else:
+        #     response = OrderedDict([
+        #         ("query", "addComment"),
+        #         ("success", False),
+        #         ("message", "Comment not allowed"),
+        #     ])
+        #     return Response(response, status=status.HTTP_403_FORBIDDEN)
+        serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response = OrderedDict([
+            ("query", "addComment"),
+            ("success", True),
+            ("message", "Comment Added"),
+        ])
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -156,6 +165,7 @@ class FriendRequestView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = FriendRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.handle()
         return Response(serializer.data)
 
 
@@ -170,7 +180,7 @@ def is_authenticated_to_read(post, author):
     if post.visibility == "SERVERONLY" and post.associated_author.host == author.host:
         return True
     # Own
-    if post.associtated_author == author:
+    if post.associated_author == author:
         return True
     # Friends
     if post.visibility == "FRIENDS" and author in post.associated_author.friends.all():
@@ -199,13 +209,13 @@ def get_readable_posts(author, posts):
     # FOAF
     foaf_posts = queryset.none()
     for friend in author.friends.all():
-        foaf_posts = foaf_posts | queryset.filter(author=friend, visibility="FOAF")
+        foaf_posts = foaf_posts | queryset.filter(associated_author=friend, visibility="FOAF")
         for foaf in friend.friends.all():
-            foaf_posts = foaf_posts | queryset.filter(author=foaf, visibility="FOAF")
+            foaf_posts = foaf_posts | queryset.filter(associated_author=foaf, visibility="FOAF")
     # Friends
     friends_posts = queryset.none()
     for friend in author.friends.all():
-        friends_posts = friends_posts | queryset.filter(author=friend, visibility="FRIENDS")
+        friends_posts = friends_posts | queryset.filter(associated_author=friend, visibility="FRIENDS")
     # Private
     private_posts = queryset.filter(visibility="PRIVATE", visibleTo__contains=author.url)
     # Server Only
@@ -215,4 +225,3 @@ def get_readable_posts(author, posts):
     posts_author_can_see = public_posts | foaf_posts | friends_posts | private_posts | serveronly_posts | own_posts
 
     return posts_author_can_see.order_by("-published")
-

@@ -11,20 +11,20 @@
 {% block content %}
   <div id="detail_content">
     <div id="post-title-bar">
-      <div id="author">{{ post_author }}</div>
+      <div id="author">{{ post.author.displayName }}</div>
       <div id="title"><u>{{ post.title }}</u></div>
     </div>
     <div id="post_body">{{ post.content | safe }}</div>
     <div id="date">{{ post.published }}</div>
     <div id="comment-label">Comments: </div>
-      {% if comments %}
-          {% for comment in comments.all %}
+      {% if post.comments %}
+          {% for comment in post.comments %}
             <div class="comment-sections">
               <div id="comment-title-bar">
                 <div id="comment_author">{{ comment.author.displayName }}</div>
                 <div id="comment_date">{{ comment.date_created }}</div>
               </div>
-              <div>{{ comment.content }}</div>
+              <div>{{ comment.comment }}</div>
             </div>
           {% endfor %}
       {% else %}

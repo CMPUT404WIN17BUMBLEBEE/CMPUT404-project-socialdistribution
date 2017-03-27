@@ -1,12 +1,14 @@
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from rest_framework import pagination
+import urllib2
 
 from .models import *
 
 from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=False)
     class Meta:
         model = Profile 
         fields = ("id", "url", "host", "displayName", "github")
@@ -20,12 +22,19 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ("id", "host", "displayName", "url", "friends", "github", "firstName", "lastName",
                   "email", "bio")
 
+class CommentAuthorSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=False)
+    class Meta:
+        model = CommentAuthor
+        fields = '__all__'
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-    author = AuthorSerializer()
+    author = CommentAuthorSerializer()
+    published = serializers.DateTimeField(source='date_created')
+    comment = serializers.CharField(source='content')
     class Meta:
         model = Comment
-        fields = ('author', 'content', 'date_created', 'id')
+        fields = ('author', 'comment', 'published', 'id')
 
 
 class AddCommentSerializer(serializers.Serializer):
@@ -36,15 +45,17 @@ class AddCommentSerializer(serializers.Serializer):
     def create(self, validated_data):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
+
         self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))
-        author = get_object_or_404(Profile, **author_data)
+        # author = get_object_or_404(Profile, **author_data)
+        author, created = CommentAuthor.objects.get_or_create(**author_data)
         comment = Comment.objects.create(associated_post=post, author=author, **comment_data)
         return comment
 
 
 class PostSerializer(serializers.ModelSerializer):
-    associated_author = AuthorSerializer()
+    author = AuthorSerializer(source='associated_author')
     comments = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
@@ -54,7 +65,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("title", "source", "origin", "description", "contentType", "content",
-                  "associated_author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
+                  "author", "categories", "count", "size", "next", "comments", "published", "id", "visibility",
                   "visibleTo", "unlisted")
 
     def get_comments(self, obj):
@@ -71,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
         return 5
 
     def get_next(self, obj):
-        return obj.associated_author.host + '/posts/' + str(obj.id) + '/comments'
+        return obj.associated_author.host + 'posts/' + str(obj.id) + '/comments'
 
 
 class FriendSerializer(serializers.ModelSerializer):
@@ -79,7 +90,8 @@ class FriendSerializer(serializers.ModelSerializer):
         model = Profile 
         fields = ("url",)
 
-
+# Get request of post from remote hosts
+# Todo: test needed. Works on local
 class GetPostSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=20)
     postid = serializers.UUIDField()
@@ -88,13 +100,64 @@ class GetPostSerializer(serializers.Serializer):
     friends = serializers.ListField(child=serializers.URLField())
 
     def get_read(self):
-        post = get_object_or_404(Post, id=self.data.get('postid'))
-        friends_list = self.data.get('friends')
+        requestor_data = self.validated_data.get('author')
+        host = requestor_data.get('host')
+        id = requestor_data.get('id')
+        requestor_url = requestor_data.get('url')
+        request_friends_urllist = self.validated_data.get('friends')
 
-        for friend in post.author.friends.all():
-            if friend.url in friends_list:
+        # Query the requestor's server to verify provided friends list
+        result = urllib2.urlopen(host + 'api/author/' + str(id))
+        friends_of_requestor = json.loads(result.read()).get('friends')
+        true_friends_urllist = list()
+        for friend in friends_of_requestor:
+            true_friends_urllist.append(friend.get('url'))
+
+        for friend in request_friends_urllist:
+            if friend not in true_friends_urllist:
+                return False # lying on the friend list
+
+        # Info of the post
+        post = get_object_or_404(Post, id=self.validated_data.get('postid'))
+        author_friends_urllist = list()
+        for friend in post.associated_author.friends.all():
+            author_friends_urllist.append(friend.url)
+
+        # Authentication
+        visibility = post.visibility
+        # Public
+        if visibility == "PUBLIC":
+            return True
+        # Server Only
+        if visibility == "SERVERONLY" :
+            return False
+        # Friends - Check both friendlist
+        if visibility == "FRIENDS" or visibility == "FOAF":
+            if post.visibility and post.associated_author.url in request_friends_urllist and requestor_url in author_friends_urllist:
                 return True
-        return False
+        # Private
+        if post.visibility == "PRIVATE" and requestor_url in post.visibileTo:
+            return True
+        # FOAF
+        if post.visibility == "FOAF":
+            for friend in request_friends_urllist:
+                # Verify the middle friend is a friend of post's author
+                if friend not in author_friends_urllist:
+                    continue
+                # Verify that one of friends in friendlist has both requestor and post's author as friends
+                l = friend.split('author/')
+                host = l[0]
+                id = l[1]
+                result = urllib2.urlopen(host + 'api/author/' + id)
+                middle_friends = json.loads(result.read()).get('friends')
+                middle_friends_urllist = list()
+                for middle_friend in middle_friends:
+                    middle_friends_urllist.append(middle_friend.get('url'))
+                if requestor_url in middle_friends_urllist and post.associated_author.url in middle_friends_urllist:
+                    return True
+
+        return False # Not a foaf
+
 
 
 class FriendRequestSerializer(serializers.Serializer):
@@ -102,14 +165,23 @@ class FriendRequestSerializer(serializers.Serializer):
     author = AuthorSerializer()
     friend = AuthorSerializer()
 
-    def create(self, validated_data):
-        author_data = validated_data.pop('author')
-        friend_data = validated_data.pop('friend')
-        author = get_object_or_404(Profile, **author_data)
-        friend = get_object_or_404(Profile, **friend_data)
-        author.following.add(friend)
-        friend.followers.add(author)
-        if friend in author.followers:
+    def handle(self):
+        author_data = self.validated_data.get('author')
+        friend_data = self.validated_data.get('friend')
+        author, remote_requestor = Profile.objects.get_or_create(**author_data)
+        friend, remote_friend = Profile.objects.get_or_create(**friend_data)
+        # If the friend is on the remote server, send another friend request to the remote server
+        # Todo: test needed. Local friend request works
+        if remote_friend:
+            remote_host = friend.host
+            request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
+            response = urllib2.urlopen(request, self.validated_data)
+        if friend in author.followers.all():
             author.friends.add(friend)
+            author.followers.remove(friend)
+            friend.following.remove(author)
+        else:
+            author.following.add(friend)
+            friend.followers.add(author)
 
 
