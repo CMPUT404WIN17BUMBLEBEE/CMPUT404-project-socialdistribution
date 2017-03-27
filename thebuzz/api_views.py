@@ -88,6 +88,8 @@ class CommentView(ListAPIView):
         print "SERIALIZER ERRORS: " + str(serializer.errors)
         serializer.save()
 
+        pring "AFTER SERIALIZER STUFF"
+
         response = OrderedDict([
             ("query", "addComment"),
             ("success", True),
