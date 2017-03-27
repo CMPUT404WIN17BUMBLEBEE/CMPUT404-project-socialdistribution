@@ -85,8 +85,8 @@ class CommentView(ListAPIView):
 
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
-        print "SERIALIZER ERRORS: " + str(serializer.errors)
         serializer.save()
+        print "SERIALIZER ERRORS: " + str(serializer.errors)
 
         pring "AFTER SERIALIZER STUFF"
 
