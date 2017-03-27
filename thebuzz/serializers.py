@@ -42,6 +42,7 @@ class AddCommentSerializer(serializers.Serializer):
     comment = CommentSerializer()
 
     def create(self, validated_data):
+        print "here"
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
 
