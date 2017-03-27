@@ -112,14 +112,27 @@ class profile_tests(TestCase):
         self.author = Profile.objects.get(user=user)
         self.author.host = "http://testserver.com/"
         self.author.url = self.author.host + str(self.author.id)
+        self.author.firstName = "testuser"
         self.author.save()
-        self.client.login(username='test', password='test')
+        #self.client.login(username='test', password='test')
+        response = self.client.get('/api/author/' + str(self.author.id) + '/')
+        self.responseCode = response.status_code
+        self.response = json.loads(response.content)
 
-    def test_username(self):
-            response = self.client.get('/api/author/'+str(self.author.id)+'/')
-            response = json.loads(response.content)
-            self.assertEqual(response['displayName'], 'test')
+    def test_profile_exist(self):
+        self.assertEqual(self.responseCode, 200)
 
+    def test_id(self):
+        self.assertEqual(self.response['id'], str(self.author.id))
+
+    def test_displayname(self):
+        self.assertEqual(self.response['displayName'], 'test')
+
+    def test_user_host(self):
+        self.assertEqual(self.response['host'], 'http://testserver.com/')
+
+    def test_url(self):
+        self.assertEqual(self.response['url'], 'http://testserver.com/' + str(self.author.id))
 
 class friend_tests(TestCase):
 	def setUp(self): #does it remember other users between tests? Ans: no.
