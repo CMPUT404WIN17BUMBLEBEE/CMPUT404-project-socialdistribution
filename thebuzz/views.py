@@ -270,6 +270,7 @@ def createGithubPosts(user):
 def get_Post(post_id):
     post = {}
     sites = Site_API_User.objects.all()
+
     for site in sites:
         api_url = site.api_site + "posts/" + post_id + "/"
 
@@ -281,8 +282,12 @@ def get_Post(post_id):
             api_password = site.password
             resp = requests.get(api_url, auth=(api_user, api_password))
             post = resp.json()
+
+            if resp.status_code == 404:
+                isPostData = False
+                pass
         #Results in an AttributeError if the object does not exist at that site
-        except AttributeError:
+        except  AttributeError:
             #Setting isPostData to False since that site didn't have the data
             isPostData = False
             pass
@@ -293,6 +298,7 @@ def get_Post(post_id):
 
     split = post['id'].split("/")
     actual_id = split[0]
+
     if len(split) > 1:
         actual_id = split[4]
 
@@ -333,9 +339,6 @@ def add_comment(request, post_id):
             if not post_host.endswith("/"):
                 post_host = post_host + "/"
 
-            print post_host
-            print Site.objects.get_current().domain
-
             id = str(author.id)
             if not post_host == Site.objects.get_current().domain:
                 id = author.url
@@ -361,14 +364,8 @@ def add_comment(request, post_id):
 
             api_user = Site_API_User.objects.get(api_site=post_host)
 
-            print api_url
-            print api_user.username
-            print api_user.password
-
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-            print resp
-            print resp.text
             return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
     else:
         form = CommentForm()
