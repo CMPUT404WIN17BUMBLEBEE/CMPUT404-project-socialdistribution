@@ -89,7 +89,7 @@ class CommentView(ListAPIView):
             actual_id = split[4]
 
         print "ACTUAL ID: " + actual_id
-        #request.data.get('comment').get('author').get('id) = actual_id
+        request.data.get('comment').get('author').get('id).__setitem__(actual_id)
 
         #print ("REQUEST TEXT: " + str(request.text))
         #print ("REQUEST BODY: " + str(request.body))
