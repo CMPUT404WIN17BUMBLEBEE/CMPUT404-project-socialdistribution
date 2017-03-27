@@ -79,8 +79,8 @@ class CommentView(ListAPIView):
         print "METHOD: " + request.method
         print "HERE!" 
         print ("REQUEST DATA: " + str(request.data))
-        print ("REQUEST TEXT: " + str(request.text))
-        print ("REQUEST BODY: " + str(request.body))
+        #print ("REQUEST TEXT: " + str(request.text))
+        #print ("REQUEST BODY: " + str(request.body))
         print ("POST ID: " + str(kwargs['post_id']))
         j = request.data.json()
         print "REQUEST JSON: " + str(j) 
