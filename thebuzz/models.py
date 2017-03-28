@@ -40,6 +40,13 @@ class ListField(models.TextField):
         value = self._get_val_from_obj(obj)
         return self.get_db_prep_value(value)
 
+class Friend(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    displayName = models.CharField(max_length=200,blank=True)
+    host = models.URLField()
+    url = models.URLField()
+    def __str__(self):
+        return self.displayName
 
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
@@ -56,12 +63,12 @@ class Profile(models.Model):
     host = models.URLField()
     url = models.URLField()
 
-    following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
+    following = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='who_im_following')
 
-    followers = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='my_followers')
+    followers = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
 
     # people who i am following and are following me
-    friends = models.ManyToManyField('self', blank=True, related_name='my_friends')
+    friends = models.ManyToManyField(Friend, blank=True, related_name='my_friends')
 
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone

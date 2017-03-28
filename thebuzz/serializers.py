@@ -9,6 +9,7 @@ from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=False)
+    github = serializers.CharField(required=False)
     class Meta:
         model = Profile
         fields = ("id", "url", "host", "displayName", "github")
@@ -27,8 +28,14 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentAuthor
         fields = '__all__'
+    def create(self, validated_data):
+        comment_author, created = CommentAuthor.objects.get_or_create(id=validated_data.get('id'))
+        # Update the comment author
+        comment_author = self.update(comment_author, validated_data)
+        return comment_author
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=False)
     author = CommentAuthorSerializer()
     published = serializers.DateTimeField(source='date_created')
     class Meta:
@@ -46,10 +53,12 @@ class AddCommentSerializer(serializers.Serializer):
         comment_data = validated_data.get('comment')
         author_data = comment_data.pop('author')
 
-        self.comment = CommentSerializer(data=author_data)
         post = get_object_or_404(Post, id=self.context.get('post_id'))
         # author = get_object_or_404(Profile, **author_data)
-        author, created = CommentAuthor.objects.get_or_create(**author_data)
+        comment_author_serializer = CommentAuthorSerializer(data=author_data)
+        comment_author_serializer.is_valid()
+        comment_author_serializer.save()
+        author = CommentAuthor.objects.get(id=author_data.get('id'))
         comment = Comment.objects.create(associated_post=post, author=author, **comment_data)
         return comment
 
@@ -84,11 +93,23 @@ class PostSerializer(serializers.ModelSerializer):
     def get_next(self, obj):
         return obj.associated_author.host + 'posts/' + str(obj.id) + '/comments'
 
+# Todo
+class FriendURLSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Friend
+        fields = ("url",)
 
 class FriendSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=False)
     class Meta:
-        model = Profile
-        fields = ("url",)
+        model = Friend
+        fields = '__all__'
+    def create(self, validated_data):
+        friend, created = Friend.objects.get_or_create(id=validated_data.get('id'))
+        # Update the comment author
+        friend = self.update(friend, validated_data)
+        return friend
+
 
 # Get request of post from remote hosts
 # Todo: test needed. Works on local
@@ -163,23 +184,33 @@ class GetPostSerializer(serializers.Serializer):
 class FriendRequestSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=20)
     author = AuthorSerializer()
-    friend = AuthorSerializer()
+    friend = FriendSerializer()
 
     def handle(self):
-        author_data = self.validated_data.get('author')
+        requestor_data = self.validated_data.get('author')
+        friend_serializer = FriendSerializer(data=requestor_data)
+        friend_serializer.is_valid()
+        friend_serializer.save()
+        requestor = Friend.objects.get(id=requestor_data.get('id'))
+
         friend_data = self.validated_data.get('friend')
-        author, remote_requestor = Profile.objects.get_or_create(**author_data)
-        friend, remote_friend = Profile.objects.get_or_create(**friend_data)
+        friend = get_object_or_404(Profile, **friend_data)
+
+
+        friend.add_user_following_me(requestor)
+
         # If the friend is on the remote server, send another friend request to the remote server
         # Todo: test needed. Local friend request works
-        if remote_friend:
-            remote_host = friend.host
-            request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
-            response = urllib2.urlopen(request, self.validated_data)
-        if friend in author.followers.all():
-            author.friends.add(friend)
-            author.followers.remove(friend)
-            friend.following.remove(author)
-        else:
-            author.following.add(friend)
-            friend.followers.add(author)
+        # if remote_friend:
+        #     remote_host = friend.host
+        #     request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
+        #     response = urllib2.urlopen(request, self.validated_data)
+        # if friend in author.followers.all():
+        #     author.friends.add(friend)
+        #     author.followers.remove(friend)
+        #     friend.following.remove(author)
+        # else:
+        #     author.following.add(friend)
+        #     friend.followers.add(author)
+
+
