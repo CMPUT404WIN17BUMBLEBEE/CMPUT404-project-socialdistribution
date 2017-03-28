@@ -102,7 +102,8 @@ class CommentView(ListAPIView):
         actual_id = split[-1]
         d = (request.data)
         d['comment']['author']['id'] = actual_id
-
+        print(str(request.data))
+        
         #post = get_object_or_404(Post, id=kwargs['post_id'])
         # author = get_object_or_404(Profile, id=request.user.profile.id)
         # if is_authenticated_to_read(author, post):
