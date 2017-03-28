@@ -145,7 +145,7 @@ def save_user_profile(sender,instance, **kwargs):
 @python_2_unicode_compatible
 class Post(models.Model):
 	#OVERRIDDING the primary key id that django implements
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     title = models.CharField(max_length = 100, default='No Title')
     source = models.CharField(max_length = 2000)
