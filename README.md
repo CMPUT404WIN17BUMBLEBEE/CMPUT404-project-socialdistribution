@@ -39,7 +39,8 @@ https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wi
 
 Heroku demo:
 ============
-https://mysterious-taiga-11180.herokuapp.com/
+https://secret-crag-38714.herokuapp.com/
+
 
 Resources:  
 =========
@@ -92,3 +93,6 @@ http://stackoverflow.com/a/16790455 Answered by alecxe on Stack Overflow (http:/
 
 Serializing a Datetime:
 http://stackoverflow.com/a/23595986 Answered by Eugene Soldatov on Stack Overflow (http://stackoverflow.com/users/1031981/eugene-soldatov)
+
+Send an HttpResponse with nothing in it:
+http://stackoverflow.com/a/35121204 Answered by GwynBleidD on Stack Overflow (http://stackoverflow.com/users/1783237/gwynbleidd)

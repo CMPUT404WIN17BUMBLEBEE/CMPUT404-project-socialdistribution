@@ -12,6 +12,8 @@ from pagination import *
 
 from .models import *
 
+import sys
+
 class PostListView(ListCreateAPIView):
     queryset = Post.objects.filter(visibility="PUBLIC", unlisted=False).order_by('-published')
     serializer_class = PostSerializer
@@ -75,6 +77,16 @@ class CommentView(ListAPIView):
 
     def post(self, request, *args, **kwargs):
 
+        split = request.data.get('comment').get('author').get('id').split("/")
+        actual_id = split[0]
+
+        if len(split) > 1:
+            actual_id = split[4]
+
+
+        d = (request.data)
+        d['comment']['author']['id'] = actual_id
+
         serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -84,6 +96,7 @@ class CommentView(ListAPIView):
             ("success", True),
             ("message", "Comment Added"),
         ])
+
         return Response(response, status=status.HTTP_200_OK)
 
 

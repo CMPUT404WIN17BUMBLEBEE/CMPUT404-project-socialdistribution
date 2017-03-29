@@ -44,7 +44,8 @@ $.ajax({
     url: '/createGithubPosts',
     type: 'get', 
     dataType: 'json',
-    success: function(data) {
+    statusCode: {
+	200: function(data) {
 	console.log(data);
 	console.log("success!");
         receivedData = receivedData.concat(data);
@@ -60,11 +61,12 @@ $.ajax({
 	}
 	setTimeout(function(){checkGithub()}, interval);
     },
-    failure: function(data) { 
-	console.log("failure!");
+	204: function(data) {
+	console.log("nothing to see here");
 	setTimeout(function(){checkGithub()}, interval);
-        return;
-    }
+	}
+
+	}
 }); 
 }
 
