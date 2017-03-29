@@ -17,14 +17,14 @@
       <div id="title"><u>{{ post.title }}</u></div>
     </div>
     <div id="post_body">{{ post.content | safe }}</div>
-    <div id="date">{{ post.published|timezone:"Canada/Mountain" }}</div>
+    <div id="date">{{ post.published }}</div>
     <div id="comment-label">Comments: </div>
       {% if post.comments %}
           {% for comment in post.comments %}
             <div class="comment-sections">
               <div id="comment-title-bar">
                 <div id="comment_author">{{ comment.author.displayName }}</div>
-                <div id="comment_date">{{ comment.published|timezone:"Canada/Mountain" }}</div>
+                <div id="comment_date">{{ comment.published }}</div>
               </div>
               <div>{{ comment.comment }}</div>
             </div>
