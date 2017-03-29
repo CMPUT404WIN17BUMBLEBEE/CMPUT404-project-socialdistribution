@@ -95,7 +95,7 @@ class CommentView(ListAPIView):
         d['comment']['author']['id'] = actual_id
 
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        if is_authenticated_to_read(actual_id, post):
+        if is_authenticated_to_read(actual_id, post, request.data['comment']['author']['host']):
             serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -201,7 +201,7 @@ class FriendRequestView(GenericAPIView):
         return Response(serializer.data)
 
 
-def is_authenticated_to_read(requestor_id, post):
+def is_authenticated_to_read(requestor_id, post, host=None):
     # Public
     if post.visibility == "PUBLIC":
         return True
@@ -229,6 +229,17 @@ def is_authenticated_to_read(requestor_id, post):
             return True
     except Friend.DoesNotExist:
         #todo: foaf
+        #todo: send get to friend's profile
+        if host:
+            api_user = Site_API_User.objects.get(api_site__contains=host)
+            api_url = api_user.api_site + 'author/' + str(requestor_id) + '/'
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+            friends_of_requestor = json.loads(resp.content).get('friends')
+            for friend_of_requestor in friends_of_requestor:
+                for author_friend in post.associated_author.friends.all():
+                    if friend_of_requestor.get('id') == author_friend.id:
+                        return True
+
         # if post.visibility == "FOAF":
         #     for friend in post.associated_author.friends.all():
         #         # Verify the middle friend is a friend of requestor
