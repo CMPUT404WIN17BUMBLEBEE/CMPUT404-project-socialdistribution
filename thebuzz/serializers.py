@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from rest_framework import pagination
 import urllib2
+import requests
 
 from .models import *
 
@@ -120,16 +121,20 @@ class GetPostSerializer(serializers.Serializer):
     author = AuthorSerializer()
     friends = serializers.ListField(child=serializers.URLField())
 
-    def get_read(self):
-        requestor_data = self.validated_data.get('author')
+    def create(self, validated_data):
+        pass
+    def get_read(self, data):
+        requestor_data = data.get('author')
         host = requestor_data.get('host')
         id = requestor_data.get('id')
         requestor_url = requestor_data.get('url')
-        request_friends_urllist = self.validated_data.get('friends')
-
+        request_friends_urllist = data.get('friends')
         # Query the requestor's server to verify provided friends list
-        result = urllib2.urlopen(host + 'api/author/' + str(id))
-        friends_of_requestor = json.loads(result.read()).get('friends')
+        api_user = Site_API_User.objects.get(api_site__contains=host)
+        api_url = api_user.api_site + 'author/' + str(id)+'/'
+
+        resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+        friends_of_requestor = json.loads(resp.content).get('friends')
         true_friends_urllist = list()
         for friend in friends_of_requestor:
             true_friends_urllist.append(friend.get('url'))
@@ -139,7 +144,7 @@ class GetPostSerializer(serializers.Serializer):
                 return False # lying on the friend list
 
         # Info of the post
-        post = get_object_or_404(Post, id=self.validated_data.get('postid'))
+        post = get_object_or_404(Post, id=data.get('postid'))
         author_friends_urllist = list()
         for friend in post.associated_author.friends.all():
             author_friends_urllist.append(friend.url)
@@ -154,7 +159,7 @@ class GetPostSerializer(serializers.Serializer):
             return False
         # Friends - Check both friendlist
         if visibility == "FRIENDS" or visibility == "FOAF":
-            if post.visibility and post.associated_author.url in request_friends_urllist and requestor_url in author_friends_urllist:
+            if post.associated_author.url in request_friends_urllist and requestor_url in author_friends_urllist:
                 return True
         # Private
         if post.visibility == "PRIVATE" and requestor_url in post.visibileTo:
@@ -169,8 +174,9 @@ class GetPostSerializer(serializers.Serializer):
                 l = friend.split('author/')
                 host = l[0]
                 id = l[1]
-                result = urllib2.urlopen(host + 'api/author/' + id)
-                middle_friends = json.loads(result.read()).get('friends')
+                api_user = Site_API_User.objects.get(api_site__contains=host)
+                resp = requests.get(host + 'author/' + str(id) + '/', auth=(api_user.username, api_user.password))
+                middle_friends = json.loads(resp.content).get('friends')
                 middle_friends_urllist = list()
                 for middle_friend in middle_friends:
                     middle_friends_urllist.append(middle_friend.get('url'))
@@ -199,18 +205,5 @@ class FriendRequestSerializer(serializers.Serializer):
 
         friend.add_user_following_me(requestor)
 
-        # If the friend is on the remote server, send another friend request to the remote server
-        # Todo: test needed. Local friend request works
-        # if remote_friend:
-        #     remote_host = friend.host
-        #     request = urllib2.Request(remote_host+'friendrequest', headers={"Content-Type": "application/json"})
-        #     response = urllib2.urlopen(request, self.validated_data)
-        # if friend in author.followers.all():
-        #     author.friends.add(friend)
-        #     author.followers.remove(friend)
-        #     friend.following.remove(author)
-        # else:
-        #     author.following.add(friend)
-        #     friend.followers.add(author)
 
 

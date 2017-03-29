@@ -8,6 +8,7 @@ from rest_framework.decorators import authentication_classes
 from rest_framework.generics import ListCreateAPIView, GenericAPIView, UpdateAPIView, ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
 
@@ -33,18 +34,17 @@ class PostDetailView(UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(self.queryset, id=kwargs['post_id'])
-        author = get_object_or_404(Profile, id=request.user.profile.id)
-        if is_authenticated_to_read(author, post):
+        if is_authenticated_to_read(request.user.profile.id, post):
             serializer = self.serializer_class(post)
             return Response(serializer.data)
 
+
     def post(self, request, *args, **kwargs):
         serializer = GetPostSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if serializer.get_read():
+        if serializer.get_read(data=request.data):
             post = get_object_or_404(self.queryset, id=kwargs['post_id'])
             serializer = self.serializer_class(post)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_200_OK)
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -57,8 +57,7 @@ class PostsAuthorCanSeeView(ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        author = get_object_or_404(Profile, id=self.request.user.profile.id)
-        return get_readable_posts(author, self.queryset)
+        return get_readable_posts(self.request.user.profile.id, self.queryset)
 
 
 class AuthorPostsView(ListAPIView):
@@ -70,8 +69,7 @@ class AuthorPostsView(ListAPIView):
 
     def get_queryset(self):
         authorposts = self.queryset.filter(associated_author__id=self.kwargs['author_id'])
-        author = get_object_or_404(Profile, id=self.request.user.profile.id)
-        return get_readable_posts(author, authorposts)
+        return get_readable_posts(self.request.user.profile.id, authorposts)
 
 
 class CommentView(ListAPIView):
@@ -91,48 +89,29 @@ class CommentView(ListAPIView):
     def post(self, request, *args, **kwargs):
 
         split = request.data.get('comment').get('author').get('id').split("/")
-
-        # actual_id = split[0]
-        #
-        #
-        # if len(split) > 1:
-        #     actual_id = split[4]
-
         split = [x for x in split if x]
         actual_id = split[-1]
         d = (request.data)
         d['comment']['author']['id'] = actual_id
 
-        #post = get_object_or_404(Post, id=kwargs['post_id'])
-        # author = get_object_or_404(Profile, id=request.user.profile.id)
-        # if is_authenticated_to_read(author, post):
-        #     serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
-        #     serializer.is_valid(raise_exception=True)
-        #     serializer.save()
-        #     response = OrderedDict([
-        #         ("query", "addComment"),
-        #         ("success", True),
-        #         ("message", "Comment Added"),
-        #     ])
-        #     return Response(response, status=status.HTTP_200_OK)
-        # else:
-        #     response = OrderedDict([
-        #         ("query", "addComment"),
-        #         ("success", False),
-        #         ("message", "Comment not allowed"),
-        #     ])
-        #     return Response(response, status=status.HTTP_403_FORBIDDEN)
-        serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        response = OrderedDict([
-            ("query", "addComment"),
-            ("success", True),
-            ("message", "Comment Added"),
-        ])
-
-        return Response(response, status=status.HTTP_200_OK)
+        post = get_object_or_404(Post, id=kwargs['post_id'])
+        if is_authenticated_to_read(actual_id, post):
+            serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            response = OrderedDict([
+                ("query", "addComment"),
+                ("success", True),
+                ("message", "Comment Added"),
+            ])
+            return Response(response, status=status.HTTP_200_OK)
+        else:
+            response = OrderedDict([
+                ("query", "addComment"),
+                ("success", False),
+                ("message", "Comment not allowed"),
+            ])
+            return Response(response, status=status.HTTP_403_FORBIDDEN)
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
@@ -222,45 +201,47 @@ class FriendRequestView(GenericAPIView):
         return Response(serializer.data)
 
 
-def is_authenticated_to_read(requestor, post):
-    # admin
-    if requestor.user.is_superuser:
-        return True
-
+def is_authenticated_to_read(requestor_id, post):
     # Public
     if post.visibility == "PUBLIC":
         return True
-    # Server Only
-    if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
-        return True
-    # Own
-    if post.associated_author == requestor:
-        return True
-    # Friend, FOAF
-    try:
-        friend = Friend.objects.get(id=requestor.id)
-        if (post.visibility == "FRIENDS" or post.visibility == "FOAF") and friend in post.associated_author.friends.all():
-            return True
-    except Friend.DoesNotExist as e:
-        if post.visibility == "FOAF":
-            for friend in post.associated_author.friends.all():
-                # Verify the middle friend is a friend of requestor
-                if friend in requestor.friends().all():
-                    return True
     # Private
-    if post.visibility == "PRIVATE" and requestor.url in post.visibleTo:
-        return True
+    if post.visibility == "PRIVATE" :
+        if requestor_id in post.visibleTo:
+            return True
+    try:
+        requestor = Profile.objects.get(id=requestor_id)
+        # admin
+        if requestor.user.is_superuser:
+            return True
+        # Server Only
+        if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
+            return True
+        # Own
+        if post.associated_author == requestor:
+            return True
+    except Profile.DoesNotExist:
+        pass
 
+    try:
+        requestor = Friend.objects.get(id=requestor_id)
+        if (post.visibility == "FRIENDS" or post.visibility == "FOAF") and requestor in post.associated_author.friends.all():
+            return True
+    except Friend.DoesNotExist:
+        #todo: foaf
+        # if post.visibility == "FOAF":
+        #     for friend in post.associated_author.friends.all():
+        #         # Verify the middle friend is a friend of requestor
+        #         if friend in requestor.friends().all():
+        #             return True
+        pass
     return False
 
 
-def get_readable_posts(requestor, posts):
-    if requestor.user.is_superuser:
-        return posts
-
+def get_readable_posts(requestor_id, posts):
     queryset = posts.filter(unlisted=False)
     for post in queryset:
-        if not is_authenticated_to_read(requestor, post):
+        if not is_authenticated_to_read(requestor_id, post):
             queryset.remove(post)
     return queryset.order_by("-published")
 
