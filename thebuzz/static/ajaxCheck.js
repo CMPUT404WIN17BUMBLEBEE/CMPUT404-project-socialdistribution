@@ -89,10 +89,10 @@ container.appendChild(bar);
 
 var author = document.createElement("div");
 author.id = "author";
-author.innerHTML = postInfo["associated_author"];
+author.innerHTML = postInfo["displayName"];
 var postTitle = document.createElement("div");
 postTitle.id = "post-title";
-postTitle.innerHTML = "<a href = \"/posts/" + postInfo["id"] + "/detail.html\">" + postInfo["title"] +"</a>"
+postTitle.innerHTML = "<a href = \"/posts/" + postInfo["id"] +"\">" + postInfo["title"] +"</a>"
 var postDate = document.createElement("div");
 postDate.id = "post-date";
 postDate.innerHTML = postInfo["published"];

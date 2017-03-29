@@ -304,7 +304,7 @@ def createGithubPosts(request):
 			    jtmp[index]['id'] = str(jtmp[index]['id'])
 			    jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
 			    jtmp[index]['published'] = jtmp[index]['published'][1:-1]
-			    jtmp[index]['displayname'] = user.displayName #will have to make two of these to compare if its the current user's or not
+			    jtmp[index]['displayName'] = user.displayName #will have to make two of these to compare if its the current user's or not
 			    jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
 			    index += 1
 
