@@ -26,7 +26,7 @@
                 <div id="post-title">
                   <a href="/posts/{{ post.id }}">{{ post.title }}</a>
                 </div>
-                <div id="post-date">{{ post.published|timezone:"Canada/Mountain" }}</div> <!--TODO: Fix date for non-local posts-->
+                <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
               <div>
                 {{ post.content | safe }}
