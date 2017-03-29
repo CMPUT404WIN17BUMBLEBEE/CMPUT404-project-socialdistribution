@@ -171,7 +171,7 @@ def delete_friend (request, profile_id):
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def posts(request):
-    two_days_ago = datetime.utcnow() - timedelta(days=2)
+    two_days_ago = datetime.now() - timedelta(days=2)
 
     post_list = list()
 
@@ -360,8 +360,11 @@ def post_detail(request, post_id):
     #Check that we did find a post, if not raise a 404
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
-    
+
+
     post['published'] = dateutil.parser.parse(post.get('published'))
+    for comment in post['comments']:
+        comment['published'] = dateutil.parser.parse(comment.get('published'))
 
     #Posts returned from api's have comments on them no need to retrieve them separately
     return render(request, 'posts/detail.html', {'post': post})
@@ -405,7 +408,7 @@ def add_comment(request, post_id):
                     },
                     "comment":form.cleaned_data['comment'],
                     "contentType": "text/plain",
-                    "published":str(timezone.now()),
+                    "published":str(datetime.now()),
                     "id":str(uuid.uuid4())
                 }
             }
@@ -546,7 +549,7 @@ def makeSafe(content):
 def post_upload(request):
 	if request.method =='GET':
 
-		two_days_ago = datetime.utcnow() - timedelta(days=2)
+		two_days_ago = datetime.now() - timedelta(days=2)
 
 		latest_posts_list = Post.objects.filter(date_created__gt=two_days_ago).all()
 
@@ -562,7 +565,7 @@ def post_upload(request):
 	elif request.method == 'POST':
 		#fix after GET is working...
 		post = Post.objects.create(content=request.POST['posted_text'],
-			date_created=datetime.utcnow() )
+			date_created=datetime.now())
 		return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post.id}))
 
 def DeletePost(request, post_id):
