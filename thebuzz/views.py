@@ -30,7 +30,7 @@ from django.core import serializers
 # SIGNING UP
 
 def register(request):
-    profileForm = ""
+    profileForm = ProfileForm()
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
 
@@ -43,9 +43,11 @@ def register(request):
 
             profile = Profile.objects.get(user_id=user.id)
             profileForm = ProfileForm(request.POST, instance=profile)
-            profileForm.save()
 
-            return HttpResponseRedirect('/register/complete')
+            if profileForm.is_valid():
+                profileForm.save()
+
+                return HttpResponseRedirect('/register/complete')
 
     else:
         form = UserCreationForm()
@@ -208,7 +210,7 @@ def posts(request):
 
 
 def createGithubPosts(user):
-#get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
+    #get github activity of myself - and create posts to store in the database.....create a seperate function for this and have it called??
     #make a GET request to github for my github name, if I have one
     if(user.github != ''):
 
@@ -314,7 +316,7 @@ def post_detail(request, post_id):
     #Check that we did find a post, if not raise a 404
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
-    
+
     post['published'] = dateutil.parser.parse(post.get('published'))
 
     #Posts returned from api's have comments on them no need to retrieve them separately

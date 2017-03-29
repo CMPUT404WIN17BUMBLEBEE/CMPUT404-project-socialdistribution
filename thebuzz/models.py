@@ -44,14 +44,13 @@ class ListField(models.TextField):
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    displayName = models.CharField(max_length=200,blank=True)
-    github = models.CharField(max_length=200,blank=True)
-    firstName = models.CharField(max_length=200,blank=True)
-    lastName = models.CharField(max_length=200,blank=True)
-    email = models.CharField(max_length=400,blank=True)
-    bio = models.CharField(max_length=2000,blank=True)
+    displayName = models.CharField(max_length=200,blank=False,null=False)
+    github = models.CharField(max_length=200,blank=True,default='')
+    firstName = models.CharField(max_length=200,blank=True,default='')
+    lastName = models.CharField(max_length=200,blank=True,default='')
+    email = models.CharField(max_length=400,blank=True,default='')
+    bio = models.CharField(max_length=2000,blank=True,default='')
 
     host = models.URLField()
     url = models.URLField()
