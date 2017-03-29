@@ -104,10 +104,9 @@ var postContents = document.createElement("div");
 postContents.innerHTML = postInfo["content"];
 container.appendChild(postContents);
 
-console.log(currentUser);
-console.log(postInfo["associated_author"]);
-if(currentUser === postInfo["associated_author"]){
 
+if(postInfo["currentId"] === postInfo["associated_author"]){
+//we only want to have the option to delete our own posts
 	var postDelete = document.createElement("div");
 	postDelete.id = "delet-div";
 	postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";

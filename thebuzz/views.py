@@ -213,9 +213,9 @@ def posts(request):
 def createGithubPosts(request):
 #get github activity of myself - and create posts to store in the database
 
-    if not request.user.is_authenticated:
-	return HttpResponse(status=204)
-    if request.user.is_authenticated:
+    #if not request.user.is_authenticated:
+	#return HttpResponse(status=204)
+    #if request.user.is_authenticated:
 	    if request.method == 'GET':
 		    user = request.user.profile
 		    
@@ -239,7 +239,7 @@ def createGithubPosts(request):
 			postlist = [] #for sending a response
 
 			if('https://developer.github.com/v3/#rate-limiting' in jdata): #limit has been exceeded, wait 1 hour
-			    #return HttpResponse(json.dumps({"postlist" : postlist}),content_type = "application/json")	
+			    
 			    return HttpResponse(status=204)
 		
 			#get the data
@@ -300,10 +300,12 @@ def createGithubPosts(request):
 			while(index<len(postlist)):
 			    jtmp.append(model_to_dict(postlist[index]))
 			    jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-			    jtmp[index]['associated_author'] = Profile.objects.get(id = jtmp[index]['associated_author']).displayName
+			    jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
 			    jtmp[index]['id'] = str(jtmp[index]['id'])
 			    jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
 			    jtmp[index]['published'] = jtmp[index]['published'][1:-1]
+			    jtmp[index]['displayname'] = user.displayName #will have to make two of these to compare if its the current user's or not
+			    jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
 			    index += 1
 
 			print(json.dumps(jtmp))
