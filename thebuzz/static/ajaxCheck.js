@@ -100,14 +100,17 @@ bar.appendChild(postDate);
 
 var postContents = document.createElement("div");
 postContents.innerHTML = postInfo["content"];
-//bar.appendChild(postContents);
 container.appendChild(postContents);
 
-var postDelete = document.createElement("div");
-postDelete.id = "delet-div";
-postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
-//bar.appendChild(postDelete);
-container.appendChild(postDelete);
+console.log(currentUser);
+console.log(postInfo["associated_author"]);
+if(currentUser === postInfo["associated_author"]){
+
+	var postDelete = document.createElement("div");
+	postDelete.id = "delet-div";
+	postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
+	container.appendChild(postDelete);
+}
 return container;
 
 

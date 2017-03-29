@@ -165,7 +165,7 @@ class Post(models.Model):
 
     image = models.ImageField(null=True, blank=True)
 
-    published = models.DateTimeField(auto_now=True)
+    published = models.DateTimeField(default = datetime.now)
     categories = ListField(blank=True)
 
     visibility_choice = (
