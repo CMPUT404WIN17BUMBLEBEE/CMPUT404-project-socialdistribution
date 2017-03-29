@@ -133,6 +133,7 @@ class GetPostSerializer(serializers.Serializer):
         api_user = Site_API_User.objects.get(api_site__contains=host)
         api_url = api_user.api_site + 'author/' + str(id)+'/'
 
+        #todo: check if it is local?
         resp = requests.get(api_url, auth=(api_user.username, api_user.password))
         friends_of_requestor = json.loads(resp.content).get('friends')
         true_friends_urllist = list()

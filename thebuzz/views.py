@@ -600,26 +600,39 @@ def is_authenticated_to_read(requestor_id, post):
         if str(post['author']['id']) == str(requestor_id):
             return True
         #todo: FRIEND AND FOAF =>POST to post/{post.id}
+        #todo: check if the post is local?
         # send the friend request
         if post['visibility'] == "FRIENDS" or post['visibility'] == "FOAF":
-            api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
-            api_url = api_user.api_site + "posts/" + str(post['id']) + "/"
-            data = {
-                "query": "getPost",
-                "postid": str(post['id']),
-                "url": api_url,
-                "author": {
-                    "id": str(requestor.id),
-                    "url": requestor.url,
-                    "host": requestor.host,
-                    "displayName": requestor.displayName,
-                },
-                "friends": [friend.url for friend in requestor.friends.all()]
-            }
-            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
-                                 headers={'Content-Type': 'application/json'})
-            if resp.status_code == 200:
-                return True
+            try:
+                post = Post.objects.get(id=post['id'])
+            except Post.DoesNotExist:
+                api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
+                api_url = api_user.api_site + "posts/" + str(post['id']) + "/"
+                data = {
+                    "query": "getPost",
+                    "postid": str(post['id']),
+                    "url": api_url,
+                    "author": {
+                        "id": str(requestor.id),
+                        "url": requestor.url,
+                        "host": requestor.host,
+                        "displayName": requestor.displayName,
+                    },
+                    "friends": [friend.url for friend in requestor.friends.all()]
+                }
+                resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+                                     headers={'Content-Type': 'application/json'})
+                if resp.status_code == 200:
+                    return True
+                else:
+                    return False
+            else:
+                for friend in post.associated_author.friends.all():
+                    if friend.id == requestor_id:
+                        return True
+                    for requestor_friend in requestor.friends.all():
+                        if friend.id == requestor_friend.id:
+                            return True
     except Profile.DoesNotExist:
         pass
 
