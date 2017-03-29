@@ -14,22 +14,25 @@
         <div>
           <span>Select a user to friend: </span>
           <select id="user_select" name="befriend">
-            {% for user in users %}
-                {% if user.username != request.user.username %}
-                    <option value='{{user.username}}'>{{ user.username }}</option>
+            {% for author in authors %}
+                {% if author.id != request.user.profile.id %}
+                    <option value='{{author.id}}'>{{ author.displayName }}</option>
                 {% endif %}
             {% endfor %}
           </select>
-          <input id="request_btn" type='submit' value='Send Request'></input>
+          <input id="request_btn" type='submit' value='Send Request' name="button1"/>
         </div>
     </form>
 
     <form action = '/friends/' method = 'POST'>{% csrf_token %}
         <div>
-          <span>Select a user to friend: </span>
-          <input id="remote_user_id" type="text" name="befriendremote">
-          </input>
-          <input id="request_btn" type='submit' value='Send Request'></input>
+            <span>Enter a user url to friend: </span>
+            <input id="remote_user_id" type="text" name="befriendremote">
+            </input>
+            <input id="request_btn" type='submit' value='Send Request' name="button2"/>
+            {% if invalid_url %}
+                <span style="color: red; ">*Invalid url</span>
+            {% endif %}
         </div>
     </form>
 

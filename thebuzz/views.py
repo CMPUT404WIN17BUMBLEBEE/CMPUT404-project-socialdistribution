@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from django.template import Context, loader
 from .models import *
 from .forms import PostForm, CommentForm, ProfileForm
+from .serializers import *
 from django.core.urlresolvers import reverse
 import CommonMark, imghdr
 from django.db import transaction
@@ -93,73 +94,90 @@ def edit_profile(request, profile_id):
 
 # ------------ FRIENDS VIEWS ---------------------
 def friends (request):
-        if request.method == 'POST': #for testing purposes only
+    invalid_url = False
 
+    authors = list()
+    sites = Site_API_User.objects.all()
+    for site in sites:
+        api_user = site.username
+        api_password = site.password
+        api_url = site.api_site + "author/"
+        resp = requests.get(api_url, auth=(api_user, api_password))
+        try:
+            profile_list = json.loads(resp.content)
+        except Exception:
+            pass
+
+        for author in profile_list:
+            author['id'] = uuid.UUID(author.get('id'))
+            authors.append(author)
+
+
+    if request.method == 'POST': #for testing purposes only
+
+        # request.user.profile.follow(friend)
+        if request.POST.get("button1"):
             # get the person i want to follow
-            friend = User.objects.get(username = request.POST['befriend'])
-            friend_profile = Profile.objects.get(user_id=friend.id)
+            friend_data = [author for author in authors if author['id']==uuid.UUID(request.POST['befriend'])][0]
+            invalid_url = False
+        #elif request.POST.get("button2"):
+        else:
+            profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
+            profile_url = str(request.POST['befriendremote'])
+            try:
+                host = urlparse(profile_url).hostname
+                api_user = Site_API_User.objects.get(api_site__contains=host)
+                resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
+                friend_data = resp.json()
+                invalid_url = False
+            except Exception:
+                invalid_url = True
+                # raise e
+
+        if not invalid_url:
+            friend_serializer = FriendSerializer(data=friend_data)
+            friend_serializer.is_valid(raise_exception=True)
+            friend_serializer.save()
+            friend = Friend.objects.get(id=friend_data['id'])
 
             # follow that person
-            request.user.profile.follow(friend_profile)
-            friend_profile.add_user_following_me(request.user.profile)
+            author = request.user.profile
+            author.follow(friend)
 
-            # Todo: get remote friend id. Test needed
-            # profile_url = request.POST['befriendremote']
-            # profile_url = "http://127.0.0.1:8000/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
-            # host = urlparse(profile_url).hostname
-            # api_user = Site_API_User.objects.get(site__domain__contains = host)
-            # resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
-            # try:
-            #     profile = resp.json()
-            # except Exception as e:
-            #     raise e
-            #
-            # data = {
-            #     "query":"friendrequest",
-            #     "author": {
-            #         "id": request.user.profile.id,
-            #         "host": request.user.profile.host,
-            #         "displayName": request.user.profile.displayName,
-            #         "url": request.user.profile.url
-            #     },
-            #     "friend": {
-            #         "id": profile.get('id'),
-            #         "host": profile.get('host'),
-            #         "displayName": profile.get('displayName'),
-            #         "url": profile.get('url')
-            #     }
-            # }
-            # api_url = api_user.site.domain + 'friendrequest/'
-            # resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
-            #                  headers={'Content-Type': 'application/json'})
-            #
-            # friend = Friend.objects.get_or_create(id=profile.get('id'),host=profile.get('host'),displayName=profile.get('displayName'),url=profile.get('url'))
-            # request.user.profile.follow(friend)
+            # send the friend request
+            api_user = get_object_or_404(Site_API_User, api_site=friend.host)
+            api_url = api_user.api_site + "friendrequest/"
+            data = {
+                "query": "friendrequest",
+                "author": {
+                    "id": str(author.id),
+                    "url": author.url,
+                    "host": author.host,
+                    "displayName": author.displayName,
+                },
+                "friend": {
+                    "id": str(friend.id),
+                    "url": friend.url,
+                    "host": friend.host,
+                    "displayName": friend.displayName,
+                }
+            }
 
-        # #Todo: Get all users
-        # for site in Site.objects.all():
-        #     profile_list_url = site.domain + 'author/'
-        #     api_user = Site_API_User.objects.get(site_id = site.id)
-        #     resp = requests.get(profile_list_url, auth=(api_user.username, api_user.password))
-        #     try:
-        #         profile_list = resp.json()
-        #     except Exception as e:
-        #         pass
-        users = User.objects.all() #for testing purposes only
+            resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-        # get all the people I am currently following
-        following = request.user.profile.get_all_following()
+    # get all the people I am currently following
+    following = request.user.profile.get_all_following()
 
-        # get all the people that are following me, that I am not friends with yet
-        followers = request.user.profile.get_all_followers()
+    # get all the people that are following me, that I am not friends with yet
+    followers = request.user.profile.get_all_followers()
 
-        friends = request.user.profile.get_all_friends()
+    friends = request.user.profile.get_all_friends()
 
-        return render(request, 'friends/friends.html',{'users': users, 'following': following, 'followers': followers, 'friends': friends  })
+    return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'followers': followers, 'friends': friends, 'invalid_url': invalid_url })
 
 def delete_friend (request, profile_id):
 
-    friend = Profile.objects.get(pk=profile_id)
+    friend = Friend.objects.get(pk=profile_id)
     request.user.profile.unfriend(friend)
     return HttpResponseRedirect(reverse('friends'))
 
@@ -572,17 +590,6 @@ def DeletePost(request, post_id):
    post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
-
-# Based on http://www.django-rest-framework.org/tutorial/quickstart/
-from rest_framework import viewsets
-from .serializers import PostSerializer, CommentSerializer
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
 
 # END POSTS AND COMMENTS
 

@@ -78,7 +78,6 @@ class Profile(models.Model):
         return self.user.username
 
     def follow(self, user_to_follow):
-
         if user_to_follow in self.followers.all():
             self.friend(user_to_follow)
         else:
