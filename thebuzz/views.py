@@ -109,7 +109,7 @@ def friends (request):
             pass
 
         for author in profile_list:
-            author['id'] = uuid.UUID(author.get('id'))
+            #author['id'] = uuid.UUID(author.get('id'))
             authors.append(author)
 
 
