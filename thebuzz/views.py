@@ -106,7 +106,7 @@ def friends (request):
         try:
             profile_list = json.loads(resp.content)
         except Exception:
-            pass
+            continue
 
         for author in profile_list:
             try:
