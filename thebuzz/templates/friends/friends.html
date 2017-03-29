@@ -16,7 +16,7 @@
           <select id="user_select" name="befriend">
             {% for author in authors %}
                 {% if author.id != request.user.profile.id %}
-                    <option value='{{author.id}}'>{{ author.displayName }}</option>
+                    <option value='{{author.id}}'>{{ author.displayName }} {{ author.url }}</option>
                 {% endif %}
             {% endfor %}
           </select>
