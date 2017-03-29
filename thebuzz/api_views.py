@@ -237,7 +237,7 @@ def is_authenticated_to_read(requestor_id, post, host=None):
             friends_of_requestor = json.loads(resp.content).get('friends')
             for friend_of_requestor in friends_of_requestor:
                 for author_friend in post.associated_author.friends.all():
-                    if friend_of_requestor.get('id') == author_friend.id:
+                    if str(friend_of_requestor.get('id')) == str(author_friend.id):
                         return True
 
         # if post.visibility == "FOAF":
