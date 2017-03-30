@@ -141,12 +141,13 @@ class FriendViewSet(viewsets.ModelViewSet):
         return Response(response, status=status.HTTP_200_OK)
 
     # GET http://service/author/<authorid>/friends/<authorid2>
+    # Check if two users are friends
     def retrieve(self, request, *args, **kwargs):
         author = get_object_or_404(Profile, id=kwargs['author_id'])
 
         is_friend = False
         for friend in author.friends.all():
-            if friend.id == kwargs['pk']:
+            if str(friend.id) == kwargs['pk']:
                 is_friend = True
                 break
 
