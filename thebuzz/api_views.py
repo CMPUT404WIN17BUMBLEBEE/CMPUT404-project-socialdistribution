@@ -220,6 +220,7 @@ def is_authenticated_to_read(requestor_id, post, host=None):
         # Own
         if post.associated_author == requestor:
             return True
+        #Todo: foaf
     except Profile.DoesNotExist:
         pass
 
@@ -228,8 +229,7 @@ def is_authenticated_to_read(requestor_id, post, host=None):
         if (post.visibility == "FRIENDS" or post.visibility == "FOAF") and requestor in post.associated_author.friends.all():
             return True
     except Friend.DoesNotExist:
-        #todo: foaf
-        #todo: send get to friend's profile
+        #Todo: locally removed friend still works for foaf
         if host:
             api_user = Site_API_User.objects.get(api_site__contains=host)
             api_url = api_user.api_site + 'author/' + str(requestor_id) + '/'
