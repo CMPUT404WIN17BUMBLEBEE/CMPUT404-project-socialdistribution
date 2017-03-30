@@ -34,7 +34,7 @@ class PostDetailView(UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(self.queryset, id=kwargs['post_id'])
-        if is_authenticated_to_read(request.user.profile.id, post):
+        if is_authorized_to_read(request.user.profile.id, post):
             serializer = self.serializer_class(post)
             return Response(serializer.data)
 
@@ -82,7 +82,7 @@ class CommentView(ListAPIView):
     def get_queryset(self):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
         author = get_object_or_404(Profile, id=self.request.user.profile.id)
-        if is_authenticated_to_read(author, post):
+        if is_authorized_to_read(author, post):
             return self.queryset.filter(associated_post__id=self.kwargs['post_id']).order_by("-date_created")
         return self.queryset.none()
 
@@ -95,7 +95,7 @@ class CommentView(ListAPIView):
         d['comment']['author']['id'] = actual_id
 
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        if is_authenticated_to_read(actual_id, post, request.data['comment']['author']['host']):
+        if is_authorized_to_read(actual_id, post, request.data['comment']['author']['host']):
             serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -202,7 +202,7 @@ class FriendRequestView(GenericAPIView):
         return Response(serializer.data)
 
 
-def is_authenticated_to_read(requestor_id, post, host=None):
+def is_authorized_to_read(requestor_id, post, host=None):
     # Public
     if post.visibility == "PUBLIC":
         return True
@@ -253,7 +253,7 @@ def is_authenticated_to_read(requestor_id, post, host=None):
 def get_readable_posts(requestor_id, posts):
     queryset = posts.filter(unlisted=False)
     for post in queryset:
-        if not is_authenticated_to_read(requestor_id, post):
+        if not is_authorized_to_read(requestor_id, post):
             queryset.remove(post)
     return queryset.order_by("-published")
 

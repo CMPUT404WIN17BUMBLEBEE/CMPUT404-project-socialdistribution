@@ -150,7 +150,7 @@ class GetPostSerializer(serializers.Serializer):
         for friend in post.associated_author.friends.all():
             author_friends_urllist.append(friend.url)
 
-        # Authentication
+        # Authorization
         visibility = post.visibility
         # Public
         if visibility == "PUBLIC":

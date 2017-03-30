@@ -379,7 +379,7 @@ def post_detail(request, post_id):
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
-    if is_authenticated_to_read(request.user.profile.id, post):
+    if is_authorized_to_read(request.user.profile.id, post):
         post['published'] = dateutil.parser.parse(post.get('published'))
         for comment in post['comments']:
             comment['published'] = dateutil.parser.parse(comment.get('published'))
@@ -611,7 +611,9 @@ def DeletePost(request, post_id):
 #        return '%s <> %s' % (lhs, rhs), params
 
 #END OF CUSTOM QUERY STUFF -----------------------------------------
-def is_authenticated_to_read(requestor_id, post):
+
+# Authorization
+def is_authorized_to_read(requestor_id, post):
     try:
         requestor_id = uuid.UUID(requestor_id)
     except Exception:
@@ -641,26 +643,35 @@ def is_authenticated_to_read(requestor_id, post):
             try:
                 post = Post.objects.get(id=post['id'])
             except Post.DoesNotExist:
-                api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
-                api_url = api_user.api_site + "posts/" + str(post['id']) + "/"
-                data = {
-                    "query": "getPost",
-                    "postid": str(post['id']),
-                    "url": api_url,
-                    "author": {
-                        "id": str(requestor.id),
-                        "url": requestor.url,
-                        "host": requestor.host,
-                        "displayName": requestor.displayName,
-                    },
-                    "friends": [friend.url for friend in requestor.friends.all()]
-                }
-                resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
-                                     headers={'Content-Type': 'application/json'})
-                if resp.status_code == 200:
-                    return True
-                else:
-                    return False
+                if post['visibility'] == "FOAF":
+                    api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
+                    api_url = api_user.api_site + "posts/" + str(post['id']) + "/"
+                    data = {
+                        "query": "getPost",
+                        "postid": str(post['id']),
+                        "url": api_url,
+                        "author": {
+                            "id": str(requestor.id),
+                            "url": requestor.url,
+                            "host": requestor.host,
+                            "displayName": requestor.displayName,
+                        },
+                        "friends": [friend.url for friend in requestor.friends.all()]
+                    }
+                    resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+                                         headers={'Content-Type': 'application/json'})
+                    if resp.status_code == 200:
+                        return True
+                    else:
+                        return False
+                else: # visibility:friend
+                    api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
+                    api_url = api_user.api_site + "author/" + str(post['author']['id']) + "/friends/" + str(requestor_id) + '/'
+                    resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+                    try:
+                        return json.loads(resp.content).get('friends')
+                    except Exception:
+                        return False
             else:
                 for friend in post.associated_author.friends.all():
                     if friend.id == requestor_id:
@@ -677,7 +688,7 @@ def is_authenticated_to_read(requestor_id, post):
 def get_readable_posts(requestor_id, posts):
     results = list()
     for post in posts:
-        if is_authenticated_to_read(requestor_id, post):
+        if is_authorized_to_read(requestor_id, post):
             results.append(post)
     # Based on code from alecxe
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
