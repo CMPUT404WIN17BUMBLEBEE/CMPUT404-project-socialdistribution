@@ -208,7 +208,7 @@ def is_authorized_to_read(requestor_id, post, host=None):
         return True
     # Private
     if post.visibility == "PRIVATE" :
-        if requestor_id in post.visibleTo:
+        if str(requestor_id) in post.visibleTo:
             return True
     try:
         requestor = Profile.objects.get(id=requestor_id)

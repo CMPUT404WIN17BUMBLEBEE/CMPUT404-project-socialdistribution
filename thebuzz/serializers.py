@@ -70,6 +70,8 @@ class PostSerializer(serializers.ModelSerializer):
     count = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
     next = serializers.SerializerMethodField()
+    categories = serializers.SerializerMethodField()
+    visibleTo = serializers.SerializerMethodField()
 
 
     class Meta:
@@ -93,6 +95,16 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_next(self, obj):
         return obj.associated_author.host + 'posts/' + str(obj.id) + '/comments'
+
+    def get_categories(self, obj):
+        categories = obj.categories
+        split = categories.replace(',',' ').split(' ')
+        return [x for x in split if x]
+
+    def get_visibleTo(self, obj):
+        visibleTo = obj.visibleTo
+        split = visibleTo.replace(',',' ').split(' ')
+        return [x for x in split if x]
 
 # Todo
 class FriendURLSerializer(serializers.ModelSerializer):

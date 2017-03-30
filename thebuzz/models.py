@@ -13,33 +13,6 @@ import json
 
 #---------------------------------------------------------------------------------------------
 
-# From jathanism http://stackoverflow.com/a/7394475
-class ListField(models.TextField):
-    __metaclass__ = models.SubfieldBase
-    description = "Stores a python list"
-
-    def __init__(self, *args, **kwargs):
-        super(ListField, self).__init__(*args, **kwargs)
-
-    def to_python(self, value):
-        if not value:
-            value = []
-
-        if isinstance(value, list):
-            return value
-
-        return ast.literal_eval(value)
-
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-
-        return unicode(value)
-
-    def value_to_string(self, obj):
-        value = self._get_val_from_obj(obj)
-        return self.get_db_prep_value(value)
-
 class Friend(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     displayName = models.CharField(max_length=200,blank=True)
@@ -171,7 +144,7 @@ class Post(models.Model):
     image = models.ImageField(null=True, blank=True)
 
     published = models.DateTimeField(auto_now=True)
-    categories = ListField(blank=True)
+    categories = models.CharField(max_length =100)
 
     visibility_choice = (
         ('PUBLIC', 'PUBLIC'),
@@ -182,7 +155,7 @@ class Post(models.Model):
     )
     visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
 
-    visibleTo = ListField(blank=True)
+    visibleTo = models.CharField(max_length = 500)
     unlisted = models.BooleanField(default=False)
 
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
