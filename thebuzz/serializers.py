@@ -174,7 +174,7 @@ class GetPostSerializer(serializers.Serializer):
                 # Verify that one of friends in friendlist has both requestor and post's author as friends
                 l = friend.split('author/')
                 host = l[0]
-                id = l[1]
+                id = l[1].replace('/', '')
                 api_user = Site_API_User.objects.get(api_site__contains=host)
                 resp = requests.get(host + 'author/' + str(id) + '/', auth=(api_user.username, api_user.password))
                 middle_friends = json.loads(resp.content).get('friends')
