@@ -67,11 +67,37 @@ def registration_complete(request):
 # PROFILE VIEWS
 @login_required(login_url = '/login/')
 def profile(request, profile_id):
-    profile = Profile.objects.get(id=profile_id )
+    profile = {}
+
+    sites = Site_API_User.objects.all()
+    for site in sites:
+        api_user = site.username
+        api_password = site.password
+        api_url = site.api_site + "author/" + profile_id + "/"
+
+        global foundProfile
+        foundProfile = True
+        profile = {}
+
+        try:
+            resp = requests.get(api_url, auth=(api_user, api_password))
+            profile = json.loads(resp.text)
+            profile['id'] = profile_id
+
+            if resp.status_code == 404:
+                foundProfile = False
+                pass
+        #Results in an AttributeError if the object does not exist at that site
+        except  AttributeError:
+            #Setting isPostData to False since that site didn't have the data
+            foundProfile = False
+            pass
+
+        #Check if we found the object and break out of searching for it
+        if foundProfile:
+            break
 
     return render(request, 'profile/profile.html', {'profile': profile} )
-
-
 
 @login_required(login_url = '/login/')
 @transaction.atomic
@@ -189,8 +215,14 @@ def posts(request):
             actual_id = split[0]
             if len(split) > 1:
                 actual_id = split[4]
-
             p['id'] = actual_id
+
+            split = p['author']['id'].split("/")
+            actual_id = split[0]
+            if len(split) > 1:
+                actual_id = split[4]
+            p['author']['id'] = actual_id
+
             p['published'] = dateutil.parser.parse(p.get('published'))
             post_list.append(p)
 
