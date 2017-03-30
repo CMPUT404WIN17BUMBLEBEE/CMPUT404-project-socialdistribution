@@ -144,7 +144,7 @@ class Post(models.Model):
     image = models.ImageField(null=True, blank=True)
 
     published = models.DateTimeField(auto_now=True)
-    categories = models.CharField(max_length =100)
+    categories = models.CharField(max_length =100, blank=True)
 
     visibility_choice = (
         ('PUBLIC', 'PUBLIC'),
@@ -155,7 +155,7 @@ class Post(models.Model):
     )
     visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
 
-    visibleTo = models.CharField(max_length = 500)
+    visibleTo = models.CharField(max_length=500, blank=True)
     unlisted = models.BooleanField(default=False)
 
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
