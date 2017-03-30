@@ -127,7 +127,7 @@ def friends (request):
             invalid_url = False
         #elif request.POST.get("button2"):
         else:
-            profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
+            #profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
             profile_url = str(request.POST['befriendremote'])
             try:
                 host = urlparse(profile_url).hostname
@@ -150,7 +150,7 @@ def friends (request):
             author.follow(friend)
 
             # send the friend request
-            api_user = get_object_or_404(Site_API_User, api_site=friend.host)
+            api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
             api_url = api_user.api_site + "friendrequest/"
             data = {
                 "query": "friendrequest",
