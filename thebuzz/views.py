@@ -209,19 +209,22 @@ def posts(request):
         if "blooming-mountain" in site.api_site:
             api_url = site.api_site + "author/posts"
         resp = requests.get(api_url, auth=(api_user, api_password))
-        data = json.loads(resp.text)
-        posts = data["posts"]
+        try:
+            data = json.loads(resp.text)
+            posts = data["posts"]
 
-        for p in posts:
-            split = p['id'].split("/")
-            actual_id = split[0]
-            if len(split) > 1:
-                actual_id = split[4]
+            for p in posts:
+                split = p['id'].split("/")
+                actual_id = split[0]
+                if len(split) > 1:
+                    actual_id = split[4]
 
-            p['id'] = actual_id
+                p['id'] = actual_id
 
-            p['published'] = dateutil.parser.parse(p.get('published'))
-            post_list.append(p)
+                p['published'] = dateutil.parser.parse(p.get('published'))
+                post_list.append(p)
+        except Exception:
+            continue
 
 
     results = get_readable_posts(author.id, post_list)
