@@ -196,8 +196,12 @@ class FriendViewSet(viewsets.ModelViewSet):
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
+        print(str(request.data))
         serializer = FriendRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.handle()
         return Response(serializer.data)
 
