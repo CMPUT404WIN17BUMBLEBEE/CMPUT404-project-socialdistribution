@@ -16,6 +16,11 @@ def is_authorized_to_read_local_post(requestor, post):
     # Admin
     if requestor.user.is_superuser:
         return True
+    # API user
+    if requestor.user.is_staff:
+        if post.visibility == 'SERVERONLY':
+            return False
+        return True
     # Public
     if post.visibility == "PUBLIC":
         return True
@@ -28,8 +33,6 @@ def is_authorized_to_read_local_post(requestor, post):
             return True
     # Server Only
     if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
-        if requestor.user.is_staff and not requestor.user.is_superuser:
-            return False
         return True
 
     # Friends
@@ -75,9 +78,6 @@ def is_authorized_to_read_local_post(requestor, post):
 
 def get_readable_local_posts(requestor, posts):
     queryset = posts.filter(unlisted=False)
-    # Remote api user
-    if requestor.user.is_staff and not requestor.user.is_superuser:
-        queryset = queryset.exclude(visibility='SERVERONLY')
 
     for post in queryset:
         if not is_authorized_to_read_local_post(requestor, post):
