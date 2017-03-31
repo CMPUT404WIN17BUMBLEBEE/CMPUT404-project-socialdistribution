@@ -136,7 +136,7 @@ def is_authorized_to_comment(requestor_id, post, host):
                     continue
             except: # remote middle author
                 try:
-                    is_friend1 = is_user1_following_user2(middle.host, middle.id, requestor.id)
+                    is_friend1 = is_user1_following_user2(middle.host, middle.id, requestor_id)
                     is_friend2 = is_user1_following_user2(middle.host, middle.id, author.id)
                     if is_friend1 and is_friend2:
                         return True
