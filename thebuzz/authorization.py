@@ -191,7 +191,7 @@ def is_authorized_to_read_post(requestor, post):
                         "host": requestor.host,
                         "displayName": requestor.displayName,
                     },
-                    "friends": [friend.url for friend in requestor.friends.all()]
+                    "friends": [friend.url for friend in requestor.following.all()]
                 }
                 resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
                                      headers={'Content-Type': 'application/json'})
