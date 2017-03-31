@@ -37,9 +37,13 @@ class PostForm(forms.Form):
 
     image_upload = forms.ImageField(label='Image', required=False)
 
-    privacy_textbox = forms.CharField(label='Visible to', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
+    privacy_textbox = forms.CharField(label='Visible to (separate with a comma)', required=False, max_length =200, widget=forms.TextInput(attrs={'id': 'privacy_textbox', 'display': 'hidden'}))
+
+    categories = forms.CharField(label='Categories (separate with a comma)', required=False, max_length=200)
 
     markdown = forms.BooleanField(required=False)
+
+    unlisted = forms.BooleanField(required=False)
 
 class CommentForm(ModelForm):
 

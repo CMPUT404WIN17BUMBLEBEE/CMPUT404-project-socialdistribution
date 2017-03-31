@@ -25,6 +25,8 @@ from django.db.models import Lookup
 from itertools import chain
 from django.contrib.sites.models import Site
 from django.core import serializers
+import base64
+import io
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -404,7 +406,10 @@ def post_form_upload(request):
 	      html = makeSafe(content)
 	      contentType = 'text/plain'
             published = timezone.now()
-	    image = form.cleaned_data['image_upload']
+
+	    if 'image_upload' in request.FILES:
+	      image = request.FILES['image_upload'] #form.cleaned_data['image_upload']
+
 	    visibility = form.cleaned_data['choose_Post_Visibility']
 	    visible_to = ''
 
@@ -420,15 +425,20 @@ def post_form_upload(request):
 
 
 	    if image:
-	      #create Posts and Img objects here!
-	      #cType = imghdr.what(image.name)
-	      #if(cType == 'png'):
-	      #  contentType = 'image/png;base64'
-	      #elif(cType == 'jpeg'):
-	      #	contentType = 'image/jpeg;base64'
-	      imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
+	      #create second post here - Posts and Img objects!
+	      cType = imghdr.what(image)
+	      if(cType == 'png'):
+	        contentType = 'image/png;base64'
+	      elif(cType == 'jpeg'):
+	      	contentType = 'image/jpeg;base64'
+	      #imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
+	      
+	      f = image.read()
+	      byteString = bytearray(f)
+	      encodeImage = base64.b64encode(byteString)
+
               post = Post.objects.create(title = title,
-                                       content=html + "<p>" + imgItself,
+                                       content=encodeImage,
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -436,7 +446,9 @@ def post_form_upload(request):
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
-                                       ) #json.dumps(visible_to)
+				       unlisted = True,
+                                       ) 
+	      #don know if i need this anymore...
               myImg = Img.objects.create(associated_post = post,
 					 myImg = image )
 
@@ -446,7 +458,7 @@ def post_form_upload(request):
 	      post.save()
 
 	    #can't make a whole new post for images, will look funny. Try this??
-	    else:
+	    #else:
 	      #create a Post without an image here!
 	      post = Post.objects.create(title = title,
                                        content=html ,
@@ -464,7 +476,9 @@ def post_form_upload(request):
 	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 	    post.save()
 
-	    test = reverse('post_detail', kwargs={'post_id': str(post.id) })
+	    
+
+	    #test = reverse('post_detail', kwargs={'post_id': str(post.id) })
 
 
 	    return HttpResponseRedirect(reverse('post_detail',
