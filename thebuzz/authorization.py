@@ -28,7 +28,7 @@ def is_authorized_to_read_local_post(requestor, post):
             return True
     # Server Only
     if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
-        if requestor.user.is_staff:
+        if requestor.user.is_staff and not requestor.user.is_superuser:
             return False
         return True
 
@@ -57,8 +57,8 @@ def is_authorized_to_read_local_post(requestor, post):
             try: # local middle author
                 middle_author = Profile.objects.get(id=middle.id)
                 try:
-                    middle_author.get(id=author.id)
-                    middle_author.get(id=requestor.id)
+                    middle_author.following.get(id=author.id)
+                    middle_author.following.get(id=requestor.id)
                     return True
                 except:
                     continue
@@ -125,8 +125,8 @@ def is_authorized_to_comment(requestor_id, post, host):
             try: # local middle author
                 middle_author = Profile.objects.get(id=middle.id)
                 try:
-                    middle_author.get(id=author.id)
-                    middle_author.get(id=requestor.id)
+                    middle_author.following.get(id=author.id)
+                    middle_author.following.get(id=requestor.id)
                     return True
                 except:
                     continue
@@ -171,13 +171,11 @@ def is_authorized_to_read_post(requestor, post):
         # Friends
         if post['visibility'] == 'FRIENDS':
             try:
-                api_user = Site_API_User.objects.get(api_site__contains=post['author']['host'])
-                api_url = api_user.api_site + "author/" + str(post['author']['id']) + "/friends/" + str(requestor.id) + '/'
-                resp = requests.get(api_url, auth=(api_user.username, api_user.password))
-                return json.loads(resp.content).get('friends')
-            except Exception:
+                requestor.following.get(id=post['author']['id'])
+                return is_user1_following_user2(post['author']['host'], post['author']['id'], requestor.id)
+            except:
                 return False
-
+            
         # FOAF
         if post['visibility'] == "FOAF":
             try:
