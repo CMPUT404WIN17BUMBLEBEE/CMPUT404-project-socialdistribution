@@ -151,7 +151,7 @@ def friends (request):
         # request.user.profile.follow(friend)
         if request.POST.get("button1"):
             # get the person i want to follow
-            friend_data = [author for author in authors if author['id']==uuid.UUID(request.POST['befriend'])][0]
+            friend_data = [author for author in authors if str(author['id'])==request.POST['befriend']][0]
             invalid_url = False
         #elif request.POST.get("button2"):
         else:
@@ -175,7 +175,7 @@ def friends (request):
 
             # follow that person
             author = request.user.profile
-            author.follow(friend)
+            author.following.all().add(friend)
 
             # send the friend request
             api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
@@ -195,7 +195,6 @@ def friends (request):
                     "displayName": friend.displayName,
                 }
             }
-
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
     # get all the people I am currently following
