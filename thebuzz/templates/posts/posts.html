@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
-
+{% load tz %}
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
@@ -27,7 +27,9 @@
       {% for post in post_list %}
           <div id="post-blocks">
               <div id="post-title-bar">
-                <div id="author">{{ post.author.displayName }}</div>
+                <div id="author">
+                  <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
+                </div>
                 <div id="post-title">
                   <a href="/posts/{{ post.id }}">{{ post.title }}</a>
                 </div>
@@ -37,10 +39,10 @@
                 {{ post.content | safe }}
               </div>
               <div id="delet-div">
-                {% if post.associated_author.id == request.user.profile.id %}
-                  <!--<a href="/posts/{{ post.id }}/delete"> -->
-                    <button type="button" id = "deleteButton">Delete</button>
-                  <!--</a>-->
+                {% if post.author.id == author_id %}
+                  <a href="/posts/{{ post.id }}/delete">
+                    <button type="button">Delete</button>
+                  </a>
                 {% endif %}
               </div>
           </div>

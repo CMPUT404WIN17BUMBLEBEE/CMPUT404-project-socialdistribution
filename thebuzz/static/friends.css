@@ -45,6 +45,14 @@
   font-size: 12pt;
 }
 
+.request_list a, .request_list a:visited {
+  color: #000000;
+}
+
+.request_list a:hover {
+  color: #665200;
+}
+
 .followers_div {
   width: 100%;
   display: inline-flex;
@@ -74,6 +82,14 @@
 .friends_name {
   width: 75%;
   padding-left: 15px;
+}
+
+.friends_name a, .friends_name a:visited {
+  color: #fff5cc;
+}
+
+.friends_name a:hover {
+  color: #e6f2ff;
 }
 
 .unfrend_btn {

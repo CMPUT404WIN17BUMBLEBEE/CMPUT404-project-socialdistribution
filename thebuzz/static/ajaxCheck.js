@@ -97,7 +97,7 @@ container.appendChild(bar);
 
 var author = document.createElement("div");
 author.id = "author";
-author.innerHTML = postInfo["displayName"];
+author.innerHTML = "<a href = '/author/" + postInfo["associated_author"] + "/profile'>" + postInfo["displayName"] + "</a>";
 var postTitle = document.createElement("div");
 postTitle.id = "post-title";
 postTitle.innerHTML = "<a href = \"/posts/" + postInfo["id"] +"\">" + postInfo["title"] +"</a>"

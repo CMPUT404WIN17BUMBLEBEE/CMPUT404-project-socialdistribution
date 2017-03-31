@@ -14,9 +14,27 @@
 			<form action = "/register/" method = "POST">{% csrf_token %}
         <h3>Please fill out the following registration information:</h3>
 				{{form.as_p}}
+        <p>
+          {{ profileForm.displayName.errors }}
+          {{profileForm.displayName.label_tag}} {{profileForm.displayName}}
+        </p>
         </br>
-        <h4>Optional profile fields:</h4>
-        {{profileForm.as_p}}
+        <h4>Optional profile fields (can be filled in later):</h4>
+        <p>
+          {{profileForm.firstName.label_tag}} {{profileForm.firstName}}
+        </p>
+        <p>
+          {{profileForm.lastName.label_tag}} {{profileForm.lastName}}
+        </p>
+        <p>
+          {{profileForm.email.label_tag}} {{profileForm.email}}
+        </p>
+        <p>
+          {{profileForm.github.label_tag}} {{profileForm.github}}
+        </p>
+        <p>
+          {{profileForm.bio.label_tag}} {{profileForm.bio}}
+        </p>
 				<div id="form-submit">
 					<input type = "submit" value= "signup" />
 				</div>
