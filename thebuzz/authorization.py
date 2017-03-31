@@ -115,8 +115,11 @@ def is_authorized_to_comment(requestor_id, post, host):
     if post.visibility == "FOAF":
         author = post.associated_author
         for middle in author.following.all():
-            if middle.id == requestor_id: #Friend
-                return True
+            if str(middle.id) == str(requestor_id): #Friend
+                if is_user1_following_user2(host, requestor_id, author.id):
+                    return True
+                else:
+                    continue
 
             # check if requestor is following middle friend
             if not is_user1_following_user2(host, requestor_id, middle.id):
