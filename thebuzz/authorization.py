@@ -81,7 +81,8 @@ def get_readable_local_posts(requestor, posts):
     queryset = Post.objects.none()
     for post in posts:
         if is_authorized_to_read_local_post(requestor, post):
-            queryset.add(post)
+            queryset = queryset | Post.objects.filter(id=post.id)
+    print(queryset)
     return queryset.order_by("-published")
 
 
