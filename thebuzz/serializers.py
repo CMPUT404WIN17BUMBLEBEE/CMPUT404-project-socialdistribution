@@ -10,7 +10,7 @@ from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=False)
-    github = serializers.CharField(required=False)
+    github = serializers.CharField(allow_blank=True, required=False)
     class Meta:
         model = Profile
         fields = ("id", "url", "host", "displayName", "github")
@@ -213,8 +213,7 @@ class FriendRequestSerializer(serializers.Serializer):
         requestor = Friend.objects.get(id=requestor_data.get('id'))
 
         friend_data = self.validated_data.get('friend')
-        friend = get_object_or_404(Profile, **friend_data)
-
+        friend = get_object_or_404(Profile, id=friend_data.get('id'))
 
         friend.add_user_following_me(requestor)
 
