@@ -129,9 +129,10 @@ def is_authorized_to_comment(requestor_id, post, host):
                 middle_author = Profile.objects.get(id=middle.id)
                 try:
                     middle_author.following.get(id=author.id)
-                    middle_author.following.get(id=requestor.id)
+                    middle_author.following.get(id=requestor_id)
                     return True
-                except:
+                except Exception as e:
+                    print(e)
                     continue
             except: # remote middle author
                 try:
