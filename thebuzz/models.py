@@ -36,8 +36,7 @@ class Profile(models.Model):
     url = models.URLField()
 
     following = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='who_im_following')
-
-    requests = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
+    friend_request = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
 
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone

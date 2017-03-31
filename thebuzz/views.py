@@ -1,35 +1,28 @@
 from urlparse import urlparse
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpResponseForbidden
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from datetime import datetime, timedelta
-from django.template import Context, loader
-from requests import Response
+from datetime import timedelta
 
-from .models import *
+
 from .forms import PostForm, CommentForm, ProfileForm
 from .serializers import *
 from django.core.urlresolvers import reverse
-import CommonMark, imghdr
+import CommonMark
 from django.db import transaction
-from django.contrib.auth import logout
-from django.views.generic.edit import DeleteView
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
-from django.db.models import Q
 import dateutil.parser
 import json
 import requests
-from django.db.models import Lookup
-from itertools import chain
 from django.contrib.sites.models import Site
-from django.core import serializers
+
+from authorization import is_authorized_to_read_post, get_readable_posts
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -175,7 +168,7 @@ def friends (request):
 
             # follow that person
             author = request.user.profile
-            author.following.all().add(friend)
+            author.following.add(friend)
 
             # send the friend request
             api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
@@ -198,19 +191,48 @@ def friends (request):
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
     # get all the people I am currently following
-    following = request.user.profile.get_all_following()
+    following = request.user.profile.following.all()
 
     # get all the people that are following me, that I am not friends with yet
-    followers = request.user.profile.get_all_followers()
+    friend_requests = request.user.profile.friend_request.all()
 
-    friends = request.user.profile.get_all_friends()
+    real_friends = list()
+    for following_friend in following:
+        #local friends
+        try:
+            author = Profile.objects.get(id=following_friend.id)
+            author.following.get(id=request.user.profile.id)
+            real_friends.append(following_friend)
+        except:
+            pass
 
-    return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'followers': followers, 'friends': friends, 'invalid_url': invalid_url })
+        #remote friends
+        try:
+            api_user = Site_API_User.objects.get(api_site__contains=following_friend.host)
+            api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/' + str(request.user.profile.id) + '/'
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password),
+                             headers={'Content-Type': 'application/json'})
+            if json.loads(resp.content).get('friends'):
+                real_friends.append(following_friend)
+        except:
+            continue
+
+    return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'friend_requests': friend_requests, 'real_friends': real_friends, 'invalid_url': invalid_url })
 
 def delete_friend (request, profile_id):
-
     friend = Friend.objects.get(pk=profile_id)
-    request.user.profile.unfriend(friend)
+    request.user.profile.following.remove(friend)
+    return HttpResponseRedirect(reverse('friends'))
+
+def accept_request (request, profile_id):
+    friend = Friend.objects.get(pk=profile_id)
+    request.user.profile.following.add(friend)
+    request.user.profile.friend_request.remove(friend)
+    return HttpResponseRedirect(reverse('friends'))
+
+def delete_request (request, profile_id):
+    friend = Friend.objects.get(pk=profile_id)
+    request.user.profile.friend_request.remove(friend)
     return HttpResponseRedirect(reverse('friends'))
 
 # ----------- END FRIENDS VIEWS -------------
@@ -256,8 +278,7 @@ def posts(request):
         except Exception:
             continue
 
-    results = get_readable_posts(author.id, post_list)
-
+    results = get_readable_posts(author, post_list)
     #createGithubPosts(author)
 
     context = {}
@@ -378,7 +399,7 @@ def post_detail(request, post_id):
     if post == {} or post == {u'detail': u'Not found.'}:
         raise Http404
 
-    if is_authorized_to_read(request.user.profile.id, post):
+    if is_authorized_to_read_post(request.user.profile, post):
         post['published'] = dateutil.parser.parse(post.get('published'))
         for comment in post['comments']:
             comment['published'] = dateutil.parser.parse(comment.get('published'))
@@ -610,86 +631,3 @@ def DeletePost(request, post_id):
 #        return '%s <> %s' % (lhs, rhs), params
 
 #END OF CUSTOM QUERY STUFF -----------------------------------------
-
-# Authorization
-def is_authorized_to_read(requestor_id, post):
-    try:
-        requestor_id = uuid.UUID(requestor_id)
-    except Exception:
-        pass
-    # Public
-    if post['visibility'] == "PUBLIC":
-        return True
-    # Private
-    if post['visibility'] == "PRIVATE" :
-        if str(requestor_id) in post['visibleTo']:
-            return True
-    try:
-        requestor = Profile.objects.get(id=requestor_id)
-        # admin
-        if requestor.user.is_superuser:
-            return True
-        # Server Only
-        if post['visibility'] == "SERVERONLY" and post['author']['host'] == requestor.host:
-            return True
-        # Own
-        if str(post['author']['id']) == str(requestor_id):
-            return True
-        #todo: FRIEND AND FOAF =>POST to post/{post.id}
-        #todo: check if the post is local?
-        # send the friend request
-        if post['visibility'] == "FRIENDS" or post['visibility'] == "FOAF":
-            try:
-                post = Post.objects.get(id=post['id'])
-            except Post.DoesNotExist:
-                if post['visibility'] == "FOAF":
-                    api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
-                    api_url = api_user.api_site + "posts/" + str(post['id']) + "/"
-                    data = {
-                        "query": "getPost",
-                        "postid": str(post['id']),
-                        "url": api_url,
-                        "author": {
-                            "id": str(requestor.id),
-                            "url": requestor.url,
-                            "host": requestor.host,
-                            "displayName": requestor.displayName,
-                        },
-                        "friends": [friend.url for friend in requestor.friends.all()]
-                    }
-                    resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
-                                         headers={'Content-Type': 'application/json'})
-                    if resp.status_code == 200:
-                        return True
-                    else:
-                        return False
-                else: # visibility:friend
-                    api_user = get_object_or_404(Site_API_User, api_site=post['author']['host'])
-                    api_url = api_user.api_site + "author/" + str(post['author']['id']) + "/friends/" + str(requestor_id) + '/'
-                    resp = requests.get(api_url, auth=(api_user.username, api_user.password))
-                    try:
-                        return json.loads(resp.content).get('friends')
-                    except Exception:
-                        return False
-            else:
-                for friend in post.associated_author.friends.all():
-                    if friend.id == requestor_id:
-                        return True
-                    for requestor_friend in requestor.friends.all():
-                        if friend.id == requestor_friend.id:
-                            return True
-    except Profile.DoesNotExist:
-        pass
-
-    return False
-
-
-def get_readable_posts(requestor_id, posts):
-    results = list()
-    for post in posts:
-        if is_authorized_to_read(requestor_id, post):
-            results.append(post)
-    # Based on code from alecxe
-    # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
-    results.sort(key=lambda k: k['published'], reverse=True)
-    return results
