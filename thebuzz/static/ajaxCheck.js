@@ -72,6 +72,14 @@ $.ajax({
 
 $(document).ready(
 function(){
+//set onclick listeners for post buttons already displayed
+$("#deleteButton").each(function(){
+this.addEventListener("click", deletePost); 
+ });
+
+
+
+
 //interval of checking...3 minutes
 interval = 1000 * 60 * 1;
 incoming = document.getElementById("incoming");
@@ -109,7 +117,12 @@ if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
 	var postDelete = document.createElement("div");
 	postDelete.id = "delet-div";
-	postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
+	var delbtn = document.createElement("button");
+	delbtn.id = "deleteButton";
+	delbtn.addEventListener("click", deletePost);
+	delbtn.innerHTML = "Delete";
+	postDelete.append(delbtn);
+	//postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
 	container.appendChild(postDelete);
 }
 return container;
@@ -144,6 +157,13 @@ var text = document.createTextNode("New Posts");
 btn.appendChild(text);
 incoming.appendChild(btn);
 btn.onclick = showPosts;
+
+}
+
+
+function deletePost(element){
+//uses ajax to delete a post
+console.log("delete!");
 
 }
 
