@@ -189,6 +189,15 @@ class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
         print(str(request.data))
+        # firend id handling
+        id = str(request.data.get('author').get('id')).split('author/')[-1]
+        id = id.replace('/', '')
+        request.data['author']['id'] = id
+
+        id = str(request.data.get('friend').get('id')).split('author/')[-1]
+        id = id.replace('/', '')
+        request.data['friend']['id'] = id
+        print(str(request.data))
         serializer = FriendRequestSerializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)

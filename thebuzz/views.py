@@ -186,13 +186,13 @@ def friends (request):
             data = {
                 "query": "friendrequest",
                 "author": {
-                    "id": str(author.id),
+                    "id": author.url,
                     "url": author.url,
                     "host": author.host,
                     "displayName": author.displayName,
                 },
                 "friend": {
-                    "id": str(friend.id),
+                    "id": friend.url,
                     "url": friend.url,
                     "host": friend.host,
                     "displayName": friend.displayName,
