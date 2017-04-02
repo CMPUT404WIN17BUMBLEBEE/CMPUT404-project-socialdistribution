@@ -37,7 +37,8 @@ class Profile(models.Model):
 
     following = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='who_im_following')
     friend_request = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
-
+    
+   
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
     user = models.OneToOneField(User, on_delete=models.CASCADE)

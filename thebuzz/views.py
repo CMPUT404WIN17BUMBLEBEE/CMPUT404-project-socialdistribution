@@ -27,7 +27,7 @@ import base64
 
 from django.contrib.sites.models import Site
 
-from authorization import is_authorized_to_read_post, get_readable_posts
+from authorization import is_authorized_to_read_post, get_readable_posts, is_following
 
 #------------------------------------------------------------------
 # SIGNING UP
@@ -318,7 +318,13 @@ def createGithubPosts(request):
     if request.user.is_authenticated:   
         if request.method == 'GET':
 	    user = request.user.profile
-	    friends = user.get_all_friends() #array of usernames of my friends
+	    friends = []
+	    following = user.following.all()
+	    for person in following:
+		print person.id
+		if (is_following(request.get_host(), user.id, person.id)):
+		    friends.append(person)
+
 	    #next, get their githubs, if they have them, otherwise don't bother keeping them
 	    fgithubs = []
 	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
