@@ -218,8 +218,14 @@ def friends (request):
 
         #remote friends
         try:
+            url = request.user.profile.url
+            url = url.replace('https://', '').replace('http://', '')
             api_user = Site_API_User.objects.get(api_site__contains=following_friend.host)
-            api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/' + str(request.user.profile.id) + '/'
+            # api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + str(request.user.profile.id) + '/'
+            api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + url
+            if not api_url.endswith('/'):
+                api_url = api_url + '/'
+
             resp = requests.get(api_url, auth=(api_user.username, api_user.password),
                              headers={'Content-Type': 'application/json'})
             if json.loads(resp.content).get('friends'):
