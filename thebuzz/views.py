@@ -213,6 +213,7 @@ def friends (request):
             author = Profile.objects.get(id=following_friend.id)
             author.following.get(id=request.user.profile.id)
             real_friends.append(following_friend)
+            continue
         except:
             pass
 
@@ -225,12 +226,12 @@ def friends (request):
             api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + url
             if not api_url.endswith('/'):
                 api_url = api_url + '/'
-
             resp = requests.get(api_url, auth=(api_user.username, api_user.password),
                              headers={'Content-Type': 'application/json'})
             if json.loads(resp.content).get('friends'):
                 real_friends.append(following_friend)
-        except:
+        except Exception as e:
+            print(e)
             continue
 
     return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'friend_requests': friend_requests, 'real_friends': real_friends, 'invalid_url': invalid_url })
