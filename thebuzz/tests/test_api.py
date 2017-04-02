@@ -1,5 +1,4 @@
 import json
-
 import dateutil.parser
 from django.utils import timezone
 
@@ -8,6 +7,7 @@ from django.test import TestCase, Client
 from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+
 
 class post_tests(TestCase):
     def setUp(self):
@@ -20,19 +20,18 @@ class post_tests(TestCase):
         self.client.login(username='test', password='test')
 
         post = Post.objects.create(
-            title = 'test',
-            source = 'test',
-            origin = 'test',
-            description = 'test',
-            content = 'test',
-            published = datetime.now(),
-            associated_author = author
+            title='test',
+            source='test',
+            origin='test',
+            description='test',
+            content='test',
+            published=datetime.now(),
+            associated_author=author
         )
 
     def test_get_public_posts(self):
         response = self.client.get('/api/posts/')
         self.assertEquals(response.status_code, 200, 'Failed to get the public posts')
-
         response = json.loads(response.content)
         self.assertEqual(response['size'], 50, 'Pagination size is wrong')
         self.assertEqual(response['count'], 1, 'Count is wrong')
@@ -114,7 +113,6 @@ class profile_tests(TestCase):
         self.author.url = self.author.host + str(self.author.id)
         self.author.firstName = "testuser"
         self.author.save()
-        #self.client.login(username='test', password='test')
         response = self.client.get('/api/author/' + str(self.author.id) + '/')
         self.responseCode = response.status_code
         self.response = json.loads(response.content)
@@ -137,49 +135,51 @@ class profile_tests(TestCase):
     def test_url(self):
         self.assertEqual(self.response['url'], 'http://testserver.com/' + str(self.author.id))
 
+
 class friend_tests(TestCase):
-	def setUp(self): #does it remember other users between tests? Ans: no.
-	  password = make_password('test')
-          user = User.objects.create(username='test_1', password=password)
-          author = Profile.objects.get(user=user)
-          author.host = "http://testserver.com/"
-          author.url = author.host+str(author.id)
-          author.save()
+    def setUp(self): #does it remember other users between tests? Ans: no.
+	    password = make_password('test')
+            user = User.objects.create(username='test_1', password=password)
+            author = Profile.objects.get(user=user)
+            author.host = "http://testserver.com/"
+            author.url = author.host+str(author.id)
+            author.save()
 
-	  #second person
-	  password = make_password('test')
-          user = User.objects.create(username='test_2', password=password)
-          author = Profile.objects.get(user=user)
-          author.host = "http://testserver.com/"
-          author.url = author.host+str(author.id)
-          author.save()
+	    #second person
+	    password = make_password('test')
+            user = User.objects.create(username='test_2', password=password)
+            author = Profile.objects.get(user=user)
+            author.host = "http://testserver.com/"
+            author.url = author.host+str(author.id)
+            author.save()
+            self.client.login(username='test_1', password='test')
 
-          self.client.login(username='test_1', password='test')
-	  
-	def test_friend_request(self):
-	  user_id = User.objects.get(username='test_1').id
-	  friend_id = User.objects.get(username='test_2').id
-	  author = Profile.objects.get(user=user_id)
-	  friend = Profile.objects.get(user=friend_id)
-	  Aid = author.host + str(author.id)
-	  Aurl = author.host + 'author/' + str(author.id)
-	  Bid = friend.host + str(friend.id)
-	  Burl = author.host + 'author/' + str(author.id)
+    def test_friend_request(self):
+        user_id = User.objects.get(username='test_1').id
+        friend_id = User.objects.get(username='test_2').id
+        author = Profile.objects.get(user=user_id)
+        friend = Profile.objects.get(user=friend_id)
+        Aid = author.host + str(author.id)
+        Aurl = author.host + 'author/' + str(author.id)
+        Bid = friend.host + str(friend.id)
+        Burl = author.host + 'author/' + str(author.id)
 
-	  data = {"query":"friendrequest",
-		 "author": {
+        data = {"query":"friendrequest",
+		    "author": {
 				"id": Aid,
 				"host": author.host,
 				"displayName": author.displayName,
                 		"url": Aurl,
 			  },
-		 "friend": {
+		    "friend": {
 			    "id": Bid,
 			    "host": friend.host,
 			    "displayName": friend.displayName,
 	               	    "url": Burl,
-
-			  }	
+			}
        	}
-	  response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
-          self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
+        response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
+        self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
+
+    def test_FOAF(self):
+        pass
