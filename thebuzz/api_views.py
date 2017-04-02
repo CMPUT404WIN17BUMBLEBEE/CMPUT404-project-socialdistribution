@@ -1,24 +1,17 @@
-from itertools import chain
 
-from django.core.serializers import json
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.decorators import authentication_classes
 from rest_framework.generics import ListCreateAPIView, GenericAPIView, UpdateAPIView, ListAPIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_200_OK
-from rest_framework.views import APIView
-from django.contrib.auth.decorators import login_required
 
 
 from serializers import *
 from pagination import *
 
 from .models import *
+from authorization import is_authorized_to_read_local_post, get_readable_local_posts, is_authorized_to_comment
 
-import sys
 
 class PostListView(ListCreateAPIView):
     queryset = Post.objects.filter(visibility="PUBLIC", unlisted=False).order_by('-published')
@@ -34,7 +27,7 @@ class PostDetailView(UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         post = get_object_or_404(self.queryset, id=kwargs['post_id'])
-        if is_authorized_to_read(request.user.profile.id, post):
+        if is_authorized_to_read_local_post(request.user.profile, post):
             serializer = self.serializer_class(post)
             return Response(serializer.data)
 
@@ -57,7 +50,7 @@ class PostsAuthorCanSeeView(ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return get_readable_posts(self.request.user.profile.id, self.queryset)
+        return get_readable_local_posts(self.request.user.profile, self.queryset)
 
 
 class AuthorPostsView(ListAPIView):
@@ -69,7 +62,7 @@ class AuthorPostsView(ListAPIView):
 
     def get_queryset(self):
         authorposts = self.queryset.filter(associated_author__id=self.kwargs['author_id'])
-        return get_readable_posts(self.request.user.profile.id, authorposts)
+        return get_readable_local_posts(self.request.user.profile, authorposts)
 
 
 class CommentView(ListAPIView):
@@ -82,7 +75,7 @@ class CommentView(ListAPIView):
     def get_queryset(self):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
         author = get_object_or_404(Profile, id=self.request.user.profile.id)
-        if is_authorized_to_read(author, post):
+        if is_authorized_to_read_local_post(author, post):
             return self.queryset.filter(associated_post__id=self.kwargs['post_id']).order_by("-date_created")
         return self.queryset.none()
 
@@ -95,7 +88,7 @@ class CommentView(ListAPIView):
         d['comment']['author']['id'] = actual_id
 
         post = get_object_or_404(Post, id=kwargs['post_id'])
-        if is_authorized_to_read(actual_id, post, request.data['comment']['author']['host']):
+        if is_authorized_to_comment(actual_id, post, request.data['comment']['author']['host']):
             serializer = AddCommentSerializer(data=request.data, context={'post_id': kwargs['post_id']})
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -114,11 +107,10 @@ class CommentView(ListAPIView):
             return Response(response, status=status.HTTP_403_FORBIDDEN)
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.filter(user__is_staff=False)
     serializer_class = ProfileSerializer
     authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated,)
-
 
 
 class FriendViewSet(viewsets.ModelViewSet):
@@ -130,7 +122,7 @@ class FriendViewSet(viewsets.ModelViewSet):
     # GET http://service/author/<authorid>/friends/
     def list(self, request, *args, **kwargs):
         author = get_object_or_404(Profile, id=kwargs['author_id'])
-        serializer = self.serializer_class(author.friends, many=True)
+        serializer = self.serializer_class(author.following, many=True)
         friendlist = []
         for ele in serializer.data:
             friendlist.append(ele.get('url'))
@@ -146,7 +138,7 @@ class FriendViewSet(viewsets.ModelViewSet):
         author = get_object_or_404(Profile, id=kwargs['author_id'])
 
         is_friend = False
-        for friend in author.friends.all():
+        for friend in author.following.all():
             if str(friend.id) == kwargs['pk']:
                 is_friend = True
                 break
@@ -174,7 +166,7 @@ class FriendViewSet(viewsets.ModelViewSet):
     # POST http://service/author/<authorid>/friends
     def create(self, request, *args, **kwargs):
         author = get_object_or_404(Profile, id=kwargs['author_id'])
-        friends = author.friends.all()
+        friends = author.following.all()
         possible_friends_url = request.data.get('authors')
         friendlist = []
         for possible_friend_url in possible_friends_url:
@@ -196,85 +188,21 @@ class FriendViewSet(viewsets.ModelViewSet):
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
+        print(str(request.data))
+        # firend id handling
+        id = str(request.data.get('author').get('id')).split('author/')[-1]
+        id = id.replace('/', '')
+        request.data['author']['id'] = id
+
+        id = str(request.data.get('friend').get('id')).split('author/')[-1]
+        id = id.replace('/', '')
+        request.data['friend']['id'] = id
+        print(str(request.data))
         serializer = FriendRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.handle()
         return Response(serializer.data)
 
-
-def is_authorized_to_read(requestor_id, post, host=None):
-    # Public
-    if post.visibility == "PUBLIC":
-        return True
-    # Private
-    if post.visibility == "PRIVATE" :
-        if str(requestor_id) in post.visibleTo:
-            return True
-    try:
-        requestor = Profile.objects.get(id=requestor_id)
-        # admin
-        if requestor.user.is_superuser:
-            return True
-        # Server Only
-        if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
-            return True
-        # Own
-        if post.associated_author == requestor:
-            return True
-        #Todo: foaf
-    except Profile.DoesNotExist:
-        pass
-
-    try:
-        requestor = Friend.objects.get(id=requestor_id)
-        if (post.visibility == "FRIENDS" or post.visibility == "FOAF") and requestor in post.associated_author.friends.all():
-            return True
-    except Friend.DoesNotExist:
-        #Todo: locally removed friend still works for foaf
-        if host:
-            api_user = Site_API_User.objects.get(api_site__contains=host)
-            api_url = api_user.api_site + 'author/' + str(requestor_id) + '/'
-            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
-            friends_of_requestor = json.loads(resp.content).get('friends')
-            for friend_of_requestor in friends_of_requestor:
-                for author_friend in post.associated_author.friends.all():
-                    if str(friend_of_requestor.get('id')) == str(author_friend.id):
-                        return True
-
-        # if post.visibility == "FOAF":
-        #     for friend in post.associated_author.friends.all():
-        #         # Verify the middle friend is a friend of requestor
-        #         if friend in requestor.friends().all():
-        #             return True
-        pass
-    return False
-
-
-def get_readable_posts(requestor_id, posts):
-    queryset = posts.filter(unlisted=False)
-    for post in queryset:
-        if not is_authorized_to_read(requestor_id, post):
-            queryset.remove(post)
-    return queryset.order_by("-published")
-
-    # # Public
-    # public_posts = queryset.filter(visibility="PUBLIC")
-    # # FOAF
-    # foaf_posts = queryset.none()
-    # for friend in requestor.friends.all():
-    #     foaf_posts = foaf_posts | queryset.filter(associated_author__id=friend, visibility="FOAF")
-    #     for foaf in friend.friends.all():
-    #         foaf_posts = foaf_posts | queryset.filter(associated_author=foaf, visibility="FOAF")
-    # # Friends
-    # friends_posts = queryset.none()
-    # for friend in requestor.friends.all():
-    #     friends_posts = friends_posts | queryset.filter(associated_author=friend, visibility="FRIENDS")
-    # # Private
-    # private_posts = queryset.filter(visibility="PRIVATE", visibleTo__contains=requestor.url)
-    # # Server Only
-    # serveronly_posts = queryset.filter(visibility="SERVERONLY", associated_author__host=requestor.host)
-    # # Own
-    # own_posts = queryset.filter(associated_author=requestor)
-    # posts_author_can_see = public_posts | foaf_posts | friends_posts | private_posts | serveronly_posts | own_posts
-    #
-    # return posts_author_can_see.order_by("-published")

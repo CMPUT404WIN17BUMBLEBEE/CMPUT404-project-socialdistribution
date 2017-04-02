@@ -37,7 +37,7 @@
   display:table-cell;
   border: 1px solid black;
   font-size: 14pt;
-  width: 50%;
+  width: 100%;
 }
 
 .request_list {
@@ -93,8 +93,9 @@
 }
 
 .unfrend_btn {
-  text-align: center;
+  text-align: right;
   width: 25%;
+  padding-right: 15px;
 }
 
 #friends-block {
@@ -114,3 +115,14 @@
 #no-friends {
   padding: 15px;
 }
+
+.a_button {
+  text-decoration: None;
+}
+
+.friend_heart{
+  width: 3%;
+  color: #ffd11a;
+  text-align: center;
+}
+
