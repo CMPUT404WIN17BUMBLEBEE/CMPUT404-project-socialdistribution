@@ -407,6 +407,7 @@ def post_form_upload(request):
 	      contentType = 'text/plain'
             published = timezone.now()
 
+	    image = ''
 	    if 'image_upload' in request.FILES:
 	      image = request.FILES['image_upload'] #form.cleaned_data['image_upload']
 
@@ -460,16 +461,16 @@ def post_form_upload(request):
 	    #can't make a whole new post for images, will look funny. Try this??
 	    #else:
 	      #create a Post without an image here!
-	      post2 = Post.objects.create(title = title,
-                                       content=html ,
-                                       published=published,
-				       associated_author = request.user.profile,
-				       source = request.META.get('HTTP_REFERER'),
-				       origin = request.META.get('HTTP_REFERER'),
-				       description = content[0:97] + '...',
-				       visibility = visibility,
-				       visibleTo = visible_to,
-                                       ) #json.dumps(visible_to)
+	    post2 = Post.objects.create(title = title,
+                                     content=html ,
+                                     published=published,
+				     associated_author = request.user.profile,
+				     source = request.META.get('HTTP_REFERER'),
+				     origin = request.META.get('HTTP_REFERER'),
+				     description = content[0:97] + '...',
+				     visibility = visibility,
+				     visibleTo = visible_to,
+                                     ) 
 
 	    #update post object to proper origin and source
 	    post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
