@@ -5,9 +5,12 @@
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
-  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
-  <!--<script type="text/javascript" src="{% static 'jquery/dist/jquery-3.1.1.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> -->
+  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
+  <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+  <script  type="text/javascript">
+   var currentUser = "{{request.user.profile.id }}";
+  </script>
 {% endblock %}
 
 
@@ -17,6 +20,8 @@
         <a href="/posts/post_form_upload.html">
             <input id="newpost" type="button" value="Add New Post">
         </a>
+    </div>
+    <div id = "incoming">
     </div>
     {% if post_list %}
       {% for post in post_list %}
@@ -46,4 +51,8 @@
         <p id="no-posts">No post is made during the past two days.</p>
     {% endif %}
   </div>
+
+
+
+
 {% endblock %}
