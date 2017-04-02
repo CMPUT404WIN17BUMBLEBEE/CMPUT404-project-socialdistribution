@@ -213,6 +213,7 @@ def friends (request):
             author = Profile.objects.get(id=following_friend.id)
             author.following.get(id=request.user.profile.id)
             real_friends.append(following_friend)
+            break
         except:
             pass
 
@@ -225,7 +226,7 @@ def friends (request):
             api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + url
             if not api_url.endswith('/'):
                 api_url = api_url + '/'
-
+            print(api_url)
             resp = requests.get(api_url, auth=(api_user.username, api_user.password),
                              headers={'Content-Type': 'application/json'})
             print(resp.content)
