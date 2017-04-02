@@ -56,12 +56,13 @@ urlpatterns = [
     url(r'^api/posts/(?P<post_id>[a-z0-9-]+)/$', PostDetailView.as_view(), name='post-detail'),
     url(r'^api/author/posts/$', PostsAuthorCanSeeView.as_view(), name='posts-author-can-see'),
     url(r'^api/author/(?P<author_id>[a-z0-9-]+)/posts/$', AuthorPostsView.as_view(), name='author-posts'),
-
     url(r'^api/posts/(?P<post_id>[a-z0-9-]+)/comments/$', CommentView.as_view(), name='comments'),
 
     url(r'^api/friendrequest/$', FriendRequestView.as_view(), name='friend-request'),
 
     url(r'^api/', include(router.urls)),
+    url(r'^api/author/(?P<author_id>[0-9a-fA-F\-]+)/friends/'r'(?P<friend_id>.*)$',RemoteFriendView.as_view(), name='remote-friend-checking'),
+
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
