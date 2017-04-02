@@ -38,7 +38,9 @@
               <div>
                 {{ post.content | safe }}
               </div>
+	     
               <div id="delet-div">
+		<button class = "commentButton">Comment</button>
                 {% if post.author.id == author_id %}
                   <!--<a href="/posts/{{ post.id }}/delete">-->
                     <button class = "deleteButton" type="button">Delete</button>

@@ -56,3 +56,11 @@ body {
 #nav a:hover, #nav a:active {
   color: #fff5cc;
 }
+
+.commentButton {
+ width: 100px;
+}
+
+.deleteButton {
+ width: 100px;
+}

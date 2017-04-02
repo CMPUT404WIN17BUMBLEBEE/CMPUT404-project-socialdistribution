@@ -81,7 +81,10 @@ $(".deleteButton").each(function(){
 this.addEventListener("click", deletePost); 
  });
 
-
+//set onclick listeners for comment buttons already displayed
+$(".commentButton").each(function(){
+this.addEventListener("click", commentPost); 
+ });
 
 
 //interval of checking...5 minutes
@@ -116,20 +119,26 @@ bar.appendChild(postDate);
 var postContents = document.createElement("div");
 postContents.innerHTML = postInfo["content"];
 container.appendChild(postContents);
-
+var postDelete = document.createElement("div");
+postDelete.id = "delet-div";
+var commentbtn = document.createElement("button");
+commentbtn.className = "commentButton"
+commentbtn.addEventListener("click", commentPost);
+commentbtn.innerHTML = "Comment";
+postDelete.append(commentbtn);
 
 if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
-	var postDelete = document.createElement("div");
-	postDelete.id = "delet-div";
+
 	var delbtn = document.createElement("button");
 	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
 	delbtn.innerHTML = "Delete";
 	postDelete.append(delbtn);
-	//postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
-	container.appendChild(postDelete);
+	
 }
+
+container.appendChild(postDelete);
 return container;
 
 
@@ -203,11 +212,37 @@ $.ajax({
 }
 
 
-//next POST to the posts page, update the page with the info in the response
+function commentPost(){
+//shows the comments on the post and readies the post for a new comment
+console.log("comment!");
+var bigparent = $(this).closest("#post-blocks");
+var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+/*
+$.ajax({
+    url: pID,
+    type: 'get', 
+    dataType: 'json',
+    statusCode: {
+	200: function(data) { //success!
+	
+	},
 
-//http://www.tangowithdjango.com/book/chapters/ajax.html
-//delete a post:
-//send a delete request
+	500: function(data) {
+	console.log("Fetching comments -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Post not found");
+	},
+
+	}
+  }); 
+}
+*/
+
+}
+
+
 
 //post a comment:
 //get request for the comments on this post

@@ -489,7 +489,7 @@ def post_detail(request, post_id):
     	    if post == {} or post == {u'detail': u'Not found.'}:
 		raise Http404
 
-	    if is_authorized_to_read(request.user.profile.id, post):
+	    if is_authorized_to_read_post(request.user.profile, post):
 		post['published'] = dateutil.parser.parse(post.get('published'))
 		for comment in post['comments']:
 		    comment['published'] = dateutil.parser.parse(comment.get('published'))
