@@ -50,11 +50,11 @@ $.ajax({
 	console.log("success!");
         receivedData = receivedData.concat(data);
 	console.log(receivedData);
-	if(( !$.isArray(receivedData) || !receivedData.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
+	/*if(( !$.isArray(receivedData) || !receivedData.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
 		console.log("no new github posts");
 		setTimeout(function(){checkGithub()}, interval);
 		return;
-	}
+	}*/
 	console.log($("#incomingButton").length);
 	if($("#incomingButton").length===0){ //checks if it has a button as a child
 		createButton();
@@ -63,6 +63,10 @@ $.ajax({
     },
 	204: function(data) {
 	console.log("nothing to see here");
+	setTimeout(function(){checkGithub()}, interval);
+	},
+
+	500: function(data) {
 	setTimeout(function(){checkGithub()}, interval);
 	}
 
@@ -80,11 +84,12 @@ this.addEventListener("click", deletePost);
 
 
 
-//interval of checking...3 minutes
-interval = 1000 * 60 * 1;
+//interval of checking...5 minutes
+interval = 1000 * 60 * 5;
 incoming = document.getElementById("incoming");
 receivedData = [];
-setTimeout(checkGithub, interval);
+checkGithub();
+//setTimeout(checkGithub, interval);
 });
 
 function createPost(postInfo){

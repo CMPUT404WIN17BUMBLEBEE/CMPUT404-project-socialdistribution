@@ -306,8 +306,8 @@ def createGithubPosts(request):
         resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 	
 	jdata.append(resp.json())
-	
-	if('https://developer.github.com/v3/#rate-limiting' in jdata[index][0]): #limit has been exceeded, wait 1 hour
+	print jdata[index]
+	if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
 	    print "Wait an hour -- Github request limit exceeded"
 	    return HttpResponse(status=204)
 
