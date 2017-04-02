@@ -42,6 +42,10 @@ Heroku demo:
 https://secret-crag-38714.herokuapp.com/
 
 
+https://polar-coast-16778.herokuapp.com/
+
+https://polar-coast-16779.herokuapp.com/
+
 Resources:  
 =========
 
@@ -67,9 +71,32 @@ Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
 Querying and ordering the query into ascending order:
 http://stackoverflow.com/a/9834153 Answered by Keith on Stack Overflow (http://stackoverflow.com/users/1215645/keith)
 
-
 Converting to Datetime:
 http://stackoverflow.com/a/3908349 Answered by Wes Winham on Stack Overflow (http://stackoverflow.com/users/386925/wes-winham)
 
 Linking Profile under User in admin screens:
 https://docs.djangoproject.com/en/1.10/topics/auth/customizing/
+
+How to use Django variables in Javascript:
+http://stackoverflow.com/a/3340578 Answered by Pointy on Stack Overflow (http://stackoverflow.com/users/182668/pointy)
+
+Getting the csrf cookie with JQuery and setting the header:
+https://docs.djangoproject.com/en/1.10/ref/csrf/
+
+Referenced for how to get Django and Ajax to play together:
+http://www.tangowithdjango.com/book/chapters/ajax.html
+
+Set a time interval for Ajax:
+http://stackoverflow.com/a/38397952 Answered by kapantzak on Stack Overflow (http://stackoverflow.com/users/1221792/kapantzak)
+
+Check if returned JSON is empty or not:
+http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
+
+Model to Dictionary:
+http://stackoverflow.com/a/16790455 Answered by alecxe on Stack Overflow (http://stackoverflow.com/users/771848/alecxe)
+
+Serializing a Datetime:
+http://stackoverflow.com/a/23595986 Answered by Eugene Soldatov on Stack Overflow (http://stackoverflow.com/users/1031981/eugene-soldatov)
+
+Send an HttpResponse with nothing in it:
+http://stackoverflow.com/a/35121204 Answered by GwynBleidD on Stack Overflow (http://stackoverflow.com/users/1783237/gwynbleidd)

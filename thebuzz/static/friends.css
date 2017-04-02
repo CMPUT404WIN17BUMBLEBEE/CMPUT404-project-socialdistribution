@@ -37,12 +37,20 @@
   display:table-cell;
   border: 1px solid black;
   font-size: 14pt;
-  width: 50%;
+  width: 100%;
 }
 
 .request_list {
   padding: 10px;
   font-size: 12pt;
+}
+
+.request_list a, .request_list a:visited {
+  color: #000000;
+}
+
+.request_list a:hover {
+  color: #665200;
 }
 
 .followers_div {
@@ -76,9 +84,18 @@
   padding-left: 15px;
 }
 
+.friends_name a, .friends_name a:visited {
+  color: #fff5cc;
+}
+
+.friends_name a:hover {
+  color: #e6f2ff;
+}
+
 .unfrend_btn {
-  text-align: center;
+  text-align: right;
   width: 25%;
+  padding-right: 15px;
 }
 
 #friends-block {
@@ -98,3 +115,14 @@
 #no-friends {
   padding: 15px;
 }
+
+.a_button {
+  text-decoration: None;
+}
+
+.friend_heart{
+  width: 3%;
+  color: #ffd11a;
+  text-align: center;
+}
+

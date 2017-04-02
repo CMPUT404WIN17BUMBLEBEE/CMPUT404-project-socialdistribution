@@ -30,12 +30,12 @@
   text-align: center;
 }
 
-#post-title a, #post-title a:visited{
+#post-title a, #post-title a:visited, #author a, #author a:visited{
   color: #fff5cc;
 }
 
-#post-title a:hover {
-  color: #fff5cc;
+#post-title a:hover, #author a:hover {
+  color: #e6f2ff;
 }
 
 #post-date {
@@ -66,4 +66,14 @@ button {
 img {
   max-width: 700px;
   height: auto;
+}
+
+#incomingButton {
+  text-align: center;
+  background-color: #ffd11a;
+  color: #000000;
+  border: solid 2px #000000;
+  width: 800px;
+  margin: 25px auto;
+
 }

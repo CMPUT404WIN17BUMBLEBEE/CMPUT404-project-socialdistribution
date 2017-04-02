@@ -13,55 +13,30 @@ import json
 
 #---------------------------------------------------------------------------------------------
 
-# From jathanism http://stackoverflow.com/a/7394475
-class ListField(models.TextField):
-    __metaclass__ = models.SubfieldBase
-    description = "Stores a python list"
-
-    def __init__(self, *args, **kwargs):
-        super(ListField, self).__init__(*args, **kwargs)
-
-    def to_python(self, value):
-        if not value:
-            value = []
-
-        if isinstance(value, list):
-            return value
-
-        return ast.literal_eval(value)
-
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-
-        return unicode(value)
-
-    def value_to_string(self, obj):
-        value = self._get_val_from_obj(obj)
-        return self.get_db_prep_value(value)
-
+class Friend(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    displayName = models.CharField(max_length=200,blank=True)
+    host = models.URLField()
+    url = models.URLField()
+    def __str__(self):
+        return self.displayName
 
 # PROFILE AND USER STUFF
 @python_2_unicode_compatible
 class Profile(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    displayName = models.CharField(max_length=200,blank=True)
-    github = models.CharField(max_length=200,blank=True)
-    firstName = models.CharField(max_length=200,blank=True)
-    lastName = models.CharField(max_length=200,blank=True)
-    email = models.CharField(max_length=400,blank=True)
-    bio = models.CharField(max_length=2000,blank=True)
+    displayName = models.CharField(max_length=200,blank=False,null=False)
+    github = models.CharField(max_length=200,blank=True,default='')
+    firstName = models.CharField(max_length=200,blank=True,default='')
+    lastName = models.CharField(max_length=200,blank=True,default='')
+    email = models.CharField(max_length=400,blank=True,default='')
+    bio = models.CharField(max_length=2000,blank=True,default='')
 
     host = models.URLField()
     url = models.URLField()
 
-    following = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='who_im_following')
-
-    followers = models.ManyToManyField('self', symmetrical = False, blank=True, related_name='my_followers')
-
-    # people who i am following and are following me
-    friends = models.ManyToManyField('self', blank=True, related_name='my_friends')
+    following = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='who_im_following')
+    friend_request = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
 
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
@@ -69,47 +44,6 @@ class Profile(models.Model):
 
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
-
-    def follow(self, user_to_follow):
-
-        if user_to_follow in self.followers.all():
-            self.friend(user_to_follow)
-        else:
-            self.following.add(user_to_follow)
-        self.save()
-
-    def get_all_following(self):
-        return self.following.all()
-
-    # add someone is following me
-    def add_user_following_me(self, user_whos_following):
-
-        if user_whos_following in self.following.all():
-            self.friend(user_whos_following)
-        else:
-            self.followers.add(user_whos_following)
-        self.save()
-
-    def friend(self, user_to_befriend):
-        self.friends.add(user_to_befriend)
-        self.followers.remove(user_to_befriend)
-        self.following.remove(user_to_befriend)
-        self.save()
-
-    def get_all_friends(self):
-        return self.friends.all()
-
-    # delete friend from friends list and from following list (they can still be following me)
-    def unfriend(self, friend):
-        self.friends.remove(friend)
-        self.following.remove(friend)
-
-    # get those that are only following me
-    def get_all_followers(self):
-        pending = self.followers.all()
-        # exclude the people we are already friends with
-        #pending = pending.exclude(pk__in=self.friends.all())
-        return pending
 
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
@@ -138,7 +72,7 @@ def save_user_profile(sender,instance, **kwargs):
 @python_2_unicode_compatible
 class Post(models.Model):
 	#OVERRIDDING the primary key id that django implements
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     title = models.CharField(max_length = 100, default='No Title')
     source = models.CharField(max_length = 2000)
@@ -165,8 +99,9 @@ class Post(models.Model):
 
     image = models.ImageField(null=True, blank=True)
 
+
     published = models.DateTimeField(auto_now=True)
-    categories = ListField(blank=True)
+    categories = models.CharField(max_length =100, blank=True)
 
     visibility_choice = (
         ('PUBLIC', 'PUBLIC'),
@@ -177,7 +112,7 @@ class Post(models.Model):
     )
     visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
 
-    visibleTo = ListField(blank=True)
+    visibleTo = models.CharField(max_length=500, blank=True)
     unlisted = models.BooleanField(default=False)
 
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)

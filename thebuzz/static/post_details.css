@@ -86,3 +86,8 @@ button {
   background-color: #ffd11a;
   color: #000000;
 }
+
+img {
+  max-width: 700px;
+  height: auto;
+}

@@ -14,69 +14,85 @@
         <div>
           <span>Select a user to friend: </span>
           <select id="user_select" name="befriend">
-            {% for user in users %}
-                {% if user.username != request.user.username %}
-                    <option value='{{user.username}}'>{{ user.username }}</option>
+            {% for author in authors %}
+                {% if author.id != request.user.profile.id %}
+                    <option value='{{author.id}}'>{{ author.displayName }} {{ author.url }}</option>
                 {% endif %}
             {% endfor %}
           </select>
-          <input id="request_btn" type='submit' value='Send Request'></input>
+          <input id="request_btn" type='submit' value='Send Request' name="button1"/>
+        </div>
+    </form>
+
+    <form action = '/friends/' method = 'POST'>{% csrf_token %}
+        <div>
+            <span>Enter a user url to friend: </span>
+            <input id="remote_user_id" type="text" name="befriendremote">
+            </input>
+            <input id="request_btn" type='submit' value='Send Request' name="button2"/>
+            {% if invalid_url %}
+                <span style="color: red; ">*Invalid url</span>
+            {% endif %}
         </div>
     </form>
 
   <div id="requests">
-    <div class="request_blocks" id="pending_friends">
-      <div class="request_titles">Pending Friend Requests (Waiting on them)</div>
-      <div class="request_list">
-        {% if following %}
-          {% for user in following %}
-            <div>{{ user }}</div>
-          {% endfor %}
-        {% else %}
-          <div>No pending friend requests</div>
-        {% endif %}
-      </div>
-    </div>
-
     <div class="request_blocks" id="friend_requests">
-      <div class="request_titles">Friend Requests (Respond to)</div>
-      <form action='/friends/' method='POST'>{% csrf_token %}
+      <div class="request_titles">Friend Requests</div>
+      <!--<form action='/friends/' method='POST'>{% csrf_token %}-->
         <div class="request_list">
-          {% if followers %}
-            {% for follower in followers %}
+          {% if friend_requests %}
+            {% for request in friend_requests %}
               <div class="followers_div">
                 <div class="followers">
-                  {{ follower }}
+                    <div>
+                        <a href="/author/{{request.id}}/profile">
+                            {{ request.displayName }}
+                        </a>
+                    </div>
                 </div>
-                <!--TODO: Figure out a way to have a button inline with the friend request
-                  <div class="add_btn">
-                    <input type='submit' value='Add'></input>
-                  </div>
-                -->
+                <div class="add_btn">
+                    <a class="a_button" href="/friends/{{ request.id }}/accept_request">
+                        <button class='friend_request_btn' type="button"><span style="color: #3c763d">&#10003;</span></button>
+                    </a>
+                    <a class="a_button" href="/friends/{{ request.id }}/delete_request">
+                        <button class='friend_request_btn' type="button"><span style="color: darkred">&#x2717;</span></button>
+                    </a>
+                </div>
               </div>
             {% endfor %}
           {% else %}
-            <div>No friend requests waiting</div>
+            <div>No friend requests</div>
           {% endif %}
         </div>
     </div>
   </div>
 
   <div id="friends-block">
-    <div id="friend-title">Friends</div>
-    {% if friends %}
-      {% for friend in friends %}
+    <div id="friend-title">Following</div>
+    {% if following %}
+      {% for friend in following %}
         <div class="each_friend">
-          <div class="friends_name">{{ friend }}</div>
+            <div class="friend_heart">
+                {% if friend in real_friends %}
+                &#9829;
+                {% endif %}
+            </div>
+          <div class="friends_name">
+
+            <a href="/author/{{friend.id}}/profile">
+              {{ friend.displayName }}
+            </a>
+          </div>
           <div class="unfrend_btn">
             <a href="/friends/{{ friend.id }}/delete_friend">
-                <button type="button">Unfriend</button>
+                <button type="button">Delete</button>
             </a>
           </div>
         </div>
       {% endfor %}
     {% else %}
-      <div id="no-friends">Friends list is empty</div>
+      <div id="no-friends">Following list is empty</div>
     {% endif %}
   </div>
 {% endblock %}

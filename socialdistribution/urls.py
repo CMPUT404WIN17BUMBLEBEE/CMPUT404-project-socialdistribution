@@ -32,6 +32,7 @@ urlpatterns = [
 
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
     url(r'^posts/(?P<post_id>[0-9A-Fa-f-]+)/delete/$', 'thebuzz.views.DeletePost', name="delete_comment"),
+    url(r'^createGithubPosts/$', 'thebuzz.views.createGithubPosts', name='createGithubPosts'),
 
     url(r'^register/$', 'thebuzz.views.register', name='register'),
     url(r'^register/complete/$', 'thebuzz.views.registration_complete', name='registration_complete'),
@@ -44,6 +45,10 @@ urlpatterns = [
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.friends', name='friends'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
+    url(r'^friends/(?P<profile_id>[0-91-f-]+)/accept_request$', 'thebuzz.views.accept_request', name='accept_request'),
+    url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_request$', 'thebuzz.views.delete_request', name='delete_request'),
+
+
 
     # API urls
     #url(r'^', include('api_urls')),

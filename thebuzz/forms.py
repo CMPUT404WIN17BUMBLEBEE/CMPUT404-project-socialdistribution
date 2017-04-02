@@ -1,6 +1,7 @@
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm, Textarea
 from datetime import datetime
 import CommonMark
@@ -22,6 +23,11 @@ class ProfileForm(forms.ModelForm):
             'github': 'GitHub:',
             'bio': 'About Me:'
         }
+
+    # def __init__(self, *args, **kwargs):
+    #     super(ProfileForm, self).__init__(*args, **kwargs)
+    #
+    #     self.fields['displayName'].error_messages = {'null':'Display name is required.', 'blank':'Display name is required.', 'required':'Display name is required.'}
 
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)

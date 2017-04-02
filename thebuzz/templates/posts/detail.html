@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load tz %}
+
 {% block title %}Post{% endblock %}
 
 {% block extra_head %}
@@ -22,7 +24,7 @@
             <div class="comment-sections">
               <div id="comment-title-bar">
                 <div id="comment_author">{{ comment.author.displayName }}</div>
-                <div id="comment_date">{{ comment.date_created }}</div>
+                <div id="comment_date">{{ comment.published }}</div>
               </div>
               <div>{{ comment.comment }}</div>
             </div>
@@ -36,3 +38,4 @@
       </a>
   </div>
 {% endblock %}
+
