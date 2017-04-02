@@ -388,12 +388,14 @@ def createGithubPosts(request):
     friends = user.get_all_friends() #array of usernames of my friends
     #next, get their githubs, if they have them, otherwise don't bother keeping them
     fgithubs = []
+    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
     mostRecent = [] #keeps track of most recent post by each friend
     index = 0
     while(index<len(friends)):
 	tmp =  Profile.objects.get(id=friends[index].id).github
 	if(tmp is not ""):
-	    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =Profile.objects.get(id = friends[index].id)).order_by('-published').first())
+	    all_profiles.append(Profile.objects.get(id = friends[index].id))
+	    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
 	    #print tmp
             fgithubs.append(tmp)
 	index += 1
@@ -401,6 +403,7 @@ def createGithubPosts(request):
     if(user.github is not ""): #your own github posts are retrieved too!
         mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
 	fgithubs.append(user.github)
+	all_profiles.append(user)
 
     jdata = []
     index = 0
@@ -421,6 +424,7 @@ def createGithubPosts(request):
     postlist = []
     index2 = 0
     
+   
 
     #get the data
     while(index2<len(jdata)):
@@ -445,29 +449,28 @@ def createGithubPosts(request):
 		   #there is no commit data
 		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 
-	    index2 +=1	
-    #make posts for the database
-    print len(contents)
-    for i in range(0,len(contents)):
-	lilavatar = "<img src='" + avatars[i] + "'/>"
-
-	post = Post.objects.create(title = gtitle,
-	          content= lilavatar + "<p>" + contents[i] ,
-	          published=pubtime[i],
-	          associated_author = user,
-		  source = 'http://127.0.0.1:8000/',
-		  origin = 'huh',
-		  description = contents[i][0:97] + '...',
-		  visibility = 'FRIENDS',
-		  visibleTo = '',
-				               )
-	myImg = Img.objects.create(associated_post = post,
-	 				       myImg = lilavatar )
-	post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	#post.save()
-	postlist.append(post)
-	print len(postlist)
+	        
+	        #make posts for the database
+	        #for i in range(0,len(contents)):
+		lilavatar = "<img src='" + avatars[-1] + "'/>"
+		post = Post.objects.create(title = gtitle,
+		              content= lilavatar + "<p>" + contents[-1] ,
+			      published=pubtime[-1],
+			      associated_author = all_profiles[index2],
+			      source = 'http://127.0.0.1:8000/',
+			      origin = 'huh',
+			      description = contents[-1][0:97] + '...',
+			      visibility = 'FRIENDS',
+			      visibleTo = '',
+						       )
+		myImg = Img.objects.create(associated_post = post,
+		 				       myImg = lilavatar )
+		post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+		post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+		#post.save()
+		postlist.append(post)
+		print len(postlist)
+	    index2 +=1
 	    
 
 #if there is nothing new to send, send an empty array
@@ -477,7 +480,7 @@ def createGithubPosts(request):
     jtmp = []
 			#print(len(postlist))
 			#print(postlist[0].id)
-    #print len(pubtime)		
+   		
     index = 0
     while(index<len(postlist)):
 			   
