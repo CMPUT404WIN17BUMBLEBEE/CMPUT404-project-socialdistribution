@@ -278,122 +278,125 @@ def posts(request):
 def createGithubPosts(request):
 #generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
 #creates and returns a list of posts of ones that haven't been posted yet
+    if request.user.is_authenticated:   
+        if request.method == 'GET':
+	    user = request.user.profile
+	    friends = user.get_all_friends() #array of usernames of my friends
+	    #next, get their githubs, if they have them, otherwise don't bother keeping them
+	    fgithubs = []
+	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
+	    mostRecent = [] #keeps track of most recent post by each friend
+	    index = 0
+	    while(index<len(friends)):
+		tmp =  Profile.objects.get(id=friends[index].id).github
+		if(tmp is not ""):
+		    all_profiles.append(Profile.objects.get(id = friends[index].id))
+		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
+		    #print tmp
+		    fgithubs.append(tmp)
+		index += 1
 
-    user = request.user.profile
-    friends = user.get_all_friends() #array of usernames of my friends
-    #next, get their githubs, if they have them, otherwise don't bother keeping them
-    fgithubs = []
-    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
-    mostRecent = [] #keeps track of most recent post by each friend
-    index = 0
-    while(index<len(friends)):
-	tmp =  Profile.objects.get(id=friends[index].id).github
-	if(tmp is not ""):
-	    all_profiles.append(Profile.objects.get(id = friends[index].id))
-	    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
-	    #print tmp
-            fgithubs.append(tmp)
-	index += 1
+	    if(user.github is not ""): #your own github posts are retrieved too!
+		mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
+		fgithubs.append(user.github)
+		all_profiles.append(user)
 
-    if(user.github is not ""): #your own github posts are retrieved too!
-        mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
-	fgithubs.append(user.github)
-	all_profiles.append(user)
-
-    jdata = []
-    index = 0
-    while(index<len(fgithubs)):
-        resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+	    jdata = []
+	    index = 0
+	    while(index<len(fgithubs)):
+		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 	
-	jdata.append(resp.json())
-	#print jdata[index]
-	if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
-	    print "Wait an hour -- Github request limit exceeded"
-	    return HttpResponse(status=204)
+		jdata.append(resp.json())
+		#print jdata[index]
+		if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
+		    print "Wait an hour -- Github request limit exceeded"
+		    return HttpResponse(status=204)
 
-	index += 1
+		index += 1
 
 
-    avatars = []
-    gtitle = "Github Activity"
-    contents = []
-    pubtime = []
-    postlist = []
-    index2 = 0
-    
-   
-
-    #get the data
-    while(index2<len(jdata)):
-	    for item in jdata[index2]:
-		if(mostRecent[index2] is not None):
-		    cmpareDate = dateutil.parser.parse(item['created_at'])
-
-		    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
-			continue
-
-		avatars.append(item['actor']['avatar_url']) 
-		pubtime.append(item['created_at'])
-
-		if( "commits" in item['payload'] ):
-		    #if there is commit data
-		    if( not item['payload']['commits']): #empty commit
-			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-		    else:
-		        contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-					 
-		else:
-		   #there is no commit data
-		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-
-	        
-	        #make posts for the database
-	        #for i in range(0,len(contents)):
-		lilavatar = "<img src='" + avatars[-1] + "'/>"
-		post = Post.objects.create(title = gtitle,
-		              content= lilavatar + "<p>" + contents[-1] ,
-			      published=pubtime[-1],
-			      associated_author = all_profiles[index2],
-			      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-			      origin = request.META.get('HTTP_REFERER'),
-			      description = contents[-1][0:97] + '...',
-			      visibility = 'FRIENDS',
-			      visibleTo = '',
-						       )
-		myImg = Img.objects.create(associated_post = post,
-		 				       myImg = lilavatar )
-		post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-		post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-		post.save()
-		postlist.append(post)
-		#print len(postlist)
-	    index2 +=1
+	    avatars = []
+	    gtitle = "Github Activity"
+	    contents = []
+	    pubtime = []
+	    postlist = []
+	    index2 = 0
 	    
+	   
 
-#if there is nothing new to send, send an empty array
-    if(len(postlist) is 0):	
-	return HttpResponse(status=204)	
-	#prepare the new posts to be sent to the Ajax
-    jtmp = []
-			#print(len(postlist))
-			#print(postlist[0].id)
-   		
-    index = 0
-    while(index<len(postlist)):
-			   
-       jtmp.append(model_to_dict(postlist[index]))
-       #print(jtmp[index])
-       jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-       jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
-       jtmp[index]['id'] = str(postlist[index].id)
-       jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
-       jtmp[index]['published'] = jtmp[index]['published'][1:-1]
-       jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
-       jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
-       index += 1
+	    #get the data
+	    while(index2<len(jdata)):
+		    for item in jdata[index2]:
+			if(mostRecent[index2] is not None):
+			    cmpareDate = dateutil.parser.parse(item['created_at'])
 
-    #print(json.dumps(jtmp))
-    return HttpResponse(json.dumps(jtmp),content_type = "application/json")
+			    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
+				continue
+
+			avatars.append(item['actor']['avatar_url']) 
+			pubtime.append(item['created_at'])
+
+			if( "commits" in item['payload'] ):
+			    #if there is commit data
+			    if( not item['payload']['commits']): #empty commit
+				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+			    else:
+				contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+						 
+			else:
+			   #there is no commit data
+			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+
+			
+			#make posts for the database
+			#for i in range(0,len(contents)):
+			lilavatar = "<img src='" + avatars[-1] + "'/>"
+			post = Post.objects.create(title = gtitle,
+				      content= lilavatar + "<p>" + contents[-1] ,
+				      published=pubtime[-1],
+				      associated_author = all_profiles[index2],
+				      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+				      origin = request.META.get('HTTP_REFERER'),
+				      description = contents[-1][0:97] + '...',
+				      visibility = 'FRIENDS',
+				      visibleTo = '',
+							       )
+			myImg = Img.objects.create(associated_post = post,
+			 				       myImg = lilavatar )
+			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+			post.save()
+			postlist.append(post)
+			#print len(postlist)
+		    index2 +=1
+		    
+
+	#if there is nothing new to send, send an empty array
+	    if(len(postlist) is 0):	
+		return HttpResponse(status=204)	
+		#prepare the new posts to be sent to the Ajax
+	    jtmp = []
+				#print(len(postlist))
+				#print(postlist[0].id)
+	   		
+	    index = 0
+	    while(index<len(postlist)):
+				   
+	       jtmp.append(model_to_dict(postlist[index]))
+	       #print(jtmp[index])
+	       jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
+	       jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
+	       jtmp[index]['id'] = str(postlist[index].id)
+	       jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
+	       jtmp[index]['published'] = jtmp[index]['published'][1:-1]
+	       jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
+	       jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
+	       index += 1
+
+	    #print(json.dumps(jtmp))
+        return HttpResponse(json.dumps(jtmp),content_type = "application/json")
+    else:
+	return HttpResponse(status=401)
 		
 
 def get_Post(post_id):
@@ -438,21 +441,36 @@ def get_Post(post_id):
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def post_detail(request, post_id):
-    post = get_Post(post_id)
 
-    #Check that we did find a post, if not raise a 404
-    if post == {} or post == {u'detail': u'Not found.'}:
-        raise Http404
 
-    if is_authorized_to_read(request.user.profile.id, post):
-        post['published'] = dateutil.parser.parse(post.get('published'))
-        for comment in post['comments']:
-            comment['published'] = dateutil.parser.parse(comment.get('published'))
 
-        #Posts returned from api's have comments on them no need to retrieve them separately
-        return render(request, 'posts/detail.html', {'post': post})
+    if request.method == 'DELETE':
+
+	post = Post.objects.get(id = post_id)
+
+	if post == {} or post == {u'detail': u'Not found.'}:
+	    return HttpResponse(status = 404)
+	else:
+	    post.delete()
+	    return HttpResponse(status = 204)
+
+
     else:
-        return HttpResponseForbidden()
+
+	    post = get_Post(post_id)
+    	    #Check that we did find a post, if not raise a 404
+    	    if post == {} or post == {u'detail': u'Not found.'}:
+		raise Http404
+
+	    if is_authorized_to_read(request.user.profile.id, post):
+		post['published'] = dateutil.parser.parse(post.get('published'))
+		for comment in post['comments']:
+		    comment['published'] = dateutil.parser.parse(comment.get('published'))
+
+		#Posts returned from api's have comments on them no need to retrieve them separately
+		return render(request, 'posts/detail.html', {'post': post})
+	    else:
+		return HttpResponseForbidden()
 
 
 @login_required(login_url = '/login/')

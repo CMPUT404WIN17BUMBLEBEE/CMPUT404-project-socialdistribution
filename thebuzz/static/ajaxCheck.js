@@ -77,7 +77,7 @@ $.ajax({
 $(document).ready(
 function(){
 //set onclick listeners for post buttons already displayed
-$("#deleteButton").each(function(){
+$(".deleteButton").each(function(){
 this.addEventListener("click", deletePost); 
  });
 
@@ -105,7 +105,7 @@ author.id = "author";
 author.innerHTML = "<a href = '/author/" + postInfo["associated_author"] + "/profile'>" + postInfo["displayName"] + "</a>";
 var postTitle = document.createElement("div");
 postTitle.id = "post-title";
-postTitle.innerHTML = "<a href = \"/posts/" + postInfo["id"] +"\">" + postInfo["title"] +"</a>"
+postTitle.innerHTML = "<a id = 'postlink' href = \"/posts/" + postInfo["id"] +"\">" + postInfo["title"] +"</a>"
 var postDate = document.createElement("div");
 postDate.id = "post-date";
 postDate.innerHTML = postInfo["published"];
@@ -123,7 +123,7 @@ if(postInfo["currentId"] === postInfo["associated_author"]){
 	var postDelete = document.createElement("div");
 	postDelete.id = "delet-div";
 	var delbtn = document.createElement("button");
-	delbtn.id = "deleteButton";
+	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
 	delbtn.innerHTML = "Delete";
 	postDelete.append(delbtn);
@@ -168,7 +168,37 @@ btn.onclick = showPosts;
 
 function deletePost(element){
 //uses ajax to delete a post
-console.log("delete!");
+var bigparent = $(this).closest("#post-blocks");
+var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+console.log(pID);
+
+if(confirm("Are you sure you want to delete this post?")){
+
+
+$.ajax({
+    url: pID,
+    type: 'delete', 
+    dataType: 'json',
+    statusCode: {
+	204: function(data) { //success!
+	console.log("deleted!");
+	$(bigparent).fadeOut();
+	//$(bigparent).empty();
+	//bigparent.remove();
+
+	},
+
+	500: function(data) {
+	console.log("Deleting a post -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Post not found");
+	},
+
+	}
+  }); 
+}
 
 }
 
