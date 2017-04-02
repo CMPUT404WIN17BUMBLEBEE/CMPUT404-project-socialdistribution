@@ -217,14 +217,14 @@ function commentPost(){
 console.log("comment!");
 var bigparent = $(this).closest("#post-blocks");
 var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
-/*
+
 $.ajax({
     url: pID,
     type: 'get', 
     dataType: 'json',
     statusCode: {
 	200: function(data) { //success!
-	
+	console.log(data);
 	},
 
 	500: function(data) {
@@ -237,8 +237,8 @@ $.ajax({
 
 	}
   }); 
-}
-*/
+
+
 
 }
 
