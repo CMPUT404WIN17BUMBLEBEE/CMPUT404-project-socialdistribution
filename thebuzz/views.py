@@ -213,7 +213,7 @@ def friends (request):
             author = Profile.objects.get(id=following_friend.id)
             author.following.get(id=request.user.profile.id)
             real_friends.append(following_friend)
-            break
+            continue
         except:
             pass
 
