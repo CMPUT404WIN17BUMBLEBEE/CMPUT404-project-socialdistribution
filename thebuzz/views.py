@@ -136,12 +136,12 @@ def posts(request):
     author = request.user.profile
 
     # get all public posts
-    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF'])
+    posts = Post.objects.all().exclude(visibility__in=['PRIVATE', 'FRIENDS', 'FOAF']).exclude(unlisted=True)
     for post in posts:
         post_list.append(post)
 
     # get all my private posts
-    posts = Post.objects.filter(associated_author=author)
+    posts = Post.objects.filter(associated_author=author).exclude(unlisted=True)
     for post in posts:
         post_list.append(post)
 
@@ -151,7 +151,7 @@ def posts(request):
         for friend in friends:
             # get all posts for friends
             # get all posts of the friend that are not private
-            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE')
+            posts = Post.objects.filter(associated_author=friend.id).exclude(visibility='PRIVATE').exclude(unlisted=True)
 
             for post in posts:
                 post_list.append(post)
@@ -162,7 +162,7 @@ def posts(request):
             if len(foafs) > 0:
                 for foaf in foafs:
                     # get all posts of the foaf that are not private or only for friends
-                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS'])
+                    foaf_posts = Post.objects.filter(associated_author=foaf.id).exclude(visibility__in=['PRIVATE', 'FRIENDS']).exclude(unlisted=True)
 
                     for foaf_post in foaf_posts:
                         post_list.append(foaf_post)
@@ -438,7 +438,7 @@ def post_form_upload(request):
 	      encodeImage = base64.b64encode(byteString)
 
               post = Post.objects.create(title = title,
-                                       content=encodeImage,
+                                       content='data:' + contentType + ',' + encodeImage,
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -460,7 +460,7 @@ def post_form_upload(request):
 	    #can't make a whole new post for images, will look funny. Try this??
 	    #else:
 	      #create a Post without an image here!
-	      post = Post.objects.create(title = title,
+	      post2 = Post.objects.create(title = title,
                                        content=html ,
                                        published=published,
 				       associated_author = request.user.profile,
@@ -472,17 +472,22 @@ def post_form_upload(request):
                                        ) #json.dumps(visible_to)
 
 	    #update post object to proper origin and source
-	    post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-	    post.save()
+	    post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
+	    post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
+	    #post2.save()
+
+	    if image:
+	      #attach image post to regular post
+	      #Asked Braedy about doing this and he suggested markdown, so will try that
+	      #post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+	      post2.content += '\n <div><img src=' + post.content + '></img></div>'
+	    post2.save()
 
 	    
 
-	    #test = reverse('post_detail', kwargs={'post_id': str(post.id) })
-
 
 	    return HttpResponseRedirect(reverse('post_detail',
-                                                kwargs={'post_id': str(post.id) }))
+                                                kwargs={'post_id': str(post2.id) }))
 
     return render(request, 'posts/post_form_upload.html', {
         'form': form,

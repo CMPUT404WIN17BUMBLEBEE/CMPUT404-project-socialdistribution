@@ -25,7 +25,7 @@ class ProfileForm(forms.ModelForm):
 
 class PostForm(forms.Form):
     title = forms.CharField(max_length = 100)
-    content = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}))
+    content = forms.CharField(max_length=10000, widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}))
 
     CHOICES=[('PUBLIC','Public'),
          ('FRIENDS','Friends'),
