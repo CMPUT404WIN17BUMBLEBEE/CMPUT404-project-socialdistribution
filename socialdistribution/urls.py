@@ -45,6 +45,10 @@ urlpatterns = [
     #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.friends', name='friends'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
+    url(r'^friends/(?P<profile_id>[0-91-f-]+)/accept_request$', 'thebuzz.views.accept_request', name='accept_request'),
+    url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_request$', 'thebuzz.views.delete_request', name='delete_request'),
+
+
 
     # API urls
     #url(r'^', include('api_urls')),

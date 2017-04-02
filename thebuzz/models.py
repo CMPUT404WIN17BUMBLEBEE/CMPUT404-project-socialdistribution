@@ -36,11 +36,7 @@ class Profile(models.Model):
     url = models.URLField()
 
     following = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='who_im_following')
-
-    followers = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
-
-    # people who i am following and are following me
-    friends = models.ManyToManyField(Friend, blank=True, related_name='my_friends')
+    friend_request = models.ManyToManyField(Friend, symmetrical = False, blank=True, related_name='my_followers')
 
     #the following lines onward are from here:
     #https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
@@ -48,46 +44,6 @@ class Profile(models.Model):
 
     def __str__(self):  # __unicode__ for Python 2
         return self.user.username
-
-    def follow(self, user_to_follow):
-        if user_to_follow in self.followers.all():
-            self.friend(user_to_follow)
-        else:
-            self.following.add(user_to_follow)
-        self.save()
-
-    def get_all_following(self):
-        return self.following.all()
-
-    # add someone is following me
-    def add_user_following_me(self, user_whos_following):
-
-        if user_whos_following in self.following.all():
-            self.friend(user_whos_following)
-        else:
-            self.followers.add(user_whos_following)
-        self.save()
-
-    def friend(self, user_to_befriend):
-        self.friends.add(user_to_befriend)
-        self.followers.remove(user_to_befriend)
-        self.following.remove(user_to_befriend)
-        self.save()
-
-    def get_all_friends(self):
-        return self.friends.all()
-
-    # delete friend from friends list and from following list (they can still be following me)
-    def unfriend(self, friend):
-        self.friends.remove(friend)
-        self.following.remove(friend)
-
-    # get those that are only following me
-    def get_all_followers(self):
-        pending = self.followers.all()
-        # exclude the people we are already friends with
-        #pending = pending.exclude(pk__in=self.friends.all())
-        return pending
 
 
 #these two functions act as signals so a profile is created/updated and saved when a new user is created/updated.
@@ -145,7 +101,7 @@ class Post(models.Model):
 
 
     published = models.DateTimeField(auto_now=True)
-    categories = models.CharField(max_length =100)
+    categories = models.CharField(max_length =100, blank=True)
 
     visibility_choice = (
         ('PUBLIC', 'PUBLIC'),
@@ -156,7 +112,7 @@ class Post(models.Model):
     )
     visibility = models.CharField(default ="PUBLIC", max_length=20, choices=visibility_choice)
 
-    visibleTo = models.CharField(max_length = 500)
+    visibleTo = models.CharField(max_length=500, blank=True)
     unlisted = models.BooleanField(default=False)
 
     associated_author = models.ForeignKey(Profile, on_delete=models.CASCADE)
