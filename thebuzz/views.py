@@ -442,8 +442,6 @@ def get_Post(post_id):
 @login_required(login_url = '/login/')
 def post_detail(request, post_id):
 
-
-
     if request.method == 'DELETE':
 
 	post = Post.objects.get(id = post_id)
