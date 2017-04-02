@@ -160,6 +160,11 @@ def friends (request):
                 api_user = Site_API_User.objects.get(api_site__contains=host)
                 resp = requests.get(profile_url, auth=(api_user.username, api_user.password))
                 friend_data = resp.json()
+                # for url in id field
+                id = str(friend_data.get('id')).split('author/')[-1]
+                id = id.replace('/', '')
+                friend_data['id'] = id
+
                 invalid_url = False
             except Exception:
                 invalid_url = True
@@ -523,7 +528,7 @@ def add_comment(request, post_id):
                 }
             }
 
-            api_user = Site_API_User.objects.get(api_site=post_host)
+            api_user = Site_API_User.objects.get(api_site__contains=post_host)
 
             resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 

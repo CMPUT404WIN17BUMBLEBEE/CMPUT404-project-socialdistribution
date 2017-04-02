@@ -34,7 +34,15 @@ def is_authorized_to_read_local_post(requestor, post):
             return True
     # Server Only
     if post.visibility == "SERVERONLY" and post.associated_author.host == requestor.host:
-        return True
+        if requestor.user.is_staff and not requestor.user.is_superuser:
+            return False
+        author = post.associated_author
+        try:
+            author.following.get(id=requestor.id)
+            requestor.following.get(id=author.id)
+            return True
+        except:
+            return False
 
     # Friends
     if post.visibility == 'FRIENDS':
@@ -50,8 +58,13 @@ def is_authorized_to_read_local_post(requestor, post):
     if post.visibility == "FOAF":
         author = post.associated_author
         for middle in author.following.all():
-            if middle.id == requestor.id: #Friend
-                return True
+            # Friend
+            if middle.id == requestor.id:
+                try:
+                    requestor.following.get(id=author.id)
+                    return True
+                except:
+                    pass
 
             try: # check if requestor is following middle friend
                 requestor.following.get(id=middle.id)
@@ -99,7 +112,7 @@ def is_authorized_to_comment(requestor_id, post, host):
 
     try: # local comment author
         requestor = Profile.objects.get(id=requestor_id)
-        return is_authorized_to_read_local_post(requestor, post)
+        return is_authorized_to_read_local_post(requestor, post) # Server-only posts will be transferred into local post authorization checking
     except Profile.DoesNotExist:
         pass
 
@@ -166,9 +179,9 @@ def is_authorized_to_read_post(requestor, post):
         if str(requestor.id) in post['visibleTo']:
             return True
 
-    # Server Only
-    if post['visibility'] == "SERVERONLY" and post['author']['host'] == requestor.host:
-        return True
+    # Server Only -- serveronly post will be transferred into local_post authorization checking
+    # if post['visibility'] == "SERVERONLY" and post['author']['host'] == requestor.host:
+    #     return True
 
     try: #local post
         local_post = Post.objects.get(id=post['id'])
