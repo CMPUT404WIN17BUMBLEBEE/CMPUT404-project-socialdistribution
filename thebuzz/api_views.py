@@ -195,18 +195,22 @@ class RemoteFriendView(GenericAPIView):
     def get(self, request, *args, **kwargs):
         author = get_object_or_404(Profile, id=kwargs['author_id'])
 
+
+        remote_friend = kwargs['friend_id']
+        if remote_friend.endswith('/'):
+            remote_friend = remote_friend[:-1]
+
         is_friend = False
         for friend in author.following.all():
-            if kwargs['friend_id'] in str(friend.url):
+            if remote_friend in str(friend.url):
                 is_friend = True
                 break
-
         try:
-            friend = Friend.objects.get(url__contains=kwargs['friend_id'])
+            friend = Friend.objects.get(url__contains=remote_friend)
         except:
             friendlist = list()
             friendlist.append(author.url)
-            friendlist.append('http://'+kwargs['friend_id'])
+            friendlist.append('http://'+remote_friend)
             response = OrderedDict([
                 ("query", "friends"),
                 ("authors", friendlist),

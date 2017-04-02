@@ -226,10 +226,8 @@ def friends (request):
             api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + url
             if not api_url.endswith('/'):
                 api_url = api_url + '/'
-            print(str(api_url))
             resp = requests.get(api_url, auth=(api_user.username, api_user.password),
                              headers={'Content-Type': 'application/json'})
-            print(resp.content)
             if json.loads(resp.content).get('friends'):
                 real_friends.append(following_friend)
         except Exception as e:
