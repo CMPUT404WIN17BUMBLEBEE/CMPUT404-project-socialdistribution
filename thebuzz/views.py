@@ -228,6 +228,7 @@ def friends (request):
 
             resp = requests.get(api_url, auth=(api_user.username, api_user.password),
                              headers={'Content-Type': 'application/json'})
+            print(resp.content)
             if json.loads(resp.content).get('friends'):
                 real_friends.append(following_friend)
         except:
