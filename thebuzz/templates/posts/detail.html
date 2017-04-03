@@ -17,6 +17,14 @@
       <div id="title"><u>{{ post.title }}</u></div>
     </div>
     <div id="post_body">{{ post.content | safe }}</div>
+	{% if post.categories %}
+		<div id="post_categories">
+		{% for category in post.categories %}
+				<span id="category_values">#{{ category | safe }}</span>
+		{% endfor %}
+		</div>
+	{% endif %}	
+		
     <div id="date">{{ post.published }}</div>
     <div id="comment-label">Comments: </div>
       {% if post.comments %}

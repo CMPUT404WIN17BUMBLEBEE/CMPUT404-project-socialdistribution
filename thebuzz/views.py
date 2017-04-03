@@ -602,8 +602,16 @@ def post_form_upload(request):
 	      entries = entries.split(',')
 
 	      for item in entries:
-		visible_to += item
+		    visible_to += item
                 #visible_to.append(item)
+	    c = ''
+	    categories = form.cleaned_data['categories']
+	    if categories:
+		  cats = categories.split(',')
+		
+		  for item in cats:
+			item = makeSafe(item)
+			c += item
 
 
 	    if image:
@@ -628,6 +636,7 @@ def post_form_upload(request):
 				       description = content[0:97] + '...',
 				       visibility = visibility,
 				       visibleTo = visible_to,
+						categories = c,
 				       unlisted = True,
                                        ) 
 	      #don know if i need this anymore...
@@ -651,6 +660,8 @@ def post_form_upload(request):
 				     description = content[0:97] + '...',
 				     visibility = visibility,
 				     visibleTo = visible_to,
+					 categories = c,
+				     unlisted = form.cleaned_data['unlisted'],
                                      ) 
 
 	    #update post object to proper origin and source
