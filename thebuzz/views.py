@@ -578,13 +578,20 @@ def post_form_upload(request):
 	    title = makeSafe(title)
             content = form.cleaned_data['content']
 	    markdown = form.cleaned_data['markdown']
+	    description = ''
 	    if markdown:
 	      ast = parser.parse(content)
 	      html = renderer.render(ast)
+	      description = html
+	      if(len(description) >= 97):
+	        description = description[0:97] + '...'
 	      contentType = 'text/markdown'
 	    else:
 	      #protective measures applied here
 	      html = makeSafe(content)
+	      description = html
+	      if(len(description) >= 97):
+	        description = description[0:97] + '...'
 	      contentType = 'text/plain'
             published = timezone.now()
 
@@ -633,7 +640,7 @@ def post_form_upload(request):
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
 				       origin = request.META.get('HTTP_REFERER'),
-				       description = content[0:97] + '...',
+				       description = description,
 				       visibility = visibility,
 				       visibleTo = visible_to,
 						categories = c,
@@ -657,7 +664,7 @@ def post_form_upload(request):
 				     associated_author = request.user.profile,
 				     source = request.META.get('HTTP_REFERER'),
 				     origin = request.META.get('HTTP_REFERER'),
-				     description = content[0:97] + '...',
+				     description = description,
 				     visibility = visibility,
 				     visibleTo = visible_to,
 					 categories = c,
