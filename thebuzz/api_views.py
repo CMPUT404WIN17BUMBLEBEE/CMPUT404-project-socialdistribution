@@ -184,6 +184,49 @@ class FriendViewSet(viewsets.ModelViewSet):
         ])
         return Response(response, status=status.HTTP_200_OK)
 
+class RemoteFriendView(GenericAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = FriendURLSerializer
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    # GET http://service/author/<author_id>/friends/service2/author/<friend_id>/
+    # Check if two users are friends
+    def get(self, request, *args, **kwargs):
+        author = get_object_or_404(Profile, id=kwargs['author_id'])
+
+
+        remote_friend = kwargs['friend_id']
+        if remote_friend.endswith('/'):
+            remote_friend = remote_friend[:-1]
+
+        is_friend = False
+        for friend in author.following.all():
+            if remote_friend in str(friend.url):
+                is_friend = True
+                break
+        try:
+            friend = Friend.objects.get(url__contains=remote_friend)
+        except:
+            friendlist = list()
+            friendlist.append(author.url)
+            friendlist.append('http://'+remote_friend)
+            response = OrderedDict([
+                ("query", "friends"),
+                ("authors", friendlist),
+                ("friends", is_friend),
+            ])
+        else:
+            friendlist = list()
+            friendlist.append(author.url)
+            friendlist.append(friend.url)
+            response = OrderedDict([
+                ("query", "friends"),
+                ("authors", friendlist),
+                ("friends", is_friend),
+            ])
+
+        return Response(response, status=status.HTTP_200_OK)
 
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
