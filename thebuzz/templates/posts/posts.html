@@ -36,7 +36,7 @@
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
               <div>
-                {{ post.description | safe }}
+                {{ post.content | safe }}
               </div>
               <div id="delet-div">
                 {% if post.author.id == author_id %}
