@@ -95,7 +95,7 @@ def profile(request, profile_id):
                 foundProfile = False
                 pass
         #Results in an AttributeError if the object does not exist at that site
-        except  AttributeError:
+        except:
             #Setting isPostData to False since that site didn't have the data
             foundProfile = False
             pass
@@ -460,7 +460,7 @@ def get_Post(post_id):
                 isPostData = False
                 pass
         #Results in an AttributeError if the object does not exist at that site
-        except  AttributeError:
+        except:
             #Setting isPostData to False since that site didn't have the data
             isPostData = False
             pass
