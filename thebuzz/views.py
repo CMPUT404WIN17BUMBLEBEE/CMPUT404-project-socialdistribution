@@ -104,7 +104,47 @@ def profile(request, profile_id):
 		if foundProfile:
 			break
 
-	return render(request, 'profile/profile.html', {'profile': profile} )
+	if request.method == 'POST':
+		friend_serializer = FriendSerializer(data=profile)
+		friend_serializer.is_valid(raise_exception=True)
+		friend_serializer.save()
+		friend = Friend.objects.get(id=profile['id'])
+
+		# follow that person
+		author = request.user.profile
+		author.following.add(friend)
+
+		# send the friend request
+		api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
+		api_url = api_user.api_site + "friendrequest/"
+		data = {
+			"query": "friendrequest",
+			"author": {
+				"id": author.url,
+				"url": author.url,
+				"host": author.host,
+				"displayName": author.displayName,
+			},
+			"friend": {
+				"id": friend.url,
+				"url": friend.url,
+				"host": friend.host,
+				"displayName": friend.displayName,
+			}
+		}
+		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+							 headers={'Content-Type': 'application/json'})
+
+	following = False
+	try:
+		request.user.profile.following.get(id=profile_id)
+		following = True
+	except Friend.DoesNotExist:
+		pass
+
+	return render(request, 'profile/profile.html', {'profile': profile, 'following': following} )
+
+
 
 @login_required(login_url = '/login/')
 @transaction.atomic

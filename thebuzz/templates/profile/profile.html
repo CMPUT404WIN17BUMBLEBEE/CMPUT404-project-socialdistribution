@@ -22,8 +22,18 @@
     <span>
       {% if user.profile.id|slugify == profile.id|slugify %}
         <a href="/author/{{user.profile.id}}/edit_profile">
-          <button type="button">Edit Profile</button>
+          <button id='edit_btn' type="button">Edit Profile</button>
         </a>
+      {% else %}
+          {% if not following %}
+            <form action = '/author/{{ profile.id }}/profile' method = 'POST'>{% csrf_token %}
+                <div id='heart'>&#9829;</div>
+                <input id="follow_btn" type='submit' value='Send Friend Request'/>
+            </form>
+          {% else %}
+              <div id='dark_heart'>&#9829;</div>
+              <div id="following" disabled="disabled">Following</div>
+          {% endif %}
       {% endif %}
     </span>
   </div>

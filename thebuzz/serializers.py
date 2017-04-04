@@ -120,13 +120,12 @@ class FriendSerializer(serializers.ModelSerializer):
         fields = '__all__'
     def create(self, validated_data):
         friend, created = Friend.objects.get_or_create(id=validated_data.get('id'))
-        # Update the comment author
+        # Update the friend
         friend = self.update(friend, validated_data)
         return friend
 
 
 # Get request of post from remote hosts
-# Todo: test needed. Works on local
 class GetPostSerializer(serializers.Serializer):
     query = serializers.CharField(max_length=20)
     postid = serializers.UUIDField()
