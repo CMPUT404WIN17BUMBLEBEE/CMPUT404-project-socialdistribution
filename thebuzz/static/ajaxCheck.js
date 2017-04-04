@@ -213,6 +213,7 @@ $.ajax({
 
 
 function commentPost(){
+//retrieves the full post (considering long posts are shortened)
 //shows the comments on the post and readies the post for a new comment
 console.log("comment!");
 var bigparent = $(this).closest("#post-blocks");

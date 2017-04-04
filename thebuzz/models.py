@@ -80,7 +80,7 @@ class Post(models.Model):
     origin = models.CharField(max_length = 2000)
     description = models.CharField(max_length =100)
 
-    content = models.TextField(max_length =2000)
+    content = models.TextField(max_length =10000)
     contentType_choice = (
         ('text/markdown', 'text/markdown'),
         ('text/plain', 'text/plain'),
