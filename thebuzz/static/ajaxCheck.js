@@ -185,7 +185,7 @@ if(confirm("Are you sure you want to delete this post?")){
 
 
 $.ajax({
-    url: pID,
+    url: pID,// + "/info",
     type: 'delete', 
     dataType: 'json',
     statusCode: {

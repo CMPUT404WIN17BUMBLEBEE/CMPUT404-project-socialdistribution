@@ -481,6 +481,36 @@ def get_Post(post_id):
 
     return post
 
+
+@login_required(login_url = '/login/')
+def post_detail_forAJAX(request, post_id):
+#not removing the other one because the creation of posts depends on it it seems
+
+    if request.method == 'DELETE':
+
+	post = Post.objects.get(id = post_id)
+
+	if post == {} or post == {u'detail': u'Not found.'}:
+	    return HttpResponse(status = 404)
+	else:
+	    post.delete()
+	    return HttpResponse(status = 204)
+
+    if request.method == 'GET':
+	#send the full post content and all the comments as json objects
+	post = get_Post(post_id)
+
+	if post == {} or post == {u'detail': u'Not found.'}:
+	    return HttpResponse(status=404)
+
+	if is_authorized_to_read_post(request.user.profile, post):
+	    post['published'] = dateutil.parser.parse(post.get('published'))
+	    for comment in post['comments']:
+		comment['published'] = dateutil.parser.parse(comment.get('published'))
+
+
+
+
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
 def post_detail(request, post_id):
@@ -495,22 +525,23 @@ def post_detail(request, post_id):
 	    post.delete()
 	    return HttpResponse(status = 204)
 
-    else:
+    if request.method == 'GET':
 
 	    post = get_Post(post_id)
-    	    #Check that we did find a post, if not raise a 404
-    	    if post == {} or post == {u'detail': u'Not found.'}:
-		raise Http404
+	    #Check that we did find a post, if not raise a 404
+	    if post == {} or post == {u'detail': u'Not found.'}:
+		return HttpResponse(status=404)
 
 	    if is_authorized_to_read_post(request.user.profile, post):
 		post['published'] = dateutil.parser.parse(post.get('published'))
 		for comment in post['comments']:
 		    comment['published'] = dateutil.parser.parse(comment.get('published'))
 
-		#Posts returned from api's have comments on them no need to retrieve them separately
-		return render(request, 'posts/detail.html', {'post': post})
+			#Posts returned from api's have comments on them no need to retrieve them separately
+		print post
+		return HttpResponse(json.dumps(post),content_type = "application/json")
 	    else:
-		return HttpResponseForbidden()
+		return HttpResponse(status=403)
 
 
 @login_required(login_url = '/login/')
