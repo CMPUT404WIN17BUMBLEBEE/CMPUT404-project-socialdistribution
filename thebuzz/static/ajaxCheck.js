@@ -117,6 +117,7 @@ bar.appendChild(postTitle);
 bar.appendChild(postDate);
 
 var postContents = document.createElement("div");
+postContents.className = "pContents";
 postContents.innerHTML = postInfo["content"];
 container.appendChild(postContents);
 var postDelete = document.createElement("div");
@@ -185,7 +186,7 @@ if(confirm("Are you sure you want to delete this post?")){
 
 
 $.ajax({
-    url: pID,// + "/info",
+    url: pID + "/action",
     type: 'delete', 
     dataType: 'json',
     statusCode: {
@@ -220,16 +221,18 @@ var bigparent = $(this).closest("#post-blocks");
 var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
 
 $.ajax({
-    url: pID,
+    url: pID + "/action",
     type: 'get', 
     dataType: 'json',
     statusCode: {
 	200: function(data) { //success!
 	console.log(data);
+	replacePost(bigparent,data);
+
 	},
 
 	500: function(data) {
-	console.log("Fetching comments -- something went wrong");
+	console.log("Fetching Post +  Comments -- something went wrong");
 	},
 
 	404: function(data) {
@@ -243,7 +246,70 @@ $.ajax({
 
 }
 
+function replacePost(pBlock, data){
+//replaces the post with the full post, including the comments
+//TODO: update this once jill gets images working properly
 
+var contents = $(pBlock).find(".pContents");
+contents = data["content"]; //show full content if post is too long to show it all
+var cmtSection;
+var holder = document.createElement("div");
+holder.id = "detail_content";
+pBlock.append(holder);
+
+if(data["comments"].length>0){
+	var i;
+	var cmtBar,cAuthor,cDate,cComment;
+	var commentLabel = document.createElement("div");
+	commentLabel.id = "comment-label";	
+
+	for(i=0;i<data["comments"].length;i++){
+		
+		cmtSection = document.createElement("div");
+		cmtSection.className = "comment-sections";
+		cmtBar = document.createElement("div");
+		cmtBar.id = "comment-title-bar";	
+		cAuthor = document.createElement("div");
+		cAuthor.id = "comment_author";
+		cAuthor.innerHTML = "<a href = 'http://127.0.0.1:8000/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
+		cDate = document.createElement("div");
+		cDate.id = "comment_date";
+		cDate.textContent = data["comments"][i]["published"]
+		cComment = document.createElement("div");
+		cComment.textContent = data["comments"][i]["comment"];
+
+		cmtBar.append(cAuthor);
+		cmtBar.append(cDate);
+		cmtSection.append(cmtBar);		
+		cmtSection.append(cComment);
+		
+		holder.append(cmtSection);
+		//$(cmtSection).insertAfter(pBlock);		
+		}
+	
+
+}
+
+//stuff that allows them to leave a comment
+
+var tbox = document.createElement("input");
+tbox.type = "text";
+
+holder.append(tbox);
+
+var cmtBtn = document.createElement("button");
+cmtBtn.textContent = "Comment";
+cmtBtn.id = "cmtBtn";
+cmtBtn.addEventListener("click", sendCommentToPost); 
+
+holder.append(cmtBtn);
+
+}
+
+function sendCommentToPost(){
+console.log("yay!");
+
+}
 
 //post a comment:
 //get request for the comments on this post

@@ -64,3 +64,54 @@ body {
 .deleteButton {
  width: 100px;
 }
+
+#comment-label {
+  width: 100%;
+  text-align: left;
+  font-size: 14pt;
+  margin-top: 20px !important;
+}
+
+#comments {
+  font-size: 14pt;
+}
+
+.comment-sections {
+  background-color: #fff5cc;
+  color: #000000;
+  border-style: ridge;
+  font-size: 12pt;
+  padding: 5px;
+}
+
+#comment-title-bar {
+  display: flex;
+  width: 100%;
+  text-decoration: underline;
+}
+
+#comment_author {
+  width: 50%;
+  float: left;
+}
+
+#comment_date {
+  width: 50%;
+  float: right;
+  text-align: right;
+}
+
+#no-comments {
+  color: #fff5cc;
+  font-size: 14pt;
+}
+
+#detail_content {
+  width: 800px;
+  margin: 25px auto;
+  font-size: 18pt;
+  background-color: #000000;
+  color: #ffd11a;
+  border: #ffd11a solid 3px;
+  padding: 15px;
+}
