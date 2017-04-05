@@ -316,8 +316,7 @@ def posts(request):
 		api_user = site.username
 		api_password = site.password
 		api_url = site.api_site + "author/posts/"
-		if "blooming-mountain" in site.api_site:
-			api_url = site.api_site + "author/posts"
+
 		resp = requests.get(api_url, auth=(api_user, api_password))
 		try:
 			data = json.loads(resp.text)
