@@ -226,7 +226,6 @@ $.ajax({
     dataType: 'json',
     statusCode: {
 	200: function(data) { //success!
-	console.log(data);
 	replacePost(bigparent,data);
 
 	},
@@ -252,6 +251,12 @@ function replacePost(pBlock, data){
 
 var contents = $(pBlock).find(".pContents");
 contents = data["content"]; //show full content if post is too long to show it all
+var hideButton = $(pBlock).find(".commentButton");
+
+hideButton[0].textContent = "Hide";
+hideButton[0].removeEventListener("click", commentPost);
+hideButton[0].addEventListener("click", hideCommentSection); 
+
 var cmtSection;
 var holder = document.createElement("div");
 holder.id = "detail_content";
@@ -278,6 +283,15 @@ if(data["comments"].length>0){
 		cComment = document.createElement("div");
 		cComment.textContent = data["comments"][i]["comment"];
 
+		if(data["comments"][i]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
+			var delbtn = document.createElement("button");
+			delbtn.className = "deleteCommentButton";
+			delbtn.addEventListener("click", deleteComment);
+			delbtn.innerHTML = "Delete";
+			cComment.append(delbtn);
+			}
+
+
 		cmtBar.append(cAuthor);
 		cmtBar.append(cDate);
 		cmtSection.append(cmtBar);		
@@ -292,8 +306,12 @@ if(data["comments"].length>0){
 
 //stuff that allows them to leave a comment
 
-var tbox = document.createElement("input");
-tbox.type = "text";
+var tbox = document.createElement("textarea");
+tbox.setAttribute("rows",2);
+tbox.setAttribute("cols",20);
+
+//tbox.type = "text";
+tbox.className = "tbox";
 
 holder.append(tbox);
 
@@ -307,8 +325,56 @@ holder.append(cmtBtn);
 }
 
 function sendCommentToPost(){
-console.log("yay!");
 
+
+var bigparent = $(this).closest("#post-blocks");
+var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+var text = $(bigparent).find(".tbox")[0].value;
+console.log(text);
+
+$.ajax({
+    url: pID + "/add_comment",//"/action",
+    type: 'post', 
+    dataType: 'json',
+    statusCode: {
+	200: function(data) { //success!
+	console.log(data);
+	replacePost(bigparent,data);
+
+	},
+
+	500: function(data) {
+	console.log("Posting a comment -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Post not found");
+	},
+
+	}
+  }); 
+
+
+
+}
+
+function hideCommentSection(){
+var parent = $(this).closest("#post-blocks");
+var csection = $(parent).find("#detail_content");
+$(csection).fadeOut(function(){
+$(this).remove();
+});
+
+this.textContent = "Comment";
+this.removeEventListener("click", hideCommentSection);
+this.addEventListener("click", commentPost); 
+
+
+
+}
+
+function deleteComment(){
+console.log("delete comment!");
 }
 
 //post a comment:

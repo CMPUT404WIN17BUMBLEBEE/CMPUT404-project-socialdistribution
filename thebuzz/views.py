@@ -512,7 +512,7 @@ def post_action(request, post_id):
 		for comment in post['comments']:
 		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
 			#Posts returned from api's have comments on them no need to retrieve them separately
-		print post
+		post["currentId"] = str(request.user.profile.id);
 		return HttpResponse(json.dumps(post),content_type = "application/json")
 	    else:
 		return HttpResponse(status=403)
