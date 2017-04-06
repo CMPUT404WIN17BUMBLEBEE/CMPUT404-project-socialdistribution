@@ -73,7 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
     next = serializers.SerializerMethodField()
     categories = serializers.SerializerMethodField()
     visibleTo = serializers.SerializerMethodField()
-
+    
 
     class Meta:
         model = Post
@@ -106,6 +106,8 @@ class PostSerializer(serializers.ModelSerializer):
         visibleTo = obj.visibleTo
         split = visibleTo.replace(',',' ').split(' ')
         return [x for x in split if x]
+
+
 
 # Todo
 class FriendURLSerializer(serializers.ModelSerializer):

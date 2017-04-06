@@ -632,9 +632,9 @@ def post_form_upload(request):
 	      #create second post here - Posts and Img objects!
 	      cType = imghdr.what(image)
 	      if(cType == 'png'):
-	        contentType = 'image/png;base64'
+	        contentType2 = 'image/png;base64'
 	      elif(cType == 'jpeg'):
-	      	contentType = 'image/jpeg;base64'
+	      	contentType2 = 'image/jpeg;base64'
 	      #imgItself = "<img src=\'" + "/images/" + image.name + "\'/>"
 	      
 	      f = image.read()
@@ -642,7 +642,8 @@ def post_form_upload(request):
 	      encodeImage = base64.b64encode(byteString)
 
               post = Post.objects.create(title = title,
-                                       content='data:' + contentType + ',' + encodeImage,
+                                       content='data:' + contentType2 + ',' + encodeImage,
+				       contentType=contentType2,
                                        published=published,
 				       associated_author = request.user.profile,
 				       source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -651,7 +652,7 @@ def post_form_upload(request):
 				       visibility = visibility,
 				       visibleTo = visible_to,
 						categories = c,
-				       unlisted = True,
+				       unlisted = form.cleaned_data['unlisted'],
                                        ) 
 	      #don know if i need this anymore...
               myImg = Img.objects.create(associated_post = post,
@@ -667,6 +668,7 @@ def post_form_upload(request):
 	      #create a Post without an image here!
 	    post2 = Post.objects.create(title = title,
                                      content=html ,
+				     contentType = contentType,
                                      published=published,
 				     associated_author = request.user.profile,
 				     source = request.META.get('HTTP_REFERER'),
@@ -681,14 +683,14 @@ def post_form_upload(request):
 	    #update post object to proper origin and source
 	    post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 	    post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
-	    #post2.save()
+	    post2.save()
 
-	    if image:
+	    #if image:
 	      #attach image post to regular post
 	      #Asked Braedy about doing this and he suggested markdown, so will try that
 	      #post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-	      post2.content += '\n <div><img src=' + post.content + '></img></div>'
-	    post2.save()
+	    #  post2.content += '\n <div><img src=' + post.content + '></img></div>'
+	    #post2.save()
 
 	    
 

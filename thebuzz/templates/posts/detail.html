@@ -16,7 +16,15 @@
       <div id="author">{{ post.author.displayName }}</div>
       <div id="title"><u>{{ post.title }}</u></div>
     </div>
-    <div id="post_body">{{ post.content | safe }}</div>
+    <div id="post_body">
+	{% if 'image' in post.contentType %}
+	<div>
+	<img src="{{post.content}}"></img>
+	</div>
+	{% else %}
+        {{ post.content | safe }}
+	{%endif %}
+    </div>
 	{% if post.categories %}
 		<div id="post_categories">
 		{% for category in post.categories %}
