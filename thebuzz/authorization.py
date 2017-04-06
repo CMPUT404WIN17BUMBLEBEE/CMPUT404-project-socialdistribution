@@ -229,6 +229,14 @@ def is_authorized_to_read_post(requestor, post):
                 }
                 resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
                                      headers={'Content-Type': 'application/json'})
+
+                print('===========================')
+                print('FOAF POST DEBUGGING')
+                print('api_url: '  + api_url)
+                print('data: \n'  + json.dumps(data))
+                print(resp.status_code)
+                print('===========================')
+
                 if resp.status_code == 200:
                     return True
                 else:
