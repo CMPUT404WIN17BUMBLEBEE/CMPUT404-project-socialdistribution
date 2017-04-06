@@ -224,6 +224,7 @@ def is_authorized_to_read_post(requestor, post):
                         "url": requestor.url,
                         "host": requestor.host,
                         "displayName": requestor.displayName,
+                        "github": requestor.github
                     },
                     "friends": [friend.url for friend in requestor.following.all()]
                 }
