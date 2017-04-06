@@ -136,21 +136,21 @@ class profile_tests(TestCase):
 
 class friend_tests(TestCase):
     def setUp(self): #does it remember other users between tests? Ans: no.
-	    password = make_password('test')
-            user = User.objects.create(username='test_1', password=password)
-            author = Profile.objects.get(user=user)
-            author.host = "http://testserver.com/"
-            author.url = author.host+str(author.id)
-            author.save()
+        password = make_password('test')
+        user = User.objects.create(username='test_1', password=password)
+        author = Profile.objects.get(user=user)
+        author.host = "http://testserver.com/"
+        author.url = author.host+str(author.id)
+        author.save()
 
-	    #second person
-	    password = make_password('test')
-            user = User.objects.create(username='test_2', password=password)
-            author = Profile.objects.get(user=user)
-            author.host = "http://testserver.com/"
-            author.url = author.host+str(author.id)
-            author.save()
-            self.client.login(username='test_1', password='test')
+        #second person
+        password = make_password('test')
+        user = User.objects.create(username='test_2', password=password)
+        author = Profile.objects.get(user=user)
+        author.host = "http://testserver.com/"
+        author.url = author.host+str(author.id)
+        author.save()
+        self.client.login(username='test_1', password='test')
 
     def test_friend_request(self):
         user_id = User.objects.get(username='test_1').id
@@ -162,23 +162,25 @@ class friend_tests(TestCase):
         Bid = friend.host + str(friend.id)
         Burl = author.host + 'author/' + str(author.id)
 
-        data = {"query":"friendrequest",
-		    "author": {
-				"id": Aid,
-				"host": author.host,
-				"displayName": author.displayName,
-                		"url": Aurl,
-			  },
-		    "friend": {
-			    "id": Bid,
-			    "host": friend.host,
-			    "displayName": friend.displayName,
-	               	    "url": Burl,
-			}
-       	}
+        data = {"query": "friendrequest",
+            "author": {
+                "id": Aid,
+                "host": author.host,
+                "displayName": author.displayName,
+                "url": Aurl,
+            },
+            "friend": {
+                "id": Bid,
+                "host": friend.host,
+                "displayName": friend.displayName,
+                "url": Burl,
+            }
+        }
         response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
         self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
 
         # Check if user2 has received user1's friend request
-        friend_follower = friend.get_all_followers()
-        author_following = author.get_all_following()
+        author_following = author.following
+        friend_pending_req = friend.friend_request
+        self.assertEqual(author_following[0].id, friend_id)
+        self.assertEqual(friend_pending_req[0].id, user_id)
