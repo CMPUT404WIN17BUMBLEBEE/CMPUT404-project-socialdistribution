@@ -234,8 +234,8 @@ def is_authorized_to_read_post(requestor, post):
                 print('===========================')
                 print('FOAF POST DEBUGGING')
                 print('api_url: '  + api_url)
-                print('data: \n'  + json.dumps(data))
-                print(resp.status_code)
+                print('data: \n'  + json.dumps(data, indent=4))
+                print('status_code: ' +str(resp.status_code))
                 print('===========================')
 
                 if resp.status_code == 200:
