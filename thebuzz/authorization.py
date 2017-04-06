@@ -4,7 +4,7 @@ from .models import *
 
 def is_following(host, id1, id2):
     try:
-        if 'author/' in id2:
+        if 'author/' in str(id2):
             id2 = id2.replace('https://', '').replace('http://', '')
         api_user = Site_API_User.objects.get(api_site__contains=host)
         api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2)
@@ -13,7 +13,18 @@ def is_following(host, id1, id2):
         resp = requests.get(api_url, auth=(api_user.username, api_user.password))
         return json.loads(resp.content).get('friends')
     except Exception as e:
-        print(e)
+        # team4 connection
+        try:
+            if 'author/' in str(id2):
+                id2 = [x for x in id2.split('/') if x][-1]
+                
+            api_user = Site_API_User.objects.get(api_site__contains=host)
+            api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2) + '/'
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+            return json.loads(resp.content).get('friends')
+        except Exception as e:
+            print("Error: authorization-friendschecking     " + str(e))
+            pass
         return False
 
 
@@ -100,7 +111,6 @@ def get_readable_local_posts(requestor, posts):
     for post in posts:
         if is_authorized_to_read_local_post(requestor, post):
             queryset = queryset | Post.objects.filter(id=post.id)
-    print(queryset)
     return queryset.order_by("-published")
 
 
