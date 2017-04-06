@@ -73,7 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
     next = serializers.SerializerMethodField()
     categories = serializers.SerializerMethodField()
     visibleTo = serializers.SerializerMethodField()
-
+    
 
     class Meta:
         model = Post
@@ -82,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
                   "visibleTo", "unlisted")
 
     def get_comments(self, obj):
-        comments = obj.comments.order_by("-date_created")[:5]
+        comments = obj.comments.order_by("-date_created")   #[:5] -> get all comments now
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
@@ -106,6 +106,8 @@ class PostSerializer(serializers.ModelSerializer):
         visibleTo = obj.visibleTo
         split = visibleTo.replace(',',' ').split(' ')
         return [x for x in split if x]
+
+
 
 # Todo
 class FriendURLSerializer(serializers.ModelSerializer):

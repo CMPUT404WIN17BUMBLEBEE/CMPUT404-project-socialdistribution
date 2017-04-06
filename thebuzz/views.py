@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import timedelta
 
 
@@ -30,7 +31,7 @@ from django.core import serializers
 import io
 import imghdr
 
-from authorization import is_authorized_to_read_post, get_readable_posts
+from authorization import is_authorized_to_read_post, get_readable_posts, is_following
 
 
 #------------------------------------------------------------------
@@ -314,6 +315,7 @@ def delete_request (request, profile_id):
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def posts(request):
 	post_list = list()
@@ -458,25 +460,26 @@ def createGithubPosts(request):
 				index2 +=1
 
 
+
 			#if there is nothing new to send, send an empty array
-			if(len(postlist) is 0):
-				return HttpResponse(status=204)
+	if(len(postlist) is 0):
+		return HttpResponse(status=204)
 
-			#prepare the new posts to be sent to the Ajax
-			jtmp = []
+	#prepare the new posts to be sent to the Ajax
+	jtmp = []
 
-			index = 0
-			while(index<len(postlist)):
-				jtmp.append(model_to_dict(postlist[index]))
-				#print(jtmp[index])
-				jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-				jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
-				jtmp[index]['id'] = str(postlist[index].id)
-				jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
-				jtmp[index]['published'] = jtmp[index]['published'][1:-1]
-				jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
-				jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
-				index += 1
+	index = 0
+	while(index<len(postlist)):
+		jtmp.append(model_to_dict(postlist[index]))
+		#print(jtmp[index])
+		jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
+		jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
+		jtmp[index]['id'] = str(postlist[index].id)
+		jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
+		jtmp[index]['published'] = jtmp[index]['published'][1:-1]
+		jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
+		jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
+		index += 1
 
 		return HttpResponse(json.dumps(jtmp),content_type = "application/json")
 	else:
@@ -521,9 +524,10 @@ def get_Post(post_id):
 
 	return post
 
-#code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+
+
 @login_required(login_url = '/login/')
-def post_detail(request, post_id):
+def post_action(request, post_id):
 
 	if request.method == 'DELETE':
 		post = Post.objects.get(id = post_id)
@@ -536,6 +540,35 @@ def post_detail(request, post_id):
 	else:
 		post = get_Post(post_id)
 
+
+        if request.method == 'GET':
+
+	    post = get_Post(post_id)
+	    #Check that we did find a post, if not raise a 404
+	    if post == {} or post == {u'detail': u'Not found.'}:
+		return HttpResponse(status=404)
+
+	    if is_authorized_to_read_post(request.user.profile, post):
+		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))		
+		#post['published'] = dateutil.parser.parse(post.get('published'))
+		for comment in post['comments']:
+		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+
+		    #remove quotations around comment and date
+		    comment['published'] = comment['published'][1:-1]
+		    comment['comment'] = comment['comment'][1:-1]
+			
+		#Posts returned from api's have comments on them no need to retrieve them separately
+		post["currentId"] = str(request.user.profile.id);
+		return HttpResponse(json.dumps(post),content_type = "application/json")
+	    else:
+		return HttpResponse(status=403)
+
+
+#code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+@login_required(login_url = '/login/')
+def post_detail(request, post_id):
+		post = get_Post(post_id)
 		#Check that we did find a post, if not raise a 404
 		if post == {} or post == {u'detail': u'Not found.'}:
 			raise Http404
@@ -575,6 +608,7 @@ def edit_post(request, post_id):
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
+
 
 				contentType = 'text/markdown'
 
@@ -645,7 +679,6 @@ def edit_post(request, post_id):
 				post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 				post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 
-
 				post2.save()
 
 			#can't make a whole new post for images, will look funny. Try this??
@@ -665,12 +698,14 @@ def edit_post(request, post_id):
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
-			if image:
-				#attach image post to regular post
-				#Asked Braedy about doing this and he suggested markdown, so will try that
-				#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-				post.content += '\n <div><img src=' + post2.content + '></img></div>'
 			post.save()
+
+			# if image:
+			# 	#attach image post to regular post
+			# 	#Asked Braedy about doing this and he suggested markdown, so will try that
+			# 	#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+			# 	post.content += '\n <div><img src=' + post2.content + '></img></div>'
+			# post.save()
 
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
 	else:
@@ -678,11 +713,10 @@ def edit_post(request, post_id):
 		form = PostForm(instance=post)
 
 	return render(request, 'posts/edit_post.html', {'form': form, 'post_id': post_id})
-
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
 	post = get_Post(post_id)
-
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
 		raise Http404
@@ -690,14 +724,13 @@ def add_comment(request, post_id):
 	author = Profile.objects.get(user_id=request.user.id)
 
 	if request.method == 'POST':
-		form = CommentForm(request.POST)
-
-		if form.is_valid():
-			try:
-				post_host = post.get('author').get('host')
-				api_user = Site_API_User.objects.get(api_site__contains=post_host)
-				api_url = api_user.api_site + 'posts/' + str(post_id) + '/comments/'
-				data = {
+		#now accepts comments without the need for forms or csrf validation
+		postedComment = json.dumps(request.body)
+		try:
+			post_host = post.get('author').get('host')
+			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+			api_url = api_user.api_site + 'posts/' + str(post_id) + '/comments/'
+			data = {
 					"query": "addComment",
 					"post": api_user.api_site + 'posts/' + str(post_id) + '/',
 					"comment":{
@@ -708,23 +741,58 @@ def add_comment(request, post_id):
 							"displayName": author.displayName,
 							"github": author.github
 						},
-						"comment":form.cleaned_data['comment'],
+						"comment": postedComment,
 						"contentType": "text/plain",
 						"published":str(datetime.now()),
 						"id":str(uuid.uuid4())
 					}
-				}
+			}
+
+			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+							 headers={'Content-Type': 'application/json'})
+		except Exception as e:
+			# print("Error: views-addingcomment   "+ str(e))
+			pass
+		newpost = get_Post(post_id) #get the version with the new comment in it to send as response
+		#bug: only returns 5 comments		
 
 
-				resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
-			except Exception as e:
-				# print("Error: views-addingcomment   "+ str(e))
-				pass
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
-	else:
-		form = CommentForm()
+		#for testing purposes only!
+		#p = Comment.objects.filter(associated_post = post_id)
+		#print len(p)
+		#for index in range(0,len(p)):
+		#	print p[index].comment
 
-	return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
+		if newpost == {} or newpost == {u'detail': u'Not found.'}:
+			return HttpResponse(status=404)
+		newpost["currentId"] = str(request.user.profile.id);
+		print newpost
+		for comment in newpost['comments']:
+			comment['published'] = json.dumps(dateutil.parser.parse(newpost['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+			#remove quotations around comment and date
+			comment['published'] = comment['published'][1:-1]
+			comment['comment'] = comment['comment'][1:-1]
+		if(resp.status_code == 200):
+			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
+			return JsonResponse(newpost)
+		if(resp.status_code == 404):
+			return HttpResponse(status=404)
+		if(resp.status_code == 403):
+			return HttpResponse(status=403)
+		if(resp.status_code == 500):
+			return HttpResponse(status=500)
+
+@login_required(login_url = '/login/')
+def delete_comment(request, comment_id):
+	if request.method == 'DELETE':
+		#delete a comment of your own
+		try:
+			comment = Comment.objects.get(id = comment_id)
+			comment.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status = 404)
+
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
@@ -748,7 +816,6 @@ def post_form_upload(request):
 			content = form.cleaned_data['content']
 			markdown = form.cleaned_data['markdown']
 			description = ''
-
 			if markdown:
 				ast = parser.parse(content)
 				html = renderer.render(ast)
@@ -756,23 +823,21 @@ def post_form_upload(request):
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
-
 				contentType = 'text/markdown'
 
 			else:
-			#protective measures applied here
+				#protective measures applied here
 				html = makeSafe(content)
 				description = html
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
-
 				contentType = 'text/plain'
 			published = timezone.now()
 
 			image = ''
 			if 'image' in request.FILES:
-				image = request.FILES['image']
+				image = request.FILES['image'] #form.cleaned_data['image_upload']
 
 			visibility = form.cleaned_data['visibility']
 			visible_to = ''
@@ -780,13 +845,14 @@ def post_form_upload(request):
 			if(visibility == 'PRIVATE'):
 				#glean the users by commas for now
 				entries = form.cleaned_data['visibleTo']
+				#visible_to = form.cleaned_data['privacy_textbox']
 				entries = entries.split(',')
 
 				for item in entries:
 					visible_to += item
+
 			c = ''
 			categories = form.cleaned_data['categories']
-
 			if categories:
 				cats = categories.split(',')
 
@@ -794,49 +860,26 @@ def post_form_upload(request):
 					item = makeSafe(item)
 					c += item
 
+			print 'checking for an image'
 			if image:
+				print 'i found an image'
 				#create second post here - Posts and Img objects!
 				cType = imghdr.what(image)
-
 				if(cType == 'png'):
-					contentType = 'image/png;base64'
+					contentType2 = 'image/png;base64'
 				elif(cType == 'jpeg'):
-					contentType = 'image/jpeg;base64'
+					contentType2 = 'image/jpeg;base64'
 
 				f = image.read()
 				byteString = bytearray(f)
 				encodeImage = base64.b64encode(byteString)
 
 				post = Post.objects.create(title = title,
-						content='data:' + contentType + ',' + encodeImage,
-						published=published,
-						associated_author = request.user.profile,
-						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-						origin = request.META.get('HTTP_REFERER'),
-						description = description,
-						visibility = visibility,
-						visibleTo = visible_to,
-						categories = c,
-						unlisted = True,
-						contentType=contentType,
-						)
-
-				#don know if i need this anymore...
-				myImg = Img.objects.create(associated_post = post, myImg = image)
-
-				post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-				post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-
-				post.save()
-
-			#can't make a whole new post for images, will look funny. Try this??
-			#else:
-			#create a Post without an image here!
-			post2 = Post.objects.create(title = title,
-					content=html ,
+					content='data:' + contentType2 + ',' + encodeImage,
+					contentType=contentType2,
 					published=published,
 					associated_author = request.user.profile,
-					source = request.META.get('HTTP_REFERER'),
+					source = request.META.get('HTTP_REFERER'),#should pointto author/postid
 					origin = request.META.get('HTTP_REFERER'),
 					description = description,
 					visibility = visibility,
@@ -845,22 +888,53 @@ def post_form_upload(request):
 					unlisted = form.cleaned_data['unlisted'],
 					contentType=contentType,
 					)
+				#don know if i need this anymore...
+				myImg = Img.objects.create(associated_post = post,
+					 myImg = image )
+
+				post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+				post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+				print 'i made an image'
+				post.save()
+
+				#can't make a whole new post for images, will look funny. Try this??
+				#else:
+				#create a Post without an image here!
+			post2 = Post.objects.create(title = title,
+				content=html ,
+				contentType = contentType,
+				published=published,
+				associated_author = request.user.profile,
+				source = request.META.get('HTTP_REFERER'),
+				origin = request.META.get('HTTP_REFERER'),
+				description = description,
+				visibility = visibility,
+				visibleTo = visible_to,
+				categories = c,
+				unlisted = form.cleaned_data['unlisted'],
+				)
 
 			#update post object to proper origin and source
 			post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 			post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
-			#post2.save()
-
-			if image:
-				#attach image post to regular post
-				#Asked Braedy about doing this and he suggested markdown, so will try that
-				#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-				post2.content += '\n <div><img src=' + post.content + '></img></div>'
 			post2.save()
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post2.id) }))
+			#if image:
+			#attach image post to regular post
+			#Asked Braedy about doing this and he suggested markdown, so will try that
+			#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+			#  post2.content += '\n <div><img src=' + post.content + '></img></div>'
+			#post2.save()
 
-	return render(request, 'posts/post_form_upload.html', {'form': form,})
+
+
+
+			return HttpResponseRedirect(reverse('post_detail',
+                                                kwargs={'post_id': str(post2.id) }))
+
+	return render(request, 'posts/post_form_upload.html', {
+        'form': form,
+	})
 
 #makes a string of stuff safe to post
 def makeSafe(content):
