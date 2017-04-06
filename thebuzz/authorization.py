@@ -4,8 +4,12 @@ from .models import *
 
 def is_following(host, id1, id2):
     try:
+        if 'author/' in id2:
+            id2 = id2.replace('https://', '').replace('http://', '')
         api_user = Site_API_User.objects.get(api_site__contains=host)
-        api_url = api_user.api_site + "author/" + str(id1) + "/friends/" + str(id2) + '/'
+        api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2)
+        if not api_url.endswith('/'):
+            api_url = api_url + '/'
         resp = requests.get(api_url, auth=(api_user.username, api_user.password))
         return json.loads(resp.content).get('friends')
     except Exception as e:
@@ -81,8 +85,8 @@ def is_authorized_to_read_local_post(requestor, post):
                     continue
             except: # remote middle author
                 try:
-                    is_friend1 = is_following(middle.host, middle.id, requestor.id)
-                    is_friend2 = is_following(middle.host, middle.id, author.id)
+                    is_friend1 = is_following(middle.host, middle.id, requestor.url)
+                    is_friend2 = is_following(middle.host, middle.id, author.url)
                     if is_friend1 and is_friend2:
                         return True
                 except:
@@ -122,7 +126,7 @@ def is_authorized_to_comment(requestor_id, post, host):
         author = post.associated_author
         try:
             author.following.get(id=requestor_id)
-            return is_following(host, requestor_id, author.id)
+            return is_following(host, requestor_id, author.url)
         except:
             return False
 
@@ -131,13 +135,13 @@ def is_authorized_to_comment(requestor_id, post, host):
         author = post.associated_author
         for middle in author.following.all():
             if str(middle.id) == str(requestor_id): #Friend
-                if is_following(host, requestor_id, author.id):
+                if is_following(host, requestor_id, author.url):
                     return True
                 else:
                     continue
 
             # check if requestor is following middle friend
-            if not is_following(host, requestor_id, middle.id):
+            if not is_following(host, requestor_id, middle.url):
                 continue
 
             try: # local middle author
@@ -151,8 +155,9 @@ def is_authorized_to_comment(requestor_id, post, host):
                     continue
             except: # remote middle author
                 try:
-                    is_friend1 = is_following(middle.host, middle.id, requestor_id)
-                    is_friend2 = is_following(middle.host, middle.id, author.id)
+                    api_user = Site_API_User.objects.get(api_site__contains=host)
+                    is_friend1 = is_following(middle.host, middle.id, api_user.api_site+str(requestor_id))
+                    is_friend2 = is_following(middle.host, middle.id, author.url)
                     if is_friend1 and is_friend2:
                         return True
                 except:
@@ -191,7 +196,7 @@ def is_authorized_to_read_post(requestor, post):
         if post['visibility'] == 'FRIENDS':
             try:
                 requestor.following.get(id=post['author']['id'])
-                return is_following(post['author']['host'], post['author']['id'], requestor.id)
+                return is_following(post['author']['host'], post['author']['id'], requestor.url)
             except:
                 return False
             

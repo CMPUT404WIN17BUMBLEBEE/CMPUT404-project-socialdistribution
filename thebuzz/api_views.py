@@ -33,6 +33,10 @@ class PostDetailView(UpdateAPIView):
 
 
     def post(self, request, *args, **kwargs):
+        id = str(request.data.get('author').get('id')).split('author/')[-1]
+        id = id.replace('/', '')
+        request.data['author']['id'] = id
+
         serializer = GetPostSerializer(data=request.data)
         if serializer.get_read(data=request.data):
             post = get_object_or_404(self.queryset, id=kwargs['post_id'])
@@ -231,7 +235,6 @@ class RemoteFriendView(GenericAPIView):
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
-        print(str(request.data))
         # firend id handling
         id = str(request.data.get('author').get('id')).split('author/')[-1]
         id = id.replace('/', '')
@@ -240,11 +243,10 @@ class FriendRequestView(GenericAPIView):
         id = str(request.data.get('friend').get('id')).split('author/')[-1]
         id = id.replace('/', '')
         request.data['friend']['id'] = id
-        print(str(request.data))
         serializer = FriendRequestSerializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
-        except Exception:
+        except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.handle()
         return Response(serializer.data)

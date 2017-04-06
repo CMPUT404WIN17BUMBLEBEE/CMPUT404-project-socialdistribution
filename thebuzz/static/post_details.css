@@ -25,24 +25,28 @@
 }
 
 #author {
-  width: 30%;
+  width: 20%;
 }
 
 #title {
-  width: 70%;
+  width: 60%;
+}
+
+#edit_button {
+  width: 20%;
+  text-align: right;
+}
+
+#edit_button button {
+  width:70px;
+  height: 35px;
 }
 
 #comment-label {
   width: 100%;
   text-align: left;
   font-size: 14pt;
-  margin-top: 5px;
-}
-
-#date {
-  width: 100%;
-  text-align: right;
-  font-size: 12pt;
+  margin-top: 20px !important;
 }
 
 #comments {
@@ -90,4 +94,21 @@ button {
 img {
   max-width: 700px;
   height: auto;
+}
+
+#under_post {
+  display: flex;
+  width: 100%;
+  font-size: 12pt;
+}
+
+#post_categories {
+  width: 75%;
+  text-align: left;
+}
+
+#date {
+  width: 100%;
+  text-align: right;
+  float: right;
 }

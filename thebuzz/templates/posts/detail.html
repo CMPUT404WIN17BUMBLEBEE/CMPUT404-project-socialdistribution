@@ -12,9 +12,17 @@
 
 {% block content %}
   <div id="detail_content">
+
     <div id="post-title-bar">
       <div id="author">{{ post.author.displayName }}</div>
       <div id="title"><u>{{ post.title }}</u></div>
+      <div id="edit_button">
+        {% if  user.profile.id|slugify == post.author.id|slugify %}
+          <a href="/posts/{{ post.id }}/edit_post">
+            <button type="button">Edit</button>
+          </a>
+        {% endif %}
+      </div>
     </div>
     <div id="post_body">
 	{% if 'image' in post.contentType %}
@@ -25,10 +33,11 @@
         {{ post.content | safe }}
 	{%endif %}
     </div>
-	{% if post.categories %}
-		<div id="post_categories">
-		{% for category in post.categories %}
-				<span id="category_values">#{{ category | safe }}</span>
+	    <div id="under_post">
+      {% if post.categories %}
+        <div id="post_categories">
+          {% for category in post.categories %}
+            <span id="category_values">#{{ category | safe }}</span>
 		{% endfor %}
 		</div>
 	{% endif %}	
@@ -45,13 +54,30 @@
               <div>{{ comment.comment }}</div>
             </div>
           {% endfor %}
-      {% else %}
-        <div id="no-comments">No comments</div>
+        </div>
       {% endif %}
+
+      <div id="date">{{ post.published }}</div>
+    </div>
+
+    <div id="comment-label">Comments: </div>
+    {% if post.comments %}
+        {% for comment in post.comments %}
+          <div class="comment-sections">
+            <div id="comment-title-bar">
+              <div id="comment_author">{{ comment.author.displayName }}</div>
+              <div id="comment_date">{{ comment.published }}</div>
+            </div>
+            <div>{{ comment.comment }}</div>
+          </div>
+        {% endfor %}
+    {% else %}
+      <div id="no-comments">No comments</div>
+    {% endif %}
     </br>
-      <a href="/posts/{{ post.id }}/add_comment.html">
-        <button type="button">Add Comment</button>
-      </a>
+
+    <a href="/posts/{{ post.id }}/add_comment.html">
+      <button type="button">Add Comment</button>
+    </a>
   </div>
 {% endblock %}
-
