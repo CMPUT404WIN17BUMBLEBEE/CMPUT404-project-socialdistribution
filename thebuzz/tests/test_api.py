@@ -181,5 +181,12 @@ class friend_tests(TestCase):
         response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
         self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
 
+        # Check if user2 has received user1's friend request
+        friend_follower = friend.get_all_followers()
+        author_following = author.get_all_following()
+
     def test_FOAF(self):
-        pass
+        # Basically check if user1 is user2's friend
+        user2_id = User.objects.get(username='test_2').id
+        url = '/api/author/' + str(user2_id) + '/friends'
+        response = self.client.get(url, content_type='application/json')
