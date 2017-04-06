@@ -635,7 +635,6 @@ def edit_post(request, post_id):
 				post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 				post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 
-
 				post2.save()
 
 			#can't make a whole new post for images, will look funny. Try this??
@@ -655,12 +654,14 @@ def edit_post(request, post_id):
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
-			if image:
-				#attach image post to regular post
-				#Asked Braedy about doing this and he suggested markdown, so will try that
-				#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-				post.content += '\n <div><img src=' + post2.content + '></img></div>'
 			post.save()
+
+			# if image:
+			# 	#attach image post to regular post
+			# 	#Asked Braedy about doing this and he suggested markdown, so will try that
+			# 	#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+			# 	post.content += '\n <div><img src=' + post2.content + '></img></div>'
+			# post.save()
 
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
 	else:
@@ -772,7 +773,7 @@ def post_form_upload(request):
 
 			if(visibility == 'PRIVATE'):
 				#glean the users by commas for now
-				entries = form.cleaned_data['privacy_textbox']
+				entries = form.cleaned_data['visibleTo']
 				#visible_to = form.cleaned_data['privacy_textbox']
 				entries = entries.split(',')
 
@@ -839,7 +840,7 @@ def post_form_upload(request):
 				visibleTo = visible_to,
 				categories = c,
 				unlisted = form.cleaned_data['unlisted'],
-				) 
+				)
 
 			#update post object to proper origin and source
 			post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
@@ -853,7 +854,7 @@ def post_form_upload(request):
 			#  post2.content += '\n <div><img src=' + post.content + '></img></div>'
 			#post2.save()
 
-	    
+
 
 
 			return HttpResponseRedirect(reverse('post_detail',
