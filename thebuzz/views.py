@@ -516,13 +516,8 @@ def get_Post(post_id):
 	if post.get('id') is None:
 		post = post['posts'][0]
 
-	split = post['id'].split("/")
-	actual_id = split[0]
-
-	if len(split) > 1:
-		actual_id = split[4]
-
-	post['id'] = actual_id
+	post['id'] = [x for x in post['id'].split("/") if x][-1]
+	post['author']['id'] = [x for x in post['author']['id'].split("/") if x][-1]
 
 	return post
 
