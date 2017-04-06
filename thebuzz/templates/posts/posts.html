@@ -35,8 +35,15 @@
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
+
               <div class = "pContents">
+		{% if 'image' in post.contentType %}
+		<div>
+		<img src="{{post.content}}"></img>
+		</div>
+		{% else %}
                 {{ post.content | safe }}
+		{%endif %}
               </div>
 	     
               <div id="delet-div">

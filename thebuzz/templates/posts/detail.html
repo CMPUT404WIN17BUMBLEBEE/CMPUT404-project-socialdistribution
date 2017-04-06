@@ -24,14 +24,35 @@
         {% endif %}
       </div>
     </div>
-
-    <div id="post_body">{{ post.content | safe }}</div>
-
-    <div id="under_post">
+    <div id="post_body">
+	{% if 'image' in post.contentType %}
+	<div>
+	<img src="{{post.content}}"></img>
+	</div>
+	{% else %}
+        {{ post.content | safe }}
+	{%endif %}
+    </div>
+	    <div id="under_post">
       {% if post.categories %}
         <div id="post_categories">
           {% for category in post.categories %}
             <span id="category_values">#{{ category | safe }}</span>
+		{% endfor %}
+		</div>
+	{% endif %}	
+		
+    <div id="date">{{ post.published }}</div>
+    <div id="comment-label">Comments: </div>
+      {% if post.comments %}
+          {% for comment in post.comments %}
+            <div class="comment-sections">
+              <div id="comment-title-bar">
+                <div id="comment_author">{{ comment.author.displayName }}</div>
+                <div id="comment_date">{{ comment.published }}</div>
+              </div>
+              <div>{{ comment.comment }}</div>
+            </div>
           {% endfor %}
         </div>
       {% endif %}

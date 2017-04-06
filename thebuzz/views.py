@@ -105,7 +105,47 @@ def profile(request, profile_id):
 		if foundProfile:
 			break
 
-	return render(request, 'profile/profile.html', {'profile': profile} )
+	if request.method == 'POST':
+		friend_serializer = FriendSerializer(data=profile)
+		friend_serializer.is_valid(raise_exception=True)
+		friend_serializer.save()
+		friend = Friend.objects.get(id=profile['id'])
+
+		# follow that person
+		author = request.user.profile
+		author.following.add(friend)
+
+		# send the friend request
+		api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
+		api_url = api_user.api_site + "friendrequest/"
+		data = {
+			"query": "friendrequest",
+			"author": {
+				"id": author.url,
+				"url": author.url,
+				"host": author.host,
+				"displayName": author.displayName,
+			},
+			"friend": {
+				"id": friend.url,
+				"url": friend.url,
+				"host": friend.host,
+				"displayName": friend.displayName,
+			}
+		}
+		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+							 headers={'Content-Type': 'application/json'})
+
+	following = False
+	try:
+		request.user.profile.following.get(id=profile_id)
+		following = True
+	except Friend.DoesNotExist:
+		pass
+
+	return render(request, 'profile/profile.html', {'profile': profile, 'following': following} )
+
+
 
 @login_required(login_url = '/login/')
 @transaction.atomic
@@ -471,6 +511,7 @@ def get_Post(post_id):
 			isPostData = False
 			pass
 
+
 		#Check if we found the object and break out of searching for it
 		if isPostData and not post == {u'detail': u'Not found.'}:
 			break
@@ -640,7 +681,6 @@ def edit_post(request, post_id):
 				post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 				post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 
-
 				post2.save()
 
 			#can't make a whole new post for images, will look funny. Try this??
@@ -660,12 +700,14 @@ def edit_post(request, post_id):
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 
-			if image:
-				#attach image post to regular post
-				#Asked Braedy about doing this and he suggested markdown, so will try that
-				#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-				post.content += '\n <div><img src=' + post2.content + '></img></div>'
 			post.save()
+
+			# if image:
+			# 	#attach image post to regular post
+			# 	#Asked Braedy about doing this and he suggested markdown, so will try that
+			# 	#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+			# 	post.content += '\n <div><img src=' + post2.content + '></img></div>'
+			# post.save()
 
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
 	else:
@@ -782,7 +824,6 @@ def post_form_upload(request):
 			content = form.cleaned_data['content']
 			markdown = form.cleaned_data['markdown']
 			description = ''
-
 			if markdown:
 				ast = parser.parse(content)
 				html = renderer.render(ast)
@@ -790,23 +831,21 @@ def post_form_upload(request):
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
-
 				contentType = 'text/markdown'
 
 			else:
-			#protective measures applied here
+				#protective measures applied here
 				html = makeSafe(content)
 				description = html
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
-
 				contentType = 'text/plain'
 			published = timezone.now()
 
 			image = ''
 			if 'image' in request.FILES:
-				image = request.FILES['image']
+				image = request.FILES['image'] #form.cleaned_data['image_upload']
 
 			visibility = form.cleaned_data['visibility']
 			visible_to = ''
@@ -814,13 +853,14 @@ def post_form_upload(request):
 			if(visibility == 'PRIVATE'):
 				#glean the users by commas for now
 				entries = form.cleaned_data['visibleTo']
+				#visible_to = form.cleaned_data['privacy_textbox']
 				entries = entries.split(',')
 
 				for item in entries:
 					visible_to += item
+
 			c = ''
 			categories = form.cleaned_data['categories']
-
 			if categories:
 				cats = categories.split(',')
 
@@ -828,48 +868,26 @@ def post_form_upload(request):
 					item = makeSafe(item)
 					c += item
 
+			print 'checking for an image'
 			if image:
+				print 'i found an image'
 				#create second post here - Posts and Img objects!
 				cType = imghdr.what(image)
-
 				if(cType == 'png'):
-					contentType = 'image/png;base64'
+					contentType2 = 'image/png;base64'
 				elif(cType == 'jpeg'):
-					contentType = 'image/jpeg;base64'
+					contentType2 = 'image/jpeg;base64'
 
 				f = image.read()
 				byteString = bytearray(f)
 				encodeImage = base64.b64encode(byteString)
 
 				post = Post.objects.create(title = title,
-						content='data:' + contentType + ',' + encodeImage,
-						published=published,
-						associated_author = request.user.profile,
-						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-						origin = request.META.get('HTTP_REFERER'),
-						description = description,
-						visibility = visibility,
-						visibleTo = visible_to,
-						categories = c,
-						unlisted = True,
-						)
-
-				#don know if i need this anymore...
-				myImg = Img.objects.create(associated_post = post, myImg = image)
-
-				post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-				post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-
-				post.save()
-
-			#can't make a whole new post for images, will look funny. Try this??
-			#else:
-			#create a Post without an image here!
-			post2 = Post.objects.create(title = title,
-					content=html ,
+					content='data:' + contentType2 + ',' + encodeImage,
+					contentType=contentType2,
 					published=published,
 					associated_author = request.user.profile,
-					source = request.META.get('HTTP_REFERER'),
+					source = request.META.get('HTTP_REFERER'),#should pointto author/postid
 					origin = request.META.get('HTTP_REFERER'),
 					description = description,
 					visibility = visibility,
@@ -877,22 +895,53 @@ def post_form_upload(request):
 					categories = c,
 					unlisted = form.cleaned_data['unlisted'],
 					)
+				#don know if i need this anymore...
+				myImg = Img.objects.create(associated_post = post,
+					 myImg = image )
+
+				post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+				post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+				print 'i made an image'
+				post.save()
+
+				#can't make a whole new post for images, will look funny. Try this??
+				#else:
+				#create a Post without an image here!
+			post2 = Post.objects.create(title = title,
+				content=html ,
+				contentType = contentType,
+				published=published,
+				associated_author = request.user.profile,
+				source = request.META.get('HTTP_REFERER'),
+				origin = request.META.get('HTTP_REFERER'),
+				description = description,
+				visibility = visibility,
+				visibleTo = visible_to,
+				categories = c,
+				unlisted = form.cleaned_data['unlisted'],
+				)
 
 			#update post object to proper origin and source
 			post2.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 			post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
-			#post2.save()
-
-			if image:
-				#attach image post to regular post
-				#Asked Braedy about doing this and he suggested markdown, so will try that
-				#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
-				post2.content += '\n <div><img src=' + post.content + '></img></div>'
 			post2.save()
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post2.id) }))
+			#if image:
+			#attach image post to regular post
+			#Asked Braedy about doing this and he suggested markdown, so will try that
+			#post2.content += '\n ![' + post2.description + '](' + post.content + ')'
+			#  post2.content += '\n <div><img src=' + post.content + '></img></div>'
+			#post2.save()
 
-	return render(request, 'posts/post_form_upload.html', {'form': form,})
+
+
+
+			return HttpResponseRedirect(reverse('post_detail',
+                                                kwargs={'post_id': str(post2.id) }))
+
+	return render(request, 'posts/post_form_upload.html', {
+        'form': form,
+	})
 
 #makes a string of stuff safe to post
 def makeSafe(content):

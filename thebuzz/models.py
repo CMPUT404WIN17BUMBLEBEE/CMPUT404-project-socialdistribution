@@ -88,7 +88,7 @@ class Post(models.Model):
         ('image/png;base64', 'image/png;base64'),
         ('image/jpeg;base64', 'image/jpeg;base64'),
     )
-    contentType = models.CharField(max_length=2000, default='text/plain', choices=contentType_choice)
+    contentType = models.CharField(max_length=2000, choices=contentType_choice)
 
 	#content types can be:
 	#text/markdown -> included markdown in their post

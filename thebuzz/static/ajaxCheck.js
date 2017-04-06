@@ -264,12 +264,15 @@ var cmtSection;
 var holder = document.createElement("div");
 holder.id = "detail_content";
 pBlock.append(holder);
+var commentLabel = document.createElement("div");
+commentLabel.id = "comment-label";
+commentLabel.textContent = "Comments";	
+holder.append(commentLabel);
 
 if(data["comments"].length>0){
 	var i;
 	var cmtBar,cAuthor,cDate,cComment;
-	var commentLabel = document.createElement("div");
-	commentLabel.id = "comment-label";	
+	
 
 	for(i=data["comments"].length - 1;i>=0;i--){
 		
@@ -300,6 +303,7 @@ if(data["comments"].length>0){
 
 		cmtBar.append(cAuthor);
 		cmtBar.append(cDate);
+				
 		cmtSection.append(cmtBar);		
 		cmtSection.append(cComment);
 		
