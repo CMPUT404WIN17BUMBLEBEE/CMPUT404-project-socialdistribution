@@ -724,7 +724,7 @@ def add_comment(request, post_id):
 
 		if newpost == {} or newpost == {u'detail': u'Not found.'}:
 			return HttpResponse(status=404)
-
+		newpost["currentId"] = str(request.user.profile.id);
 		if(resp.status_code == 200):
 			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
 			return JsonResponse(newpost)

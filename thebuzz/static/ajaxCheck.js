@@ -403,8 +403,6 @@ this.addEventListener("click", commentPost);
 function deleteComment(element){
 //delete your own comment!
 
-//var bigparent = $(this).closest("#post-blocks");
-//var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
 console.log(element);
 var celement = $(element).parent()[0];
 var cID = celement.id;
@@ -416,7 +414,6 @@ $.ajax({
         dataType: 'json',
     statusCode: {
 	204: function(data) { //success!
-	console.log("deleted comment!");
 	commentDisappear(celement);
 	},
 
@@ -434,10 +431,10 @@ $.ajax({
 }
 
 
-function commentDisappear(cID){
+function commentDisappear(element){
 //removes the deleted comment
-
-var cs = $(cID).parents().find(".comment-sections");
+console.log(element);
+var cs = $(element).parent();
 console.log(cs);
 cs.fadeOut();
 
@@ -462,6 +459,7 @@ var cs = $(pBlock).find("#detail_content");
 		cComment.id = data["comments"][0]["id"];
 		cComment.textContent = data["comments"][0]["comment"];
 
+		console.log(data);
 		if(data["comments"][0]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
 			var delbtn = document.createElement("button");
 			delbtn.className = "deleteCommentButton";
