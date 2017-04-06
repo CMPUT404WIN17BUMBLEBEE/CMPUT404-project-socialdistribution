@@ -671,7 +671,6 @@ def edit_post(request, post_id):
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
 	post = get_Post(post_id)
-	print post_id
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
 		raise Http404
@@ -735,6 +734,20 @@ def add_comment(request, post_id):
 			return HttpResponse(status=403)
 		if(resp.status_code == 500):
 			return HttpResponse(status=500)
+
+@login_required(login_url = '/login/')
+def delete_comment(request, comment_id):
+	if request.method == 'DELETE':
+	#delete a comment of your own
+		comment = Comment.objects.get(id = comment_id)
+
+	if comment == {} or comment == {u'detail': u'Not found.'}:
+		return HttpResponse(status = 404)
+
+	else:
+		comment.delete();
+		return HttpResponse(status = 204);
+
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark

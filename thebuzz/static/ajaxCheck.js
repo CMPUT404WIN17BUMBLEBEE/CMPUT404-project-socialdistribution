@@ -279,17 +279,20 @@ if(data["comments"].length>0){
 		cmtBar.id = "comment-title-bar";	
 		cAuthor = document.createElement("div");
 		cAuthor.id = "comment_author";
-		cAuthor.innerHTML = "<a href = 'http://127.0.0.1:8000/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
+		cAuthor.innerHTML = "<a class = 'authlink' href= 'http://127.0.0.1:8000/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
 		cDate = document.createElement("div");
 		cDate.id = "comment_date";
 		cDate.textContent = data["comments"][i]["published"]
 		cComment = document.createElement("div");
+		cComment.id = data["comments"][i]["id"];
 		cComment.textContent = data["comments"][i]["comment"];
 
 		if(data["comments"][i]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
 			var delbtn = document.createElement("button");
 			delbtn.className = "deleteCommentButton";
-			delbtn.addEventListener("click", deleteComment);
+			delbtn.addEventListener("click", function(){
+			deleteComment(this);
+			});
 			delbtn.innerHTML = "Delete";
 			cComment.append(delbtn);
 			}
@@ -397,8 +400,47 @@ this.addEventListener("click", commentPost);
 
 }
 
-function deleteComment(){
-console.log("delete comment!");
+function deleteComment(element){
+//delete your own comment!
+
+//var bigparent = $(this).closest("#post-blocks");
+//var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+console.log(element);
+var celement = $(element).parent()[0];
+var cID = celement.id;
+console.log(cID);
+
+$.ajax({
+    url:  cID + "/delete_comment/",
+    type: 'delete', 
+        dataType: 'json',
+    statusCode: {
+	204: function(data) { //success!
+	console.log("deleted comment!");
+	commentDisappear(celement);
+	},
+
+	500: function(data) {
+	console.log("Posting a comment -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Not found");
+	},
+
+	}
+  }); 
+
+}
+
+
+function commentDisappear(cID){
+//removes the deleted comment
+
+var cs = $(cID).parents().find(".comment-sections");
+console.log(cs);
+cs.fadeOut();
+
 }
 
 function appendComment(pBlock,data){
@@ -412,17 +454,20 @@ var cs = $(pBlock).find("#detail_content");
 		cmtBar.id = "comment-title-bar";	
 		cAuthor = document.createElement("div");
 		cAuthor.id = "comment_author";
-		cAuthor.innerHTML = "<a href = 'http://127.0.0.1:8000/author/" + data["comments"][0]["author"]["id"] + "/profile'>" + data["comments"][0]["author"]["displayName"] + "</a>";
+		cAuthor.innerHTML = "<a class = 'authlink' href = 'http://127.0.0.1:8000/author/" + data["comments"][0]["author"]["id"] + "/profile'>" + data["comments"][0]["author"]["displayName"] + "</a>";
 		cDate = document.createElement("div");
 		cDate.id = "comment_date";
 		cDate.textContent = data["comments"][0]["published"]
 		cComment = document.createElement("div");
+		cComment.id = data["comments"][0]["id"];
 		cComment.textContent = data["comments"][0]["comment"];
 
 		if(data["comments"][0]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
 			var delbtn = document.createElement("button");
 			delbtn.className = "deleteCommentButton";
-			delbtn.addEventListener("click", deleteComment);
+			delbtn.addEventListener("click", function(){
+			deleteComment(this);
+			});
 			delbtn.innerHTML = "Delete";
 			cComment.append(delbtn);
 			}
