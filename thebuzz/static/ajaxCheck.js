@@ -34,6 +34,9 @@ $.ajaxSetup({
     }
 });
 
+
+
+
 /*
 http://stackoverflow.com/a/20307569
 Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
@@ -81,7 +84,10 @@ $(".deleteButton").each(function(){
 this.addEventListener("click", deletePost); 
  });
 
-
+//set onclick listeners for comment buttons already displayed
+$(".commentButton").each(function(){
+this.addEventListener("click", commentPost); 
+ });
 
 
 //interval of checking...5 minutes
@@ -114,22 +120,29 @@ bar.appendChild(postTitle);
 bar.appendChild(postDate);
 
 var postContents = document.createElement("div");
+postContents.className = "pContents";
 postContents.innerHTML = postInfo["content"];
 container.appendChild(postContents);
-
+var postDelete = document.createElement("div");
+postDelete.id = "delet-div";
+var commentbtn = document.createElement("button");
+commentbtn.className = "commentButton"
+commentbtn.addEventListener("click", commentPost);
+commentbtn.innerHTML = "Comment";
+postDelete.append(commentbtn);
 
 if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
-	var postDelete = document.createElement("div");
-	postDelete.id = "delet-div";
+
 	var delbtn = document.createElement("button");
 	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
 	delbtn.innerHTML = "Delete";
 	postDelete.append(delbtn);
-	//postDelete.innerHTML = "<a href=\"/posts/" + postInfo["id"]+ "/delete\"><button type=\"button\">Delete</button></a>";
-	container.appendChild(postDelete);
+	
 }
+
+container.appendChild(postDelete);
 return container;
 
 
@@ -176,7 +189,7 @@ if(confirm("Are you sure you want to delete this post?")){
 
 
 $.ajax({
-    url: pID,
+    url: pID + "/action",
     type: 'delete', 
     dataType: 'json',
     statusCode: {
@@ -203,11 +216,280 @@ $.ajax({
 }
 
 
-//next POST to the posts page, update the page with the info in the response
+function commentPost(){
+//retrieves the full post (considering long posts are shortened)
+//shows the comments on the post and readies the post for a new comment
+console.log("comment!");
+var bigparent = $(this).closest("#post-blocks");
+var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
 
-//http://www.tangowithdjango.com/book/chapters/ajax.html
-//delete a post:
-//send a delete request
+$.ajax({
+    url: pID + "/action",
+    type: 'get', 
+    dataType: 'json',
+    statusCode: {
+	200: function(data) { //success!
+	replacePost(bigparent,data);
+
+	},
+
+	500: function(data) {
+	console.log("Fetching Post +  Comments -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Post not found");
+	},
+
+	}
+  }); 
+
+
+
+}
+
+function replacePost(pBlock, data){
+//replaces the post with the full post, including the comments
+//TODO: update this once jill gets images working properly
+
+var contents = $(pBlock).find(".pContents");
+contents = data["content"]; //show full content if post is too long to show it all
+var hideButton = $(pBlock).find(".commentButton");
+
+hideButton[0].textContent = "Hide";
+hideButton[0].removeEventListener("click", commentPost);
+hideButton[0].addEventListener("click", hideCommentSection); 
+
+var cmtSection;
+var holder = document.createElement("div");
+holder.id = "detail_content";
+pBlock.append(holder);
+var commentLabel = document.createElement("div");
+commentLabel.id = "comment-label";
+commentLabel.textContent = "Comments";	
+holder.append(commentLabel);
+
+if(data["comments"].length>0){
+	var i;
+	var cmtBar,cAuthor,cDate,cComment;
+	
+
+	for(i=data["comments"].length - 1;i>=0;i--){
+		
+		cmtSection = document.createElement("div");
+		cmtSection.className = "comment-sections";
+		cmtBar = document.createElement("div");
+		cmtBar.id = "comment-title-bar";	
+		cAuthor = document.createElement("div");
+		cAuthor.id = "comment_author";
+		cAuthor.innerHTML = "<a class = 'authlink' href= 'http://127.0.0.1:8000/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
+		cDate = document.createElement("div");
+		cDate.id = "comment_date";
+		cDate.textContent = data["comments"][i]["published"]
+		cComment = document.createElement("div");
+		cComment.id = data["comments"][i]["id"];
+		cComment.textContent = data["comments"][i]["comment"];
+
+		if(data["comments"][i]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
+			var delbtn = document.createElement("button");
+			delbtn.className = "deleteCommentButton";
+			delbtn.addEventListener("click", function(){
+			deleteComment(this);
+			});
+			delbtn.innerHTML = "Delete";
+			cComment.append(delbtn);
+			}
+
+
+		cmtBar.append(cAuthor);
+		cmtBar.append(cDate);
+				
+		cmtSection.append(cmtBar);		
+		cmtSection.append(cComment);
+		
+		holder.append(cmtSection);
+		//$(cmtSection).insertAfter(pBlock);		
+		}
+	
+
+}
+
+//stuff that allows them to leave a comment
+
+var pID = $(pBlock).find("#postlink")[0].getAttribute("href");
+
+var tbox = document.createElement("textarea");
+tbox.setAttribute("rows",2);
+tbox.setAttribute("cols",20);
+tbox.className = "tbox";
+tbox.setAttribute("name","commentText");
+
+/*var form = document.createElement("form");
+form.setAttribute('method',"post");
+form.setAttribute('action',pID + "/add_comment.html");
+*/
+var cmtBtn = document.createElement("button");
+cmtBtn.setAttribute("type","submit");
+cmtBtn.textContent = "Comment";
+cmtBtn.id = "cmtBtn";
+
+/*
+cmtBtn.addEventListener("submit", function(event){
+event.preventDefault();
+console.log("form submitted!");
+sendCommentToPost(); 
+});*/
+cmtBtn.addEventListener("click",sendCommentToPost);
+
+
+//form.append(tbox);
+//form.append(cmtBtn);
+
+//holder.append(form);
+holder.append(tbox);
+holder.append(cmtBtn);
+
+}
+
+
+function sendCommentToPost(){
+//use a post request to send the comment
+
+var bigparent = $(this).closest("#post-blocks");
+var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+var text = $(bigparent).find(".tbox")[0].value;
+
+if(text.trim() === "") return;
+
+//var comment = {"comment": text};
+console.log(text);
+
+$.ajax({
+    url: pID + "/add_comment.html",//"/action",
+    type: 'post', 
+    contentType: 'application/json',
+    data: text,
+    statusCode: {
+	200: function(data) { //success!
+	console.log(data);
+	appendComment(bigparent,data);
+	
+
+	},
+
+	500: function(data) {
+	console.log("Posting a comment -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Post not found");
+	},
+
+	403: function(data) {
+	alert("Unauthorized");
+	},
+
+	}
+  }); 
+
+}
+
+function hideCommentSection(){
+var parent = $(this).closest("#post-blocks");
+var csection = $(parent).find("#detail_content");
+$(csection).fadeOut(function(){
+$(this).remove();
+});
+
+this.textContent = "Comment";
+this.removeEventListener("click", hideCommentSection);
+this.addEventListener("click", commentPost); 
+
+}
+
+function deleteComment(element){
+//delete your own comment!
+
+console.log(element);
+var celement = $(element).parent()[0];
+var cID = celement.id;
+console.log(cID);
+
+$.ajax({
+    url:  cID + "/delete_comment/",
+    type: 'delete', 
+        dataType: 'json',
+    statusCode: {
+	204: function(data) { //success!
+	commentDisappear(celement);
+	},
+
+	500: function(data) {
+	console.log("Posting a comment -- something went wrong");
+	},
+
+	404: function(data) {
+	alert("Not found");
+	},
+
+	}
+  }); 
+
+}
+
+
+function commentDisappear(element){
+//removes the deleted comment
+console.log(element);
+var cs = $(element).parent();
+console.log(cs);
+cs.fadeOut();
+
+}
+
+function appendComment(pBlock,data){
+//puts the comment into the html of the page
+
+var cs = $(pBlock).find("#detail_content");
+
+		cmtSection = document.createElement("div");
+		cmtSection.className = "comment-sections";
+		cmtBar = document.createElement("div");
+		cmtBar.id = "comment-title-bar";	
+		cAuthor = document.createElement("div");
+		cAuthor.id = "comment_author";
+		cAuthor.innerHTML = "<a class = 'authlink' href = 'http://127.0.0.1:8000/author/" + data["comments"][0]["author"]["id"] + "/profile'>" + data["comments"][0]["author"]["displayName"] + "</a>";
+		cDate = document.createElement("div");
+		cDate.id = "comment_date";
+		cDate.textContent = data["comments"][0]["published"]
+		cComment = document.createElement("div");
+		cComment.id = data["comments"][0]["id"];
+		cComment.textContent = data["comments"][0]["comment"];
+
+		console.log(data);
+		if(data["comments"][0]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
+			var delbtn = document.createElement("button");
+			delbtn.className = "deleteCommentButton";
+			delbtn.addEventListener("click", function(){
+			deleteComment(this);
+			});
+			delbtn.innerHTML = "Delete";
+			cComment.append(delbtn);
+			}
+
+		cmtBar.append(cAuthor);
+		cmtBar.append(cDate);
+		cmtSection.append(cmtBar);		
+		cmtSection.append(cComment);
+
+		var tbox = $(pBlock).find(".tbox")[0];
+		tbox.value = "";
+		$(cmtSection).insertBefore(tbox);
+
+		console.log(cs.length);
+		//$(cs)[cs.length-1].append(cmtSection);
+
+}
 
 //post a comment:
 //get request for the comments on this post

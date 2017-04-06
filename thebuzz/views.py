@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import timedelta
 
 
@@ -30,7 +31,7 @@ from django.core import serializers
 import io
 import imghdr
 
-from authorization import is_authorized_to_read_post, get_readable_posts
+from authorization import is_authorized_to_read_post, get_readable_posts, is_following
 
 
 #------------------------------------------------------------------
@@ -302,6 +303,7 @@ def delete_request (request, profile_id):
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def posts(request):
 	post_list = list()
@@ -358,114 +360,127 @@ def createGithubPosts(request):
 	#creates and returns a list of posts of ones that haven't been posted yet
     if request.user.is_authenticated:
         if request.method == 'GET':
-			user = request.user.profile
-			friends = user.get_all_friends() #array of usernames of my friends
-			#next, get their githubs, if they have them, otherwise don't bother keeping them
-			fgithubs = []
-			all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
-			mostRecent = [] #keeps track of most recent post by each friend
-			index = 0
 
-			while(index<len(friends)):
-				tmp =  Profile.objects.get(id=friends[index].id).github
+	    user = request.user.profile
+	    friends = []
+	    following = user.following.all()
+	    
+	    w = 0
+	    #for person in following:
+	    while(w<len(following)):
+		if (is_following(request.get_host(), user.id, str(following[w].id))):
+		    friends.append(following[w])
+		w += 1
 
-				if(tmp is not ""):
-				    all_profiles.append(Profile.objects.get(id = friends[index].id))
-				    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
-				    fgithubs.append(tmp)
-				index += 1
+	    #next, get their githubs, if they have them, otherwise don't bother keeping them
+	    fgithubs = []
+	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
+	    
+	    mostRecent = [] #keeps track of most recent post by each friend
+	    index = 0
+	    while(index<len(friends)):
+		tmp =  Profile.objects.get(id=friends[index].id).github
+		if(tmp.strip()):
+		    all_profiles.append(Profile.objects.get(id = friends[index].id))
+		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
+		    #print tmp
+		    fgithubs.append(tmp)
+		index += 1
 
-			if(user.github is not ""): #your own github posts are retrieved too!
-				mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
-				fgithubs.append(user.github)
-				all_profiles.append(user)
+	    if(user.github.strip()): #your own github posts are retrieved too!
+		mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
+		fgithubs.append(user.github)
+		all_profiles.append(user)
 
-			jdata = []
-			index = 0
-			while(index<len(fgithubs)):
-				resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+	    jdata = []
+	    index = 0
+	    print fgithubs
+	    while(index<len(fgithubs)):
+		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+	
+		jdata.append(resp.json())
+		#print jdata[index]
+		if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
+		    print "Wait an hour -- Github request limit exceeded"
+		    return HttpResponse(status=204)
 
-				jdata.append(resp.json())
-				#print jdata[index]
-				if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
-				    print "Wait an hour -- Github request limit exceeded"
-				    return HttpResponse(status=204)
+		index += 1
 
-				index += 1
 
-			avatars = []
-			gtitle = "Github Activity"
-			contents = []
-			pubtime = []
-			postlist = []
-			index2 = 0
+	    avatars = []
+	    gtitle = "Github Activity"
+	    contents = []
+	    pubtime = []
+	    postlist = []
+	    index2 = 0
+	    
+	   
 
-			#get the data
-			while(index2<len(jdata)):
-			    for item in jdata[index2]:
-				if(mostRecent[index2] is not None):
-				    cmpareDate = dateutil.parser.parse(item['created_at'])
+	    #get the data
+	    while(index2<len(jdata)):
+		    for item in jdata[index2]:
+			if(mostRecent[index2] is not None):
+			    cmpareDate = dateutil.parser.parse(item['created_at'])
 
-				    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
-					continue
+			    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
+				continue
 
-				avatars.append(item['actor']['avatar_url'])
-				pubtime.append(item['created_at'])
+			avatars.append(item['actor']['avatar_url']) 
+			pubtime.append(item['created_at'])
 
-				if( "commits" in item['payload'] ):
-				    #if there is commit data
-				    if( not item['payload']['commits']): #empty commit
-					    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-				    else:
-						contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-
-				else:
-				   #there is no commit data
+			if( "commits" in item['payload'] ):
+			    #if there is commit data
+			    if( not item['payload']['commits']): #empty commit
 				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-
+			    else:
+				contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+						 
+			else:
+			   #there is no commit data
+			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 
 				#make posts for the database
 				#for i in range(0,len(contents)):
-				lilavatar = "<img src='" + avatars[-1] + "'/>"
-				post = Post.objects.create(title = gtitle,
-					      content= lilavatar + "<p>" + contents[-1] ,
-					      published=pubtime[-1],
-					      associated_author = all_profiles[index2],
-					      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-					      origin = request.META.get('HTTP_REFERER'),
-					      description = contents[-1][0:97] + '...',
-					      visibility = 'FRIENDS',
-					      visibleTo = '',
-								       )
-				myImg = Img.objects.create(associated_post = post,
-				 				       myImg = lilavatar )
-				post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-				post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-				post.save()
-				postlist.append(post)
-				#print len(postlist)
-			    index2 +=1
+			lilavatar = "<img src='" + avatars[-1] + "'/>"
+			post = Post.objects.create(title = gtitle,
+				      content= lilavatar + "<p>" + contents[-1] ,
+				      published=pubtime[-1],
+				      associated_author = all_profiles[index2],
+				      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+				      origin = request.META.get('HTTP_REFERER'),
+				      description = contents[-1][0:97] + '...',
+				      visibility = 'FRIENDS',
+				      visibleTo = '',
+							       )
+			myImg = Img.objects.create(associated_post = post,
+			 				       myImg = lilavatar )
+			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+			post.save()
+			postlist.append(post)
+			#print len(postlist)
+		    index2 +=1
 
 
 			#if there is nothing new to send, send an empty array
-			if(len(postlist) is 0):
-				return HttpResponse(status=204)
+	if(len(postlist) is 0):
+		return HttpResponse(status=204)
 
-			#prepare the new posts to be sent to the Ajax
-			jtmp = []
+	#prepare the new posts to be sent to the Ajax
+	jtmp = []
 
-			index = 0
-			while(index<len(postlist)):
-				jtmp.append(model_to_dict(postlist[index]))
-				#print(jtmp[index])
-				jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
-				jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
-				jtmp[index]['id'] = str(postlist[index].id)
-				jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
-				jtmp[index]['published'] = jtmp[index]['published'][1:-1]
-				jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
-				jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
-				index += 1
+	index = 0
+	while(index<len(postlist)):
+		jtmp.append(model_to_dict(postlist[index]))
+		#print(jtmp[index])
+		jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
+		jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
+		jtmp[index]['id'] = str(postlist[index].id)
+		jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))
+		jtmp[index]['published'] = jtmp[index]['published'][1:-1]
+		jtmp[index]['displayName'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).displayName)
+		jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
+		index += 1
 
         return HttpResponse(json.dumps(jtmp),content_type = "application/json")
     else:
@@ -511,9 +526,10 @@ def get_Post(post_id):
 
 	return post
 
-#code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+
+
 @login_required(login_url = '/login/')
-def post_detail(request, post_id):
+def post_action(request, post_id):
 
 	if request.method == 'DELETE':
 		post = Post.objects.get(id = post_id)
@@ -526,6 +542,35 @@ def post_detail(request, post_id):
 	else:
 		post = get_Post(post_id)
 
+
+        if request.method == 'GET':
+
+	    post = get_Post(post_id)
+	    #Check that we did find a post, if not raise a 404
+	    if post == {} or post == {u'detail': u'Not found.'}:
+		return HttpResponse(status=404)
+
+	    if is_authorized_to_read_post(request.user.profile, post):
+		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))		
+		#post['published'] = dateutil.parser.parse(post.get('published'))
+		for comment in post['comments']:
+		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+
+		    #remove quotations around comment and date
+		    comment['published'] = comment['published'][1:-1]
+		    comment['comment'] = comment['comment'][1:-1]
+			
+		#Posts returned from api's have comments on them no need to retrieve them separately
+		post["currentId"] = str(request.user.profile.id);
+		return HttpResponse(json.dumps(post),content_type = "application/json")
+	    else:
+		return HttpResponse(status=403)
+
+
+#code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+@login_required(login_url = '/login/')
+def post_detail(request, post_id):
+		post = get_Post(post_id)
 		#Check that we did find a post, if not raise a 404
 		if post == {} or post == {u'detail': u'Not found.'}:
 			raise Http404
@@ -565,6 +610,7 @@ def edit_post(request, post_id):
 
 				if(len(description) >= 97):
 					description = description[0:97] + '...'
+
 
 				contentType = 'text/markdown'
 
@@ -669,11 +715,10 @@ def edit_post(request, post_id):
 		form = PostForm(instance=post)
 
 	return render(request, 'posts/edit_post.html', {'form': form, 'post_id': post_id})
-
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
 	post = get_Post(post_id)
-
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
 		raise Http404
@@ -681,21 +726,19 @@ def add_comment(request, post_id):
 	author = Profile.objects.get(user_id=request.user.id)
 
 	if request.method == 'POST':
-		form = CommentForm(request.POST)
+		#now accepts comments without the need for forms or csrf validation
+		postedComment = json.dumps(request.body)
 
-		if form.is_valid():
-			comment = form.save(commit=False)
-
-			post_host = post.get('author').get('host')
-			if not post_host.endswith("/"):
+		post_host = post.get('author').get('host')
+		if not post_host.endswith("/"):
 				post_host = post_host + "/"
 
-			id = str(author.id)
-			if not post_host == Site.objects.get_current().domain:
-				id = author.url
+		id = str(author.id)
+		if not post_host == Site.objects.get_current().domain:
+			id = author.url
 
-			api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
-			data = {
+		api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
+		data = {
 				"query": "addComment",
 				"post": post_host + 'posts/' + str(post_id) + '/',
 				"comment":{
@@ -706,22 +749,58 @@ def add_comment(request, post_id):
 						"displayName": author.displayName,
 						"github": author.github
 					},
-					"comment":form.cleaned_data['comment'],
+					"comment": postedComment,
 					"contentType": "text/plain",
 					"published":str(datetime.now()),
 					"id":str(uuid.uuid4())
 				}
 			}
 
-			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+		api_user = Site_API_User.objects.get(api_site__contains=post_host)
 
-			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
+		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
+		newpost = get_Post(post_id) #get the version with the new comment in it to send as response
+		#bug: only returns 5 comments		
+
+
+		#for testing purposes only!
+		#p = Comment.objects.filter(associated_post = post_id)
+		#print len(p)
+		#for index in range(0,len(p)):
+		#	print p[index].comment
+
+		if newpost == {} or newpost == {u'detail': u'Not found.'}:
+			return HttpResponse(status=404)
+		newpost["currentId"] = str(request.user.profile.id);
+		print newpost
+		for comment in newpost['comments']:
+			comment['published'] = json.dumps(dateutil.parser.parse(newpost['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+			#remove quotations around comment and date
+			comment['published'] = comment['published'][1:-1]
+			comment['comment'] = comment['comment'][1:-1]
+		if(resp.status_code == 200):
+			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
+			return JsonResponse(newpost)
+		if(resp.status_code == 404):
+			return HttpResponse(status=404)
+		if(resp.status_code == 403):
+			return HttpResponse(status=403)
+		if(resp.status_code == 500):
+			return HttpResponse(status=500)
+
+@login_required(login_url = '/login/')
+def delete_comment(request, comment_id):
+	if request.method == 'DELETE':
+	#delete a comment of your own
+		comment = Comment.objects.get(id = comment_id)
+
+	if comment == {} or comment == {u'detail': u'Not found.'}:
+		return HttpResponse(status = 404)
+
 	else:
-		form = CommentForm()
-
-	return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
+		comment.delete();
+		return HttpResponse(status = 204);
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/

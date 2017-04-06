@@ -82,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
                   "visibleTo", "unlisted")
 
     def get_comments(self, obj):
-        comments = obj.comments.order_by("-date_created")[:5]
+        comments = obj.comments.order_by("-date_created")   #[:5] -> get all comments now
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
