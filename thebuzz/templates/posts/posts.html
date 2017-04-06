@@ -1,13 +1,16 @@
 {% extends 'base.html' %}
 
 {% load static %}
-
+{% load tz %}
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
-  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"/>
-  <!--<script type="text/javascript" src="{% static 'jquery/dist/jquery-3.1.1.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> -->
+  <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
+  <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+  <script  type="text/javascript">
+   var currentUser = "{{request.user.profile.id }}";
+  </script>
 {% endblock %}
 
 
@@ -18,13 +21,17 @@
             <input id="newpost" type="button" value="Add New Post">
         </a>
     </div>
+    <div id = "incoming">
+    </div>
     {% if post_list %}
       {% for post in post_list %}
           <div id="post-blocks">
               <div id="post-title-bar">
-                <div id="author">{{ post.author.displayName }}</div>
+                <div id="author">
+                  <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
+                </div>
                 <div id="post-title">
-                  <a href="/posts/{{ post.id }}/detail.html">{{ post.title }}</a>
+                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
@@ -32,10 +39,10 @@
                 {{ post.content | safe }}
               </div>
               <div id="delet-div">
-                {% if post.associated_author.id == request.user.profile.id %}
-                  <a href="/posts/{{ post.id }}/delete">
-                    <button type="button">Delete</button>
-                  </a>
+                {% if post.author.id == author_id %}
+                  <!--<a href="/posts/{{ post.id }}/delete">-->
+                    <button class = "deleteButton" type="button">Delete</button>
+                  <!--</a>-->
                 {% endif %}
               </div>
           </div>
@@ -44,4 +51,8 @@
         <p id="no-posts">No post is made during the past two days.</p>
     {% endif %}
   </div>
+
+
+
+
 {% endblock %}

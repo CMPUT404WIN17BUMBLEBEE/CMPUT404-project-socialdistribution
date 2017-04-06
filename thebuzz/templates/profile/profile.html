@@ -6,30 +6,42 @@
 
 {% block extra_head %}
   <link href="{% static 'profile.css' %}" rel="stylesheet" type="text/css"/>
-{% endblock %} 
+{% endblock %}
 
 {% block content %}
   <div id="top-section">
     <span>
-      <img src="{% static 'default-profile-pic.jpg' %}" /> 
+      <img src="{% static 'default-profile-pic.jpg' %}" alt="Cartoon picture of a bee. Supposed to be user profile picture."/>
     </span>
     <span id="info">
-      <div>Display Name:  {{ user.profile.displayName }}</div>
-      <div>Full Name:  {{ user.profile.firstName }} {{ user.profile.lastName }}</div>
-      <div>Email: {{ user.profile.email }}</div>
-      <div>GitHub: {{ user.profile.github }}</div>
+      <div>Display Name:  {{ profile.displayName }}</div>
+      <div>Full Name:  {{ profile.firstName }} {{ profile.lastName }}</div>
+      <div>Email: {{ profile.email }}</div>
+      <div>GitHub: {{ profile.github }}</div>
     </span>
     <span>
-      <a href="/author/{{user.profile.id}}/edit_profile">
-        <button type="button">Edit Profile</button>
-      </a>
+      {% if user.profile.id|slugify == profile.id|slugify %}
+        <a href="/author/{{user.profile.id}}/edit_profile">
+          <button id='edit_btn' type="button">Edit Profile</button>
+        </a>
+      {% else %}
+          {% if not following %}
+            <form action = '/author/{{ profile.id }}/profile' method = 'POST'>{% csrf_token %}
+                <div id='heart'>&#9829;</div>
+                <input id="follow_btn" type='submit' value='Send Friend Request'/>
+            </form>
+          {% else %}
+              <div id='dark_heart'>&#9829;</div>
+              <div id="following" disabled="disabled">Following</div>
+          {% endif %}
+      {% endif %}
     </span>
   </div>
   <div id="bio">
     <u>About Me:</u>
     </br>
     <p>
-      {{ user.profile.bio }}
+      {{ profile.bio }}
     </p>
   </div>
   <div id="user-posts">
