@@ -271,7 +271,7 @@ if(data["comments"].length>0){
 	var commentLabel = document.createElement("div");
 	commentLabel.id = "comment-label";	
 
-	for(i=0;i<data["comments"].length;i++){
+	for(i=data["comments"].length - 1;i>=0;i--){
 		
 		cmtSection = document.createElement("div");
 		cmtSection.className = "comment-sections";
@@ -354,6 +354,9 @@ function sendCommentToPost(){
 var bigparent = $(this).closest("#post-blocks");
 var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
 var text = $(bigparent).find(".tbox")[0].value;
+
+if(text.trim() === "") return;
+
 //var comment = {"comment": text};
 console.log(text);
 
