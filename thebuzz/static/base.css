@@ -67,6 +67,7 @@ body {
 
 #cmtBtn {
  width: 100px;
+ margin-top: 40px;
 }
 
 #comment-label {
@@ -85,7 +86,7 @@ body {
   color: #000000;
   border-style: ridge;
   font-size: 12pt;
-  padding: 5px;
+  padding: 10px;
 }
 
 #comment-title-bar {
@@ -111,7 +112,7 @@ body {
 }
 
 #detail_content {
-  width: 800px;
+  width: 700px;
   margin: 25px auto;
   font-size: 18pt;
   background-color: #000000;
@@ -121,8 +122,20 @@ body {
 }
 
 .tbox{
- width:70%;
+ width:83%;
  height: 20%;
  resize:none;
  font-size: 12pt;
+}
+
+.deleteCommentButton{
+float: right;
+width:100px;
+
+}
+
+button:hover{
+
+background-color: #e8d99d;
+
 }

@@ -340,20 +340,21 @@ def createGithubPosts(request):
 	    index = 0
 	    while(index<len(friends)):
 		tmp =  Profile.objects.get(id=friends[index].id).github
-		if(tmp is not ""):
+		if(tmp.strip()):
 		    all_profiles.append(Profile.objects.get(id = friends[index].id))
 		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
 		    #print tmp
 		    fgithubs.append(tmp)
 		index += 1
 
-	    if(user.github is not ""): #your own github posts are retrieved too!
+	    if(user.github.strip()): #your own github posts are retrieved too!
 		mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
 		fgithubs.append(user.github)
 		all_profiles.append(user)
 
 	    jdata = []
 	    index = 0
+	    print fgithubs
 	    while(index<len(fgithubs)):
 		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 	
@@ -513,7 +514,12 @@ def post_action(request, post_id):
 		#post['published'] = dateutil.parser.parse(post.get('published'))
 		for comment in post['comments']:
 		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
-			#Posts returned from api's have comments on them no need to retrieve them separately
+
+		    #remove quotations around comment and date
+		    comment['published'] = comment['published'][1:-1]
+		    comment['comment'] = comment['comment'][1:-1]
+			
+		#Posts returned from api's have comments on them no need to retrieve them separately
 		post["currentId"] = str(request.user.profile.id);
 		return HttpResponse(json.dumps(post),content_type = "application/json")
 	    else:
@@ -725,6 +731,12 @@ def add_comment(request, post_id):
 		if newpost == {} or newpost == {u'detail': u'Not found.'}:
 			return HttpResponse(status=404)
 		newpost["currentId"] = str(request.user.profile.id);
+		print newpost
+		for comment in newpost['comments']:
+			comment['published'] = json.dumps(dateutil.parser.parse(newpost['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+			#remove quotations around comment and date
+			comment['published'] = comment['published'][1:-1]
+			comment['comment'] = comment['comment'][1:-1]
 		if(resp.status_code == 200):
 			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
 			return JsonResponse(newpost)
