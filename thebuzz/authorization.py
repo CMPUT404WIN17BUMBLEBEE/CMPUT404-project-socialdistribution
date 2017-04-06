@@ -220,7 +220,7 @@ def is_authorized_to_read_post(requestor, post):
                     "postid": str(post['id']),
                     "url": api_url,
                     "author": {
-                        "id": str(requestor.id),
+                        "id": requestor.url,
                         "url": requestor.url,
                         "host": requestor.host,
                         "displayName": requestor.displayName,
