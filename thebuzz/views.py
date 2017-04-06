@@ -698,14 +698,13 @@ def add_comment(request, post_id):
 		form = CommentForm(request.POST)
 
 		if form.is_valid():
-			comment = form.save(commit=False)
 			try:
-				post_host = Site_API_User.get(api_url__contains=post.get('author').get('host'))
-
-				api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
+				post_host = post.get('author').get('host')
+				api_user = Site_API_User.objects.get(api_site__contains=post_host)
+				api_url = api_user.api_site + 'posts/' + str(post_id) + '/comments/'
 				data = {
 					"query": "addComment",
-					"post": post_host + 'posts/' + str(post_id) + '/',
+					"post": api_user.api_site + 'posts/' + str(post_id) + '/',
 					"comment":{
 						"author": {
 							"id": author.url,
@@ -721,10 +720,10 @@ def add_comment(request, post_id):
 					}
 				}
 
-				api_user = Site_API_User.objects.get(api_site__contains=post_host)
 
 				resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
-			except:
+			except Exception as e:
+				print("Error: views-addingcomment   "+ str(e))
 				pass
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
 	else:
