@@ -1,96 +1,110 @@
 from django.test import TestCase
+import unittest
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from thebuzz.models import Profile
+from thebuzz.models import Profile, Friend
+from django.core import serializers
+from thebuzz.serializers import *
 
 class FriendsTestCase(TestCase):
 
     def setUp(self):
-        global profile1, profile2, profile3, profile4, profile5
+        global author1, author2, author3, author4, author5
         #Setting up some users to use for friending and unfriending
         password = make_password("password123")
         user1 = User.objects.create(username="TestUser1", password=password)
-        profile1 = Profile.objects.get(user_id = user1.id)
-        profile1.displayName="TestUser1"
-        profile1.save()
+        author1 = Profile.objects.get(user_id = user1.id)
+        author1.displayName="TestUser1"
+        author1.url="http://author1.com/"
+        author1.host="http://author1.com/"
+        author1.save()
         user2 = User.objects.create(username="TestUser2", password=password)
-        profile2 = Profile.objects.get(user_id = user2.id)
-        profile2.displayName="TestUser2"
-        profile2.save()
+        author2 = Profile.objects.get(user_id = user2.id)
+        author2.displayName="TestUser2"
+        author2.url="http://author2.com/"
+        author2.host="http://author2.com/"
+        author2.save()
         user3 = User.objects.create(username="TestUser3", password=password)
-        profile3 = Profile.objects.get(user_id = user3.id)
-        profile3.displayName="TestUser3"
-        profile3.save()
+        author3 = Profile.objects.get(user_id = user3.id)
+        author3.displayName="TestUser3"
+        author3.url="http://author3.com/"
+        author3.host="http://author3.com/"
+        author3.save()
         user4 = User.objects.create(username="TestUser4", password=password)
-        profile4 = Profile.objects.get(user_id = user4.id)
-        profile4.displayName="TestUser4"
-        profile4.save()
+        author4 = Profile.objects.get(user_id = user4.id)
+        author4.displayName="TestUser4"
+        author4.url="http://author4.com/"
+        author4.host="http://author4.com/"
+        author4.save()
         user5 = User.objects.create(username="TestUser5", password=password)
-        profile5 = Profile.objects.get(user_id = user5.id)
-        profile5.displayName="TestUser5"
-        profile5.save()
+        author5 = Profile.objects.get(user_id = user5.id)
+        author5.displayName="TestUser5"
+        author5.url="http://author5.com/"
+        author5.host="http://author5.com/"
+        author5.save()
 
     def test_following(self):
-        self.assertFalse(profile1.get_all_following(), "should not be following anyone")
+        self.assertFalse(author1.following.all().exists(), "author1 should not be following anyone")
 
-        profile1.follow(profile2)
-        profile1.save()
+        friend = Friend.objects.create(
+            id=author2.id,
+            displayName=author2.displayName,
+            host=author2.host,
+            url=author2.url
+        )
 
-        profile1.follow(profile3)
-        profile1.save()
+        author1.following.add(friend)
 
-        following = profile1.get_all_following()
-        self.assertTrue(profile2 in following, "test user 2 no in following")
-        self.assertTrue(profile3 in following, "test user 3 no in following")
+        self.assertTrue(author1.following.all().exists(), "author1 should be following someone")
+        self.assertEqual(len(author1.following.all()), 1, "author1 should only be following 1 person")
+        self.assertEqual(author1.following.all()[0].displayName, author2.displayName, "author1 should be folloing author2")
 
-    def test_be_followed(self):
-        self.assertFalse(profile1.get_all_followers(), "no one should be following")
+        friend = Friend.objects.create(
+            id=author3.id,
+            displayName=author3.displayName,
+            host=author3.host,
+            url=author3.url
+        )
 
-        profile4.follow(profile1)
-        profile4.save()
+        author1.following.add(friend)
 
-        profile5.follow(profile1)
-        profile5.save()
+        self.assertTrue(author1.following.all().exists(), "author1 should be following someone")
+        self.assertEqual(len(author1.following.all()), 2, "author1 should only be following 2 people")
 
-        profile1.add_user_following_me(profile4)
-        profile1.save()
-        profile1.add_user_following_me(profile5)
-        profile1.save()
+        following = author1.following.all()
+        self.assertTrue(following.filter(displayName=author2.displayName), "author1 should be following author2")
+        self.assertTrue(following.filter(displayName=author3.displayName), "author1 should be following author3")
 
-        followers = profile1.get_all_followers()
-        self.assertTrue(profile4 in followers, "test user 4 no in followers")
-        self.assertTrue(profile5 in followers, "test user 5 no in followers")
 
-    def test_friends(self):
-        profile1.follow(profile2)
-        profile1.save()
+    def test_friend_request(self):
+        self.assertFalse(author1.friend_request.all().exists(), "author1 should not be following anyone")
 
-        profile4.follow(profile1)
-        profile4.save()
-        profile1.add_user_following_me(profile4)
-        profile1.save()
+        friend = Friend.objects.create(
+            id=author2.id,
+            displayName=author2.displayName,
+            host=author2.host,
+            url=author2.url
+        )
 
-        self.assertFalse(profile1.get_all_friends(), "TestUser1 should not have friends")
-        profile1.friend(profile4)
-        profile1.save()
-        self.assertTrue(profile1.get_all_friends(), "TestUser1 should have friends")
+        author1.friend_request.add(friend)
 
-        self.assertFalse(profile2.get_all_friends(), "TestUser2 should not have friends")
-        profile2.friend(profile1)
-        profile2.save()
-        self.assertTrue(profile2.get_all_friends()), "TestUser2 should have friends"
+        self.assertTrue(author1.friend_request.all().exists(), "author1 should not have friend requests")
+        self.assertEqual(len(author1.friend_request.all()), 1, "author1 should have 1 friend requests")
+        self.assertEqual(author1.friend_request.all()[0].displayName, author2.displayName, "author1 should have author2 as friend request")
 
-        profile1Friends = profile1.get_all_friends()
-        self.assertEqual(len(profile1Friends), 2, "TestUser1 should have 2 friend")
-        self.assertTrue(profile2 in profile1Friends, "TestUser1 should have TestUser2 as friend")
-        self.assertTrue(profile4 in profile1Friends, "TestUser1 should have TestUser4 as friend")
+        friend = Friend.objects.create(
+            id=author3.id,
+            displayName=author3.displayName,
+            host=author3.host,
+            url=author3.url
+        )
 
-        profile2Friends = profile2.get_all_friends()
-        self.assertEqual(len(profile2Friends), 1, "TestUser2 should have 1 friend")
-        self.assertTrue(profile1 in profile2Friends, "TestUser2 should have TestUser1 as friend")
+        author1.friend_request.add(friend)
 
-        profile2.unfriend(profile1)
-        self.assertFalse(profile2.get_all_friends(), "TestUser2 should not have friends")
-        profile1Friends = profile1.get_all_friends()
-        self.assertEqual(len(profile1Friends), 1, "TestUser1 should only have 1 friend now")
-        self.assertTrue(profile4 in profile1Friends, "TestUser1 should have TestUser4 as friend")
+        self.assertTrue(author1.friend_request.all().exists(), "author1 should have friend requests")
+        self.assertEqual(len(author1.friend_request.all()), 2, "author1 should have 2 friend requests")
+
+        friend_request = author1.friend_request.all()
+
+        self.assertTrue(friend_request.filter(displayName=author3.displayName), "author1 should have author2 as friend request")
+        self.assertTrue(friend_request.filter(displayName=author3.displayName), "aauthor1 should have author3 as friend request")
