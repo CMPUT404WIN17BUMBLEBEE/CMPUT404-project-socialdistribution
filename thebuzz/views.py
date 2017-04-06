@@ -699,38 +699,33 @@ def add_comment(request, post_id):
 
 		if form.is_valid():
 			comment = form.save(commit=False)
+			try:
+				post_host = Site_API_User.get(api_url__contains=post.get('author').get('host'))
 
-			post_host = post.get('author').get('host')
-			if not post_host.endswith("/"):
-				post_host = post_host + "/"
-
-			id = str(author.id)
-			if not post_host == Site.objects.get_current().domain:
-				id = author.url
-
-			api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
-			data = {
-				"query": "addComment",
-				"post": post_host + 'posts/' + str(post_id) + '/',
-				"comment":{
-					"author": {
-						"id": id,
-						"url": author.url,
-						"host": author.host,
-						"displayName": author.displayName,
-						"github": author.github
-					},
-					"comment":form.cleaned_data['comment'],
-					"contentType": "text/plain",
-					"published":str(datetime.now()),
-					"id":str(uuid.uuid4())
+				api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
+				data = {
+					"query": "addComment",
+					"post": post_host + 'posts/' + str(post_id) + '/',
+					"comment":{
+						"author": {
+							"id": author.url,
+							"url": author.url,
+							"host": author.host,
+							"displayName": author.displayName,
+							"github": author.github
+						},
+						"comment":form.cleaned_data['comment'],
+						"contentType": "text/plain",
+						"published":str(datetime.now()),
+						"id":str(uuid.uuid4())
+					}
 				}
-			}
 
-			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+				api_user = Site_API_User.objects.get(api_site__contains=post_host)
 
-			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
-
+				resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
+			except:
+				pass
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
 	else:
 		form = CommentForm()
