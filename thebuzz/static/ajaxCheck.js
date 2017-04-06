@@ -34,6 +34,9 @@ $.ajaxSetup({
     }
 });
 
+
+
+
 /*
 http://stackoverflow.com/a/20307569
 Answered by Yuvi on Stack Overflow: http://stackoverflow.com/users/2387772/yuvi
@@ -306,40 +309,61 @@ if(data["comments"].length>0){
 
 //stuff that allows them to leave a comment
 
+var pID = $(pBlock).find("#postlink")[0].getAttribute("href");
+
 var tbox = document.createElement("textarea");
 tbox.setAttribute("rows",2);
 tbox.setAttribute("cols",20);
-
-//tbox.type = "text";
 tbox.className = "tbox";
+tbox.setAttribute("name","commentText");
 
-holder.append(tbox);
-
+/*var form = document.createElement("form");
+form.setAttribute('method',"post");
+form.setAttribute('action',pID + "/add_comment.html");
+*/
 var cmtBtn = document.createElement("button");
+cmtBtn.setAttribute("type","submit");
 cmtBtn.textContent = "Comment";
 cmtBtn.id = "cmtBtn";
-cmtBtn.addEventListener("click", sendCommentToPost); 
 
+/*
+cmtBtn.addEventListener("submit", function(event){
+event.preventDefault();
+console.log("form submitted!");
+sendCommentToPost(); 
+});*/
+cmtBtn.addEventListener("click",sendCommentToPost);
+
+
+//form.append(tbox);
+//form.append(cmtBtn);
+
+//holder.append(form);
+holder.append(tbox);
 holder.append(cmtBtn);
 
 }
 
-function sendCommentToPost(){
 
+function sendCommentToPost(){
+//use a post request to send the comment
 
 var bigparent = $(this).closest("#post-blocks");
 var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
 var text = $(bigparent).find(".tbox")[0].value;
+//var comment = {"comment": text};
 console.log(text);
 
 $.ajax({
-    url: pID + "/add_comment",//"/action",
+    url: pID + "/add_comment.html",//"/action",
     type: 'post', 
-    dataType: 'json',
+    contentType: 'application/json',
+    data: text,
     statusCode: {
 	200: function(data) { //success!
 	console.log(data);
-	replacePost(bigparent,data);
+	appendComment(bigparent,data);
+	
 
 	},
 
@@ -351,10 +375,12 @@ $.ajax({
 	alert("Post not found");
 	},
 
+	403: function(data) {
+	alert("Unauthorized");
+	},
+
 	}
   }); 
-
-
 
 }
 
@@ -369,12 +395,50 @@ this.textContent = "Comment";
 this.removeEventListener("click", hideCommentSection);
 this.addEventListener("click", commentPost); 
 
-
-
 }
 
 function deleteComment(){
 console.log("delete comment!");
+}
+
+function appendComment(pBlock,data){
+//puts the comment into the html of the page
+
+var cs = $(pBlock).find("#detail_content");
+
+		cmtSection = document.createElement("div");
+		cmtSection.className = "comment-sections";
+		cmtBar = document.createElement("div");
+		cmtBar.id = "comment-title-bar";	
+		cAuthor = document.createElement("div");
+		cAuthor.id = "comment_author";
+		cAuthor.innerHTML = "<a href = 'http://127.0.0.1:8000/author/" + data["comments"][0]["author"]["id"] + "/profile'>" + data["comments"][0]["author"]["displayName"] + "</a>";
+		cDate = document.createElement("div");
+		cDate.id = "comment_date";
+		cDate.textContent = data["comments"][0]["published"]
+		cComment = document.createElement("div");
+		cComment.textContent = data["comments"][0]["comment"];
+
+		if(data["comments"][0]["author"]["id"]===data["currentId"]){ //if the user posted it, show a delete button
+			var delbtn = document.createElement("button");
+			delbtn.className = "deleteCommentButton";
+			delbtn.addEventListener("click", deleteComment);
+			delbtn.innerHTML = "Delete";
+			cComment.append(delbtn);
+			}
+
+		cmtBar.append(cAuthor);
+		cmtBar.append(cDate);
+		cmtSection.append(cmtBar);		
+		cmtSection.append(cComment);
+
+		var tbox = $(pBlock).find(".tbox")[0];
+		tbox.value = "";
+		$(cmtSection).insertBefore(tbox);
+
+		console.log(cs.length);
+		//$(cs)[cs.length-1].append(cmtSection);
+
 }
 
 //post a comment:

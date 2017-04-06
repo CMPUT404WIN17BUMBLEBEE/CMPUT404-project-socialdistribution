@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import timedelta
 
 
@@ -262,6 +263,7 @@ def delete_request (request, profile_id):
 
 # POSTS AND COMMENTS
 #parts of code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def posts(request):
 	post_list = list()
@@ -665,11 +667,11 @@ def edit_post(request, post_id):
 		form = PostForm(instance=post)
 
 	return render(request, 'posts/edit_post.html', {'form': form, 'post_id': post_id})
-
+@ensure_csrf_cookie
 @login_required(login_url = '/login/')
 def add_comment(request, post_id):
 	post = get_Post(post_id)
-
+	print post_id
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
 		raise Http404
@@ -677,21 +679,19 @@ def add_comment(request, post_id):
 	author = Profile.objects.get(user_id=request.user.id)
 
 	if request.method == 'POST':
-		form = CommentForm(request.POST)
+		#now accepts comments without the need for forms or csrf validation
+		postedComment = json.dumps(request.body)
 
-		if form.is_valid():
-			comment = form.save(commit=False)
-
-			post_host = post.get('author').get('host')
-			if not post_host.endswith("/"):
+		post_host = post.get('author').get('host')
+		if not post_host.endswith("/"):
 				post_host = post_host + "/"
 
-			id = str(author.id)
-			if not post_host == Site.objects.get_current().domain:
-				id = author.url
+		id = str(author.id)
+		if not post_host == Site.objects.get_current().domain:
+			id = author.url
 
-			api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
-			data = {
+		api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
+		data = {
 				"query": "addComment",
 				"post": post_host + 'posts/' + str(post_id) + '/',
 				"comment":{
@@ -702,23 +702,39 @@ def add_comment(request, post_id):
 						"displayName": author.displayName,
 						"github": author.github
 					},
-					"comment":form.cleaned_data['comment'],
+					"comment": postedComment,
 					"contentType": "text/plain",
 					"published":str(datetime.now()),
 					"id":str(uuid.uuid4())
 				}
 			}
 
-			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+		api_user = Site_API_User.objects.get(api_site__contains=post_host)
 
-			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
+		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
-	else:
-		form = CommentForm()
+		newpost = get_Post(post_id) #get the version with the new comment in it to send as response
+		#bug: only returns 5 comments		
 
-	return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
 
+		#for testing purposes only!
+		#p = Comment.objects.filter(associated_post = post_id)
+		#print len(p)
+		#for index in range(0,len(p)):
+		#	print p[index].comment
+
+		if newpost == {} or newpost == {u'detail': u'Not found.'}:
+			return HttpResponse(status=404)
+
+		if(resp.status_code == 200):
+			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
+			return JsonResponse(newpost)
+		if(resp.status_code == 404):
+			return HttpResponse(status=404)
+		if(resp.status_code == 403):
+			return HttpResponse(status=403)
+		if(resp.status_code == 500):
+			return HttpResponse(status=500)
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
 #CommonMark code help from: https://pypi.python.org/pypi/CommonMark
