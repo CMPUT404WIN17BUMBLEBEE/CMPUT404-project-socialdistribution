@@ -235,7 +235,7 @@ class RemoteFriendView(GenericAPIView):
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
-        # firend id handling
+        # friend id handling
         id = str(request.data.get('author').get('id')).split('author/')[-1]
         id = id.replace('/', '')
         request.data['author']['id'] = id

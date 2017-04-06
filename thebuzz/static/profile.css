@@ -33,26 +33,6 @@
   font-size: 20pt;
 }
 
-#dark_heart {
-    border: 1px solid #ffd11a;
-    padding: 10px 10px;
-    cursor: pointer;
-    float: left;
-    font-size:16pt;
-    background-color: #000000;
-    color: #ffd11a;
-}
-
-#heart {
-    border: 1px solid #ffd11a;
-    padding: 10px 10px;
-    cursor: pointer;
-    float: left;
-    font-size:16pt;
-    background-color: #000000;
-    color: #ffd11a;
-}
-
 #follow_btn {
     border: 1px solid #ffd11a;
     padding: 10px 24px;
@@ -76,6 +56,5 @@
     float: left;
     font-family: Arial, sans-serif;
     font-size:16pt;
-    background-color: #000000;
-    color: #ffd11a;
+    color: #000000;
 }

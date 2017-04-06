@@ -95,7 +95,7 @@ def profile(request, profile_id):
 				foundProfile = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			foundProfile = False
 			pass
@@ -195,8 +195,7 @@ def friends (request):
 			# get the person i want to follow
 			friend_data = [author for author in authors if str(author['id'])==request.POST['befriend']][0]
 			invalid_url = False
-		#elif request.POST.get("button2"):
-		else:
+		elif request.POST.get("button2"):
 			#profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
 			profile_url = str(request.POST['befriendremote'])
 			try:
@@ -213,6 +212,9 @@ def friends (request):
 			except Exception:
 				invalid_url = True
 				# raise e
+		else:
+			friend_data = [author for author in authors if str(author['id']) == request.POST['id']][0]
+			invalid_url = False
 
 		if not invalid_url:
 			friend_serializer = FriendSerializer(data=friend_data)
@@ -491,7 +493,7 @@ def get_Post(post_id):
 				isPostData = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			isPostData = False
 			pass
@@ -814,6 +816,7 @@ def post_form_upload(request):
 						visibleTo = visible_to,
 						categories = c,
 						unlisted = True,
+						contentType=contentType,
 						)
 
 				#don know if i need this anymore...
@@ -838,6 +841,7 @@ def post_form_upload(request):
 					visibleTo = visible_to,
 					categories = c,
 					unlisted = form.cleaned_data['unlisted'],
+					contentType=contentType,
 					)
 
 			#update post object to proper origin and source
