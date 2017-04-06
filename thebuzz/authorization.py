@@ -23,7 +23,7 @@ def is_following(host, id1, id2):
             resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             return json.loads(resp.content).get('friends')
         except Exception as e:
-            print("Error: authorization-friendschecking     " + str(e))
+            #print("Error: authorization-friendschecking     " + str(e))
             pass
         return False
 
@@ -161,7 +161,7 @@ def is_authorized_to_comment(requestor_id, post, host):
                     middle_author.following.get(id=requestor_id)
                     return True
                 except Exception as e:
-                    print(e)
+                    #print(e)
                     continue
             except: # remote middle author
                 try:
@@ -231,12 +231,12 @@ def is_authorized_to_read_post(requestor, post):
                 resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
                                      headers={'Content-Type': 'application/json'})
 
-                print('===========================')
-                print('FOAF POST DEBUGGING')
-                print('api_url: '  + api_url)
-                print('data: \n'  + json.dumps(data, indent=4))
-                print('status_code: ' +str(resp.status_code))
-                print('===========================')
+                # print('===========================')
+                # print('FOAF POST DEBUGGING')
+                # print('api_url: '  + api_url)
+                # print('data: \n'  + json.dumps(data, indent=4))
+                # print('status_code: ' +str(resp.status_code))
+                # print('===========================')
 
                 if resp.status_code == 200:
                     return True

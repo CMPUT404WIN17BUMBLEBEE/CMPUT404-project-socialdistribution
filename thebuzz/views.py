@@ -287,7 +287,7 @@ def friends (request):
 					real_friends.append(following_friend)
 			except:
 				pass
-			print(e)
+			# print(e)
 			continue
 
 	return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'friend_requests': friend_requests, 'real_friends': real_friends, 'invalid_url': invalid_url })
@@ -718,7 +718,7 @@ def add_comment(request, post_id):
 
 				resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 			except Exception as e:
-				print("Error: views-addingcomment   "+ str(e))
+				# print("Error: views-addingcomment   "+ str(e))
 				pass
 			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': post_id }))
 	else:
