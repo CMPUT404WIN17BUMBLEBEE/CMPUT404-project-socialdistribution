@@ -111,5 +111,5 @@ Django REST framework:
 http://www.django-rest-framework.org/
 
 Embedded image in markdown:  
-https://github.com/atom/markdown-preview/issues/329
+https://github.com/atom/markdown-preview/issues/329 Answered by lee-dohm on Github (https://github.com/lee-dohm)
 
