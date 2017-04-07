@@ -29,12 +29,13 @@
 }
 
 #title {
-  width: 60%;
+  width: 50%;
 }
 
-#edit_button {
-  width: 20%;
+#date {
+  width: 30%;
   text-align: right;
+  font-size: 14pt;
 }
 
 #edit_button button {
@@ -72,12 +73,6 @@
   float: left;
 }
 
-#comment_date {
-  width: 50%;
-  float: right;
-  text-align: right;
-}
-
 #no-comments {
   color: #fff5cc;
   font-size: 14pt;
@@ -105,10 +100,4 @@ img {
 #post_categories {
   width: 75%;
   text-align: left;
-}
-
-#date {
-  width: 100%;
-  text-align: right;
-  float: right;
 }
