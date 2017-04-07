@@ -886,7 +886,6 @@ def post_form_upload(request):
 					visibleTo = visible_to,
 					categories = c,
 					unlisted = form.cleaned_data['unlisted'],
-					contentType=contentType,
 					)
 				#don know if i need this anymore...
 				myImg = Img.objects.create(associated_post = post,

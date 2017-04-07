@@ -6,3 +6,4 @@ staticfiles
 *.sqlite3
 .idea
 thebuzz/migrations/*
+socialdistribution/images/
