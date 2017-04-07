@@ -1,4 +1,4 @@
-from thebuzz.models import Comment, Post, Profile
+from thebuzz.models import Comment, Post, Profile, CommentAuthor
 from django.test import TestCase
 from datetime import datetime
 from django.contrib.auth.models import User
@@ -21,6 +21,7 @@ class post_tests(TestCase):
         origin = "http://whereitcamefrom.com/post/zzzzz"
         description = "Test Description"
         content = "Test content"
+        contentType = "text/plain"
         published = datetime.now()
 
         post = Post.objects.create(
@@ -29,6 +30,7 @@ class post_tests(TestCase):
             origin = origin,
             description = description,
             content = content,
+            contentType = contentType,
             published = published,
             associated_author = user
         )
@@ -40,7 +42,7 @@ class post_tests(TestCase):
         self.assertEqual(post.description, description, "description does not match")
         self.assertEqual(post.content, content, "conent does not match")
         self.assertFalse(post.image, "image not blank")
-        self.assertEqual(post.contentType, "text/plain", "default contentType not set")
+        self.assertEqual(post.contentType, "text/plain", "contentType not set")
         self.assertIsInstance(post.published, datetime, "published is not a datetime instance")
         self.assertEqual(post.visibility, "PUBLIC", "default visibility not set")
         self.assertEqual(post.associated_author, user, "associated_author does not match")
@@ -54,14 +56,20 @@ class post_tests(TestCase):
         )
 
         author = Profile.objects.get(user_id=user_id)
+        commentAuthor = CommentAuthor.objects.create(
+            url = author.url,
+            host = author.host,
+            displayName = author.displayName,
+            github = author.github
+        )
 
         comment = Comment.objects.create(
             associated_post = post,
-            content = 'test comment text',
-            author = author
+            comment = 'test comment text',
+            author = commentAuthor
         )
 
-        self.assertEqual(comment.content, "test comment text", "comment content not equal")
+        self.assertEqual(comment.comment, "test comment text", "comment content not equal")
         self.assertIsInstance(comment.date_created, datetime, "created date is not a datetime instance")
         self.assertEqual(comment.associated_post, post, "associated with the correct post")
         self.assertIsInstance(comment, Comment, "Not a comment object")
