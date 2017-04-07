@@ -31,28 +31,27 @@
                   <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
                 </div>
                 <div id="post-title">
-                  {{ post.title }}
+                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
 
-              <div class="pContents">
-          		    {% if 'image' in post.contentType %}
-          		<div>
-          		<img src="{{post.content}}"></img>
-          		</div>
-            		{% else %}
-                    {{ post.content | safe }}
-            		{%endif %}
+              <div class = "pContents">
+		{% if 'image' in post.contentType %}
+		<div>
+		<img src="{{post.content}}"></img>
+		</div>
+		{% else %}
+                {{ post.content | safe }}
+		{%endif %}
               </div>
 
-              <div id="delet-div">
-		              <button class="commentButton">Comment</button>
+              <div id="buttons-div">
+		              <button class = "commentButton">Comment</button>
                   {% if post.author.id == author_id %}
-                    <div id="author_btns">
-                      <button class="editButton" type="button">Edit</button>
-                      <button class="deleteButton" type="button">Delete</button>
-                    </div>
+                    <!--<a href="/posts/{{ post.id }}/delete">-->
+                      <button class = "deleteButton" type="button">Delete</button>
+                    <!--</a>-->
                   {% endif %}
               </div>
           </div>
