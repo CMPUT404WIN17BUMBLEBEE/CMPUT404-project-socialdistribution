@@ -973,8 +973,6 @@ def author_post(request, profile_id):
 	results = get_readable_posts(author, post_list)
 	# createGithubPosts(author)
 
-	context = {}
-
 	context = {
 		'post_list': results,
 		'author_id': str(author.id)

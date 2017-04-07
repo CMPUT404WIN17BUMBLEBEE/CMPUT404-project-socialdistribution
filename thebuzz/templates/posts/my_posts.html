@@ -46,15 +46,27 @@
                   {% endif %}
 {#		{%endif %}#}
               </div>
-	     
+
               <div id="delet-div">
-		<button class = "commentButton">Comment</button>
-                {% if post.author.id == author_id %}
-                  <!--<a href="/posts/{{ post.id }}/delete">-->
-                    <button class = "deleteButton" type="button">Delete</button>
-                  <!--</a>-->
-                {% endif %}
+
+                  <div class = "hidden">{{post.id}}</div>
+                  <button class = "commentButton">Comment</button>
+                  {% if post.author.id == author_id %}
+                      <a href="/posts/{{ post.id }}/edit_post">
+                          <button class = "editButton" type="button">Edit</button>
+                      </a>
+                      <button class = "deleteButton" type="button">Delete</button>
+                  {% endif %}
               </div>
+
+          	{% if post.categories %}
+                <div id="post_categories">
+                {% for category in post.categories %}
+                    <span id="category_values">#{{ category | safe }}</span>
+		        {% endfor %}
+		        </div>
+	        {% endif %}
+
           </div>
       {% endfor %}
     {% else %}
