@@ -31,7 +31,7 @@
                   <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
                 </div>
                 <div id="post-title">
-                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
+                  {{ post.title }}
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
@@ -46,7 +46,7 @@
 		{%endif %}
               </div>
 
-              <div id="buttons-div">
+              <div id="delet-div">
 		              <button class = "commentButton">Comment</button>
                   {% if post.author.id == author_id %}
                     <!--<a href="/posts/{{ post.id }}/delete">-->
