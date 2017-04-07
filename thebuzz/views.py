@@ -346,14 +346,13 @@ def posts(request):
 				p['author']['id'] = actual_id
 
 				p['published'] = dateutil.parser.parse(p.get('published'))
-				post_list.append(p)
+				if not p['unlisted']:
+					post_list.append(p)
 		except Exception:
 			continue
 
 	results = get_readable_posts(author, post_list)
 	#createGithubPosts(author)
-
-	context = {}
 
 	context = {
 		'post_list': results,
