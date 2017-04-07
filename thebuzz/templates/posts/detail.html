@@ -18,11 +18,7 @@
       <div id="title"><u>{{ post.title }}</u></div>
       <div id="date">{{ post.published }}</div>
       <div id="edit_button">
-        {% if  user.profile.id|slugify == post.author.id|slugify %}
-          <a href="/posts/{{ post.id }}/edit_post">
-            <button type="button">Edit</button>
-          </a>
-        {% endif %}
+
       </div>
     </div>
     <div id="post_body">

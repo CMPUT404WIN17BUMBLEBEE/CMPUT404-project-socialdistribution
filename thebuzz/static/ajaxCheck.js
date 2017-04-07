@@ -53,11 +53,6 @@ $.ajax({
 	//console.log("success!");
         receivedData = receivedData.concat(data);
 	//console.log(receivedData);
-	/*if(( !$.isArray(receivedData) || !receivedData.length )){ //no new github posts returned http://stackoverflow.com/a/16350718 Answered by Arun P Johny on Stack Overflow http://stackoverflow.com/users/114251/arun-p-johny
-		console.log("no new github posts");
-		setTimeout(function(){checkGithub()}, interval);
-		return;
-	}*/
 	
 	if($("#incomingButton").length===0){ //checks if it has a button as a child
 		createButton();
