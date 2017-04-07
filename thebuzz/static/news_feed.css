@@ -58,7 +58,12 @@ button {
   color: #000000;
 }
 
-#delet-div {
+#add_post_btn a, #add_post_btn a:visited, #add_post_btn a:hover{
+  color: #ffd11a;
+  text-decoration: none;
+}
+
+#buttons-div {
   width: 100%;
   text-align: right;
 }
