@@ -4,12 +4,12 @@
 {% load tz %}
 {% load markdown_deux_tags %}
 
-{% block title %}My Post{% endblock %}
+{% block title %}My Posts{% endblock %}
 
 {% block extra_head %}
   <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
   <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script>
   <script  type="text/javascript">
    var currentUser = "{{request.user.profile.id }}";
   </script>
@@ -18,8 +18,6 @@
 
 {% block content %}
   <div id="news_feed_content">
-    <div id = "incoming">
-    </div>
     {% if post_list %}
       {% for post in post_list %}
           <div id="post-blocks">
@@ -28,7 +26,7 @@
                   <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
                 </div>
                 <div id="post-title">
-                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
+                  {{ post.title }}
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
@@ -46,15 +44,28 @@
                   {% endif %}
 {#		{%endif %}#}
               </div>
-	     
+
               <div id="delet-div">
+
+		<div class = "hidden">{{post.id}}</div>
 		<button class = "commentButton">Comment</button>
-                {% if post.author.id == author_id %}
-                  <!--<a href="/posts/{{ post.id }}/delete">-->
-                    <button class = "deleteButton" type="button">Delete</button>
-                  <!--</a>-->
-                {% endif %}
+        {% if post.author.id == author_id %}
+            <a href="/posts/{{ post.id }}/edit_post" style="text-decoration: None">
+                <button class = "editButton" type="button">Edit</button>
+            </a>
+            <button class = "deleteButton" type="button">Delete</button>
+        {% endif %}
+
+
               </div>
+	{% if post.categories %}
+        <div id="post_categories">
+          {% for category in post.categories %}
+            <span id="category_values">#{{ category | safe }}</span>
+		{% endfor %}
+		</div>
+	{% endif %}
+
           </div>
       {% endfor %}
     {% else %}
