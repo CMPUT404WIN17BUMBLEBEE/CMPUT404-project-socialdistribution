@@ -136,6 +136,15 @@ if(postInfo["currentId"] === postInfo["associated_author"]){
 	postDelete.append(delbtn);
 	
 }
+if(postInfo["categories"]!==null){
+var i,tmp;
+	for(i=0;i<postInfo["categories"].length;i++){
+	tmp = document.createElement("span");
+	tmp.id = "category_values";
+	tmp.textContent = "#" + postInfo["categories"][i]
+	postDelete.append(tmp);
+	}
+}
 
 container.appendChild(postDelete);
 return container;
@@ -177,7 +186,7 @@ btn.onclick = showPosts;
 function deletePost(element){
 //uses ajax to delete a post
 var bigparent = $(this).closest("#post-blocks");
-var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+var pID = $(bigparent).find(".hidden")[0].textContent;
 
 
 if(confirm("Are you sure you want to delete this post?")){
@@ -213,7 +222,8 @@ function commentPost(){
 //shows the comments on the post and readies the post for a new comment
 
 var bigparent = $(this).closest("#post-blocks");
-var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+var pID = $(bigparent).find(".hidden")[0].textContent;
+
 
 $.ajax({
     url: pID + "/action",
@@ -308,7 +318,7 @@ if(data["comments"].length>0){
 
 //stuff that allows them to leave a comment
 
-var pID = $(pBlock).find("#postlink")[0].getAttribute("href");
+var pID = $(pBlock).find(".hidden")[0].textContent;
 
 var tbox = document.createElement("textarea");
 tbox.setAttribute("rows",2);
@@ -337,7 +347,7 @@ function sendCommentToPost(){
 //use a post request to send the comment
 
 var bigparent = $(this).closest("#post-blocks");
-var pID = $(bigparent).find("#postlink")[0].getAttribute("href");
+var pID = $(bigparent).find(".hidden")[0].textContent;
 var text = $(bigparent).find(".tbox")[0].value;
 
 if(text.trim() === "") return;

@@ -1,6 +1,6 @@
 from urlparse import urlparse
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse,HttpResponseForbidden
 from django.contrib.auth.forms import UserCreationForm
@@ -364,7 +364,7 @@ def createGithubPosts(request):
 	    user = request.user.profile
 	    friends = []
 	    following = user.following.all()
-	    
+
 	    w = 0
 	    #for person in following:
 	    while(w<len(following)):
@@ -375,7 +375,7 @@ def createGithubPosts(request):
 	    #next, get their githubs, if they have them, otherwise don't bother keeping them
 	    fgithubs = []
 	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
-	    
+
 	    mostRecent = [] #keeps track of most recent post by each friend
 	    index = 0
 	    while(index<len(friends)):
@@ -396,7 +396,7 @@ def createGithubPosts(request):
 	    index = 0
 	    while(index<len(fgithubs)):
 		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
-	
+
 		jdata.append(resp.json())
 		#print jdata[index]
 		if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
@@ -412,8 +412,8 @@ def createGithubPosts(request):
 	    pubtime = []
 	    postlist = []
 	    index2 = 0
-	    
-	   
+
+
 
 	    #get the data
 	    while(index2<len(jdata)):
@@ -424,7 +424,7 @@ def createGithubPosts(request):
 			    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
 				continue
 
-			avatars.append(item['actor']['avatar_url']) 
+			avatars.append(item['actor']['avatar_url'])
 			pubtime.append(item['created_at'])
 
 			if( "commits" in item['payload'] ):
@@ -433,7 +433,7 @@ def createGithubPosts(request):
 				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 			    else:
 				contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-						 
+
 			else:
 			   #there is no commit data
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
@@ -550,7 +550,7 @@ def post_action(request, post_id):
 		return HttpResponse(status=404)
 
 	    if is_authorized_to_read_post(request.user.profile, post):
-		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))		
+		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))
 		#post['published'] = dateutil.parser.parse(post.get('published'))
 		for comment in post['comments']:
 		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
@@ -558,7 +558,7 @@ def post_action(request, post_id):
 		    #remove quotations around comment and date
 		    comment['published'] = comment['published'][1:-1]
 		    comment['comment'] = comment['comment'][1:-1]
-			
+
 		#Posts returned from api's have comments on them no need to retrieve them separately
 		post["currentId"] = str(request.user.profile.id);
 		return HttpResponse(json.dumps(post),content_type = "application/json")
@@ -708,7 +708,7 @@ def edit_post(request, post_id):
 			# 	post.content += '\n <div><img src=' + post2.content + '></img></div>'
 			# post.save()
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+			return redirect('/posts')
 	else:
 		post = Post.objects.get(id = post_id)
 		form = PostForm(instance=post)
@@ -759,7 +759,9 @@ def add_comment(request, post_id):
 
 		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
+
 		newpost = get_Post(post_id) #get the version with the new comment in it
+
 
 		if newpost == {} or newpost == {u'detail': u'Not found.'}:
 			return HttpResponse(status=404)
@@ -926,11 +928,7 @@ def post_form_upload(request):
 			#  post2.content += '\n <div><img src=' + post.content + '></img></div>'
 			#post2.save()
 
-
-
-
-			return HttpResponseRedirect(reverse('post_detail',
-                                                kwargs={'post_id': str(post2.id) }))
+			return redirect('/posts')
 
 	return render(request, 'posts/post_form_upload.html', {
         'form': form,

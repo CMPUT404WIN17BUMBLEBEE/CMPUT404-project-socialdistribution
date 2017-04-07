@@ -139,3 +139,10 @@ button:hover{
 background-color: #e8d99d;
 
 }
+
+#delet-div{
+text-align: right;
+}
+.hidden{
+display:none;
+}
