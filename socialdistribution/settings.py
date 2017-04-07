@@ -36,6 +36,7 @@ MEDIA_URL = '/images/'
 
 INSTALLED_APPS = (
     'rest_framework',
+    'markdown_deux',
     'thebuzz',
     'django.contrib.admin',
     'django.contrib.auth',

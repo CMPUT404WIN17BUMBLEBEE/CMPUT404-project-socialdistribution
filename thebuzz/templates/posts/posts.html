@@ -2,6 +2,8 @@
 
 {% load static %}
 {% load tz %}
+{% load markdown_deux_tags %}
+
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
@@ -42,7 +44,11 @@
 {#		<img src="{{post.content}}"></img>#}
 {#		</div>#}
 {#		{% else %}#}
-                {{ post.content | safe }}
+                  {% if post.contentType == 'text/markdown' %}
+                    {{ post.content | markdown }}
+                  {% else %}
+                    {{ post.content | safe }}
+                  {% endif %}
 {#		{%endif %}#}
               </div>
 	     

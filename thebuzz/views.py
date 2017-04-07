@@ -602,25 +602,17 @@ def edit_post(request, post_id):
 			description = ''
 
 			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
-
 				contentType = 'text/markdown'
-
 			else:
-			#protective measures applied here
-				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
 				contentType = 'text/plain'
+
+			#protective measures applied here
+			html = makeSafe(content)
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
+
 			published = timezone.now()
 
 			image = ''
@@ -652,16 +644,16 @@ def edit_post(request, post_id):
 				cType = imghdr.what(image)
 
 				if(cType == 'png'):
-					contentType = 'image/png;base64'
+					contentType2 = 'image/png;base64'
 				elif(cType == 'jpeg'):
-					contentType = 'image/jpeg;base64'
+					contentType2 = 'image/jpeg;base64'
 
 				f = image.read()
 				byteString = bytearray(f)
 				encodeImage = base64.b64encode(byteString)
 
 				post2 = Post.objects.create(title = title,
-						content='data:' + contentType + ',' + encodeImage,
+						content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
 						published=published,
 						associated_author = request.user.profile,
 						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -680,7 +672,7 @@ def edit_post(request, post_id):
 				post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 
 				post2.save()
-
+				html = html + '<br>' + post2.content
 			#can't make a whole new post for images, will look funny. Try this??
 			#else:
 			#create a Post without an image here!
@@ -693,7 +685,8 @@ def edit_post(request, post_id):
 			post.visibility = visibility
 			post.visibleTo = visible_to
 			post.categories = c
-			post.unlisted = form.cleaned_data['unlisted']
+			# post.unlisted = form.cleaned_data['unlisted']
+			post.contentType = contentType
 
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
@@ -817,22 +810,16 @@ def post_form_upload(request):
 			markdown = form.cleaned_data['markdown']
 			description = ''
 			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
 				contentType = 'text/markdown'
-
 			else:
 				#protective measures applied here
-				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
 				contentType = 'text/plain'
+
+			html = makeSafe(content)
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
 			published = timezone.now()
 
 			image = ''

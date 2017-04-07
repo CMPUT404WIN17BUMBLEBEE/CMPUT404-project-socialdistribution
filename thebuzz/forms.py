@@ -29,13 +29,14 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']
+        # fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']
+        fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories']
 
         CHOICES=(('PUBLIC','Public'),
             ('FRIENDS','Friends'),
             ('FOAF', 'Friend of A Friend'),
             ('PRIVATE', 'Private'),
-            ('SERVERONLY', 'Members of this server only'))
+            ('SERVERONLY', 'Friends on this server only'))
 
         labels = {
             'visibleTo': 'Visible to (separate with a comma)',

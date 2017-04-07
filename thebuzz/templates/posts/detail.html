@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
-
+{% load markdown_deux_tags %}
 {% load tz %}
 
 {% block title %}Post{% endblock %}
@@ -25,13 +25,16 @@
       </div>
     </div>
     <div id="post_body">
-	{% if 'image' in post.contentType %}
-	<div>
-	<img src="{{post.content}}"></img>
-	</div>
-	{% else %}
-        {{ post.content | safe }}
-	{%endif %}
+        {% if post.contentType == 'text/markdown' %}
+            {{ post.content | markdown }}
+
+{#	{% if 'image' in post.contentType %}#}
+{#	<div>#}
+{#	<img src="{{post.content}}"></img>#}
+{#	</div>#}
+	    {% else %}
+            {{ post.content | safe }}
+	    {%endif %}
     </div>
 	    <div id="under_post">
       {% if post.categories %}
