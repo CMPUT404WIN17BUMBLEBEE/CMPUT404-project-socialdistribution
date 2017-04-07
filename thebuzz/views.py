@@ -96,7 +96,7 @@ def profile(request, profile_id):
 				foundProfile = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			foundProfile = False
 			pass
@@ -196,8 +196,7 @@ def friends (request):
 			# get the person i want to follow
 			friend_data = [author for author in authors if str(author['id'])==request.POST['befriend']][0]
 			invalid_url = False
-		#elif request.POST.get("button2"):
-		else:
+		elif request.POST.get("button2"):
 			#profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
 			profile_url = str(request.POST['befriendremote'])
 			try:
@@ -214,6 +213,9 @@ def friends (request):
 			except Exception:
 				invalid_url = True
 				# raise e
+		else:
+			friend_data = [author for author in authors if str(author['id']) == request.POST['id']][0]
+			invalid_url = False
 
 		if not invalid_url:
 			friend_serializer = FriendSerializer(data=friend_data)
@@ -276,7 +278,17 @@ def friends (request):
 			if json.loads(resp.content).get('friends'):
 				real_friends.append(following_friend)
 		except Exception as e:
-			print(e)
+            # team4 connection
+			try:
+				api_user = Site_API_User.objects.get(api_site__contains=following_friend.host)
+				api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + str(request.user.profile.id) + '/'
+				resp = requests.get(api_url, auth=(api_user.username, api_user.password),
+									headers={'Content-Type': 'application/json'})
+				if json.loads(resp.content).get('friends'):
+					real_friends.append(following_friend)
+			except:
+				pass
+			# print(e)
 			continue
 
 	return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'friend_requests': friend_requests, 'real_friends': real_friends, 'invalid_url': invalid_url })
@@ -316,8 +328,7 @@ def posts(request):
 		api_user = site.username
 		api_password = site.password
 		api_url = site.api_site + "author/posts/"
-		if "blooming-mountain" in site.api_site:
-			api_url = site.api_site + "author/posts"
+
 		resp = requests.get(api_url, auth=(api_user, api_password))
 		try:
 			data = json.loads(resp.text)
@@ -335,14 +346,13 @@ def posts(request):
 				p['author']['id'] = actual_id
 
 				p['published'] = dateutil.parser.parse(p.get('published'))
-				post_list.append(p)
+				if not p['unlisted']:
+					post_list.append(p)
 		except Exception:
 			continue
 
 	results = get_readable_posts(author, post_list)
 	#createGithubPosts(author)
-
-	context = {}
 
 	context = {
 		'post_list': results,
@@ -358,107 +368,97 @@ def posts(request):
 def createGithubPosts(request):
 	#generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
 	#creates and returns a list of posts of ones that haven't been posted yet
-    if request.user.is_authenticated:
-        if request.method == 'GET':
+	if request.user.is_authenticated:
+		if request.method == 'GET':
+			user = request.user.profile
+			friends = user.get_all_friends() #array of usernames of my friends
+			#next, get their githubs, if they have them, otherwise don't bother keeping them
+			fgithubs = []
+			all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
+			mostRecent = [] #keeps track of most recent post by each friend
+			index = 0
 
-	    user = request.user.profile
-	    friends = []
-	    following = user.following.all()
+			while(index<len(friends)):
+				tmp =  Profile.objects.get(id=friends[index].id).github
 
-	    w = 0
-	    #for person in following:
-	    while(w<len(following)):
-		if (is_following(request.get_host(), user.id, str(following[w].id))):
-		    friends.append(following[w])
-		w += 1
+				if(tmp is not ""):
+					all_profiles.append(Profile.objects.get(id = friends[index].id))
+					mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
+					fgithubs.append(tmp)
+				index += 1
 
-	    #next, get their githubs, if they have them, otherwise don't bother keeping them
-	    fgithubs = []
-	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
+			if(user.github is not ""): #your own github posts are retrieved too!
+				mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
+				fgithubs.append(user.github)
+				all_profiles.append(user)
 
-	    mostRecent = [] #keeps track of most recent post by each friend
-	    index = 0
-	    while(index<len(friends)):
-		tmp =  Profile.objects.get(id=friends[index].id).github
-		if(tmp.strip()):
-		    all_profiles.append(Profile.objects.get(id = friends[index].id))
-		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
-		    #print tmp
-		    fgithubs.append(tmp)
-		index += 1
+			jdata = []
+			index = 0
+			while(index<len(fgithubs)):
+				resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 
-	    if(user.github.strip()): #your own github posts are retrieved too!
-		mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
-		fgithubs.append(user.github)
-		all_profiles.append(user)
+				jdata.append(resp.json())
+				#print jdata[index]
+				if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
+					print "Wait an hour -- Github request limit exceeded"
+					return HttpResponse(status=204)
 
-	    jdata = []
-	    index = 0
-	    while(index<len(fgithubs)):
-		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+				index += 1
 
-		jdata.append(resp.json())
-		#print jdata[index]
-		if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
-		    print "Wait an hour -- Github request limit exceeded"
-		    return HttpResponse(status=204)
+			avatars = []
+			gtitle = "Github Activity"
+			contents = []
+			pubtime = []
+			postlist = []
+			index2 = 0
 
-		index += 1
+			#get the data
+			while(index2<len(jdata)):
+				for item in jdata[index2]:
+					if(mostRecent[index2] is not None):
+						cmpareDate = dateutil.parser.parse(item['created_at'])
+
+						if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
+							continue
+
+					avatars.append(item['actor']['avatar_url'])
+					pubtime.append(item['created_at'])
+
+					if( "commits" in item['payload'] ):
+						#if there is commit data
+						if( not item['payload']['commits']): #empty commit
+							contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
+						else:
+							contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
+
+					else:
+					   #there is no commit data
+						contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 
 
-	    avatars = []
-	    gtitle = "Github Activity"
-	    contents = []
-	    pubtime = []
-	    postlist = []
-	    index2 = 0
+					#make posts for the database
+					#for i in range(0,len(contents)):
+					lilavatar = "<img src='" + avatars[-1] + "'/>"
+					post = Post.objects.create(title = gtitle,
+							  content= lilavatar + "<p>" + contents[-1] ,
+							  published=pubtime[-1],
+							  associated_author = all_profiles[index2],
+							  source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+							  origin = request.META.get('HTTP_REFERER'),
+							  description = contents[-1][0:97] + '...',
+							  visibility = 'FRIENDS',
+							  visibleTo = '',
+										   )
+					myImg = Img.objects.create(associated_post = post,
+										   myImg = lilavatar )
+					post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+					post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+					post.save()
+					postlist.append(post)
+					#print len(postlist)
+				index2 +=1
 
 
-
-	    #get the data
-	    while(index2<len(jdata)):
-		    for item in jdata[index2]:
-			if(mostRecent[index2] is not None):
-			    cmpareDate = dateutil.parser.parse(item['created_at'])
-
-			    if(cmpareDate<=mostRecent[index2].published): #is the latest github post newer than the retrieved ones?dont create duplicates
-				continue
-
-			avatars.append(item['actor']['avatar_url'])
-			pubtime.append(item['created_at'])
-
-			if( "commits" in item['payload'] ):
-			    #if there is commit data
-			    if( not item['payload']['commits']): #empty commit
-				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-			    else:
-				contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-
-			else:
-			   #there is no commit data
-			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-
-				#make posts for the database
-				#for i in range(0,len(contents)):
-			lilavatar = "<img src='" + avatars[-1] + "'/>"
-			post = Post.objects.create(title = gtitle,
-				      content= lilavatar + "<p>" + contents[-1] ,
-				      published=pubtime[-1],
-				      associated_author = all_profiles[index2],
-				      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-				      origin = request.META.get('HTTP_REFERER'),
-				      description = contents[-1][0:97] + '...',
-				      visibility = 'FRIENDS',
-				      visibleTo = '',
-							       )
-			myImg = Img.objects.create(associated_post = post,
-			 				       myImg = lilavatar )
-			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-			post.save()
-			postlist.append(post)
-			#print len(postlist)
-		    index2 +=1
 
 
 			#if there is nothing new to send, send an empty array
@@ -481,8 +481,8 @@ def createGithubPosts(request):
 		jtmp[index]['currentId'] = str(user.id) #current logged in user's id #
 		index += 1
 
-        return HttpResponse(json.dumps(jtmp),content_type = "application/json")
-    else:
+		return HttpResponse(json.dumps(jtmp),content_type = "application/json")
+	else:
 		return HttpResponse(status=401)
 
 def get_Post(post_id):
@@ -505,7 +505,7 @@ def get_Post(post_id):
 				isPostData = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			isPostData = False
 			pass
@@ -515,13 +515,12 @@ def get_Post(post_id):
 		if isPostData and not post == {u'detail': u'Not found.'}:
 			break
 
-	split = post['id'].split("/")
-	actual_id = split[0]
+	# for team4
+	if post.get('id') is None:
+		post = post['posts'][0]
 
-	if len(split) > 1:
-		actual_id = split[4]
-
-	post['id'] = actual_id
+	post['id'] = [x for x in post['id'].split("/") if x][-1]
+	post['author']['id'] = [x for x in post['author']['id'].split("/") if x][-1]
 
 	return post
 
@@ -603,25 +602,17 @@ def edit_post(request, post_id):
 			description = ''
 
 			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
-
 				contentType = 'text/markdown'
-
 			else:
-			#protective measures applied here
-				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
 				contentType = 'text/plain'
+
+			#protective measures applied here
+			html = makeSafe(content)
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
+
 			published = timezone.now()
 
 			image = ''
@@ -653,16 +644,16 @@ def edit_post(request, post_id):
 				cType = imghdr.what(image)
 
 				if(cType == 'png'):
-					contentType = 'image/png;base64'
+					contentType2 = 'image/png;base64'
 				elif(cType == 'jpeg'):
-					contentType = 'image/jpeg;base64'
+					contentType2 = 'image/jpeg;base64'
 
 				f = image.read()
 				byteString = bytearray(f)
 				encodeImage = base64.b64encode(byteString)
 
 				post2 = Post.objects.create(title = title,
-						content='data:' + contentType + ',' + encodeImage,
+						content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
 						published=published,
 						associated_author = request.user.profile,
 						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -682,6 +673,8 @@ def edit_post(request, post_id):
 
 				post2.save()
 
+				if contentType == 'text/plain':
+					html = html + '<br>' + post2.content
 			#can't make a whole new post for images, will look funny. Try this??
 			#else:
 			#create a Post without an image here!
@@ -694,7 +687,8 @@ def edit_post(request, post_id):
 			post.visibility = visibility
 			post.visibleTo = visible_to
 			post.categories = c
-			post.unlisted = form.cleaned_data['unlisted']
+			# post.unlisted = form.cleaned_data['unlisted']
+			post.contentType = contentType
 
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
@@ -727,38 +721,33 @@ def add_comment(request, post_id):
 	if request.method == 'POST':
 		#now accepts comments without the need for forms or csrf validation
 		postedComment = json.dumps(request.body)
-
-		post_host = post.get('author').get('host')
-		if not post_host.endswith("/"):
-				post_host = post_host + "/"
-
-		id = str(author.id)
-		if not post_host == Site.objects.get_current().domain:
-			id = author.url
-
-		api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
-		data = {
-				"query": "addComment",
-				"post": post_host + 'posts/' + str(post_id) + '/',
-				"comment":{
-					"author": {
-						"id": id,
-						"url": author.url,
-						"host": author.host,
-						"displayName": author.displayName,
-						"github": author.github
-					},
-					"comment": postedComment,
-					"contentType": "text/plain",
-					"published":str(datetime.now()),
-					"id":str(uuid.uuid4())
-				}
+		try:
+			post_host = post.get('author').get('host')
+			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+			api_url = api_user.api_site + 'posts/' + str(post_id) + '/comments/'
+			data = {
+					"query": "addComment",
+					"post": api_user.api_site + 'posts/' + str(post_id) + '/',
+					"comment":{
+						"author": {
+							"id": author.url,
+							"url": author.url,
+							"host": author.host,
+							"displayName": author.displayName,
+							"github": author.github
+						},
+						"comment": postedComment,
+						"contentType": "text/plain",
+						"published":str(datetime.now()),
+						"id":str(uuid.uuid4())
+					}
 			}
 
-		api_user = Site_API_User.objects.get(api_site__contains=post_host)
-
-		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
-
+			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+							 headers={'Content-Type': 'application/json'})
+		except Exception as e:
+			# print("Error: views-addingcomment   "+ str(e))
+			pass
 
 		newpost = get_Post(post_id) #get the version with the new comment in it
 
@@ -787,15 +776,14 @@ def add_comment(request, post_id):
 @login_required(login_url = '/login/')
 def delete_comment(request, comment_id):
 	if request.method == 'DELETE':
-	#delete a comment of your own
-		comment = Comment.objects.get(id = comment_id)
+		#delete a comment of your own
+		try:
+			comment = Comment.objects.get(id = comment_id)
+			comment.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status = 404)
 
-	if comment == {} or comment == {u'detail': u'Not found.'}:
-		return HttpResponse(status = 404)
-
-	else:
-		comment.delete();
-		return HttpResponse(status = 204);
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
@@ -820,22 +808,16 @@ def post_form_upload(request):
 			markdown = form.cleaned_data['markdown']
 			description = ''
 			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
 				contentType = 'text/markdown'
-
 			else:
 				#protective measures applied here
-				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
 				contentType = 'text/plain'
+
+			html = makeSafe(content)
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
 			published = timezone.now()
 
 			image = ''
@@ -878,7 +860,7 @@ def post_form_upload(request):
 				encodeImage = base64.b64encode(byteString)
 
 				post = Post.objects.create(title = title,
-					content='data:' + contentType2 + ',' + encodeImage,
+					content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
 					contentType=contentType2,
 					published=published,
 					associated_author = request.user.profile,
@@ -888,7 +870,7 @@ def post_form_upload(request):
 					visibility = visibility,
 					visibleTo = visible_to,
 					categories = c,
-					unlisted = form.cleaned_data['unlisted'],
+					unlisted = True,
 					)
 				#don know if i need this anymore...
 				myImg = Img.objects.create(associated_post = post,
@@ -899,6 +881,8 @@ def post_form_upload(request):
 				print 'i made an image'
 				post.save()
 
+				if contentType == 'text/plain':
+					html = html + '<br>' + post.content
 				#can't make a whole new post for images, will look funny. Try this??
 				#else:
 				#create a Post without an image here!
@@ -913,7 +897,7 @@ def post_form_upload(request):
 				visibility = visibility,
 				visibleTo = visible_to,
 				categories = c,
-				unlisted = form.cleaned_data['unlisted'],
+				unlisted = False,
 				)
 
 			#update post object to proper origin and source
@@ -958,5 +942,46 @@ def DeletePost(request, post_id):
    post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
+@login_required(login_url = '/login/')
+def author_post(request, profile_id):
+	post_list = list()
+	author = request.user.profile
+
+	api_user = Site_API_User.objects.get(api_site__contains=request.get_host())
+	api_url = api_user.api_site + "author/" + profile_id + "/posts/"
+	resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+	try:
+		data = json.loads(resp.text)
+		posts = data["posts"]
+
+		for p in posts:
+			split = p['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['id'] = actual_id
+
+			split = p['author']['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['author']['id'] = actual_id
+
+			p['published'] = dateutil.parser.parse(p.get('published'))
+			post_list.append(p)
+	except Exception:
+		pass
+
+	results = get_readable_posts(author, post_list)
+	# createGithubPosts(author)
+
+	context = {}
+
+	context = {
+		'post_list': results,
+		'author_id': str(author.id)
+	}
+
+	context['user_obj'] = request.user
+
+	return render(request, 'posts/my_posts.html', context)
 
 # END POSTS AND COMMENTS

@@ -27,12 +27,10 @@
       {% else %}
           {% if not following %}
             <form action = '/author/{{ profile.id }}/profile' method = 'POST'>{% csrf_token %}
-                <div id='heart'>&#9829;</div>
                 <input id="follow_btn" type='submit' value='Send Friend Request'/>
             </form>
           {% else %}
-              <div id='dark_heart'>&#9829;</div>
-              <div id="following" disabled="disabled">Following</div>
+              <div id="following">Following</div>
           {% endif %}
       {% endif %}
     </span>

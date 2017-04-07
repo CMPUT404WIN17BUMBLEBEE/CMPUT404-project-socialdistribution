@@ -47,7 +47,7 @@ class PostDetailView(UpdateAPIView):
 
 
 class PostsAuthorCanSeeView(ListAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(unlisted=False)
     serializer_class = PostSerializer
     pagination_class = PostsPagination
     authentication_classes = (BasicAuthentication,)
@@ -235,7 +235,7 @@ class RemoteFriendView(GenericAPIView):
 class FriendRequestView(GenericAPIView):
     serializer_class = FriendRequestSerializer
     def post(self, request, *args, **kwargs):
-        # firend id handling
+        # friend id handling
         id = str(request.data.get('author').get('id')).split('author/')[-1]
         id = id.replace('/', '')
         request.data['author']['id'] = id

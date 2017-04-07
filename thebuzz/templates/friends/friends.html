@@ -84,9 +84,16 @@
               {{ friend.displayName }}
             </a>
           </div>
+
           <div class="unfrend_btn">
+              {% if not friend in real_friends %}
+            <form action = '/friends/' method = 'POST'>{% csrf_token %}
+                <input type="hidden" name='id' value="{{ friend.id }}">
+                <button id="following_btn" type='submit' name="button3">Send Friend Request</button>
+            </form>
+              {% endif %}
             <a href="/friends/{{ friend.id }}/delete_friend">
-                <button type="button">Delete</button>
+                <button class='following_btn' type="button">Delete</button>
             </a>
           </div>
         </div>
