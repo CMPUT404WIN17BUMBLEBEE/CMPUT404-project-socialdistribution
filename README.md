@@ -103,3 +103,13 @@ http://stackoverflow.com/a/35121204 Answered by GwynBleidD on Stack Overflow (ht
 
 Making a JQuery animation play before remove():
 http://stackoverflow.com/a/308034  Answered by seanb on Stack Overflow (http://stackoverflow.com/users/3354/seanb)
+
+Showing Markdown text in django template and close safe mode:  
+https://github.com/trentm/django-markdown-deux
+
+Django REST framework:  
+http://www.django-rest-framework.org/
+
+Embedded image in markdown:  
+https://github.com/atom/markdown-preview/issues/329
+
