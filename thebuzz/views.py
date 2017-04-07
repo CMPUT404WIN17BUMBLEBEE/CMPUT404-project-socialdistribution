@@ -598,14 +598,19 @@ def edit_post(request, post_id):
 			title = form.cleaned_data['title']
 			title = makeSafe(title)
 			content = form.cleaned_data['content']
-			# markdown = form.cleaned_data['markdown']
+			markdown = form.cleaned_data['markdown']
 			description = ''
 
 
-			# contentType = 'text/plain'
+			if markdown:
+				html = content
+				contentType = 'text/markdown'
+
+			else:
+				html = makeSafe(content)
+				contentType = 'text/plain'
 
 			#protective measures applied here
-			html = makeSafe(content)
 			description = html
 
 			if(len(description) >= 97):
@@ -802,13 +807,19 @@ def post_form_upload(request):
 			title = form.cleaned_data['title']
 			title = makeSafe(title)
 			content = form.cleaned_data['content']
-			# markdown = form.cleaned_data['markdown']
+			markdown = form.cleaned_data['markdown']
 			description = ''
 
-			#protective measures applied here
-			contentType = 'text/plain'
 
-			html = makeSafe(content)
+			if markdown:
+				html = content
+				contentType = 'text/markdown'
+
+			else:
+				html = makeSafe(content)
+				contentType = 'text/plain'
+			#protective measures applied here
+
 			description = html
 
 			if(len(description) >= 97):
