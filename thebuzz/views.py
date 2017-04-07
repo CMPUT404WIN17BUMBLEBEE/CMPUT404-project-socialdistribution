@@ -598,13 +598,11 @@ def edit_post(request, post_id):
 			title = form.cleaned_data['title']
 			title = makeSafe(title)
 			content = form.cleaned_data['content']
-			markdown = form.cleaned_data['markdown']
+			# markdown = form.cleaned_data['markdown']
 			description = ''
 
-			if markdown:
-				contentType = 'text/markdown'
-			else:
-				contentType = 'text/plain'
+
+			# contentType = 'text/plain'
 
 			#protective measures applied here
 			html = makeSafe(content)
@@ -653,7 +651,7 @@ def edit_post(request, post_id):
 				encodeImage = base64.b64encode(byteString)
 
 				post2 = Post.objects.create(title = title,
-						content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
+						content='data:' + contentType2 + ',' + encodeImage,
 						published=published,
 						associated_author = request.user.profile,
 						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -673,8 +671,8 @@ def edit_post(request, post_id):
 
 				post2.save()
 
-				if contentType == 'text/plain':
-					html = html + '<br>' + post2.content
+				post.contentType = 'text/markdown'
+				html = html + '  \n![](' + post2.content + ')'
 			#can't make a whole new post for images, will look funny. Try this??
 			#else:
 			#create a Post without an image here!
@@ -688,7 +686,6 @@ def edit_post(request, post_id):
 			post.visibleTo = visible_to
 			post.categories = c
 			# post.unlisted = form.cleaned_data['unlisted']
-			post.contentType = contentType
 
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
@@ -805,13 +802,11 @@ def post_form_upload(request):
 			title = form.cleaned_data['title']
 			title = makeSafe(title)
 			content = form.cleaned_data['content']
-			markdown = form.cleaned_data['markdown']
+			# markdown = form.cleaned_data['markdown']
 			description = ''
-			if markdown:
-				contentType = 'text/markdown'
-			else:
-				#protective measures applied here
-				contentType = 'text/plain'
+
+			#protective measures applied here
+			contentType = 'text/plain'
 
 			html = makeSafe(content)
 			description = html
@@ -860,7 +855,7 @@ def post_form_upload(request):
 				encodeImage = base64.b64encode(byteString)
 
 				post = Post.objects.create(title = title,
-					content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
+					content='data:' + contentType2 + ',' + encodeImage,
 					contentType=contentType2,
 					published=published,
 					associated_author = request.user.profile,
@@ -881,8 +876,8 @@ def post_form_upload(request):
 				print 'i made an image'
 				post.save()
 
-				if contentType == 'text/plain':
-					html = html + '<br>' + post.content
+				contentType = 'text/markdown'
+				html = html + '  \n![](' + post.content + ')'
 				#can't make a whole new post for images, will look funny. Try this??
 				#else:
 				#create a Post without an image here!

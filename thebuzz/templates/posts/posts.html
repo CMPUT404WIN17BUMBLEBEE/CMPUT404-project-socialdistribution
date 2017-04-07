@@ -39,17 +39,17 @@
               </div>
 
               <div class = "pContents">
-{#		{% if 'image' in post.contentType %}#}
-{#		<div>#}
-{#		<img src="{{post.content}}"></img>#}
-{#		</div>#}
-{#		{% else %}#}
-                  {% if post.contentType == 'text/markdown' %}
-                    {{ post.content | markdown }}
+                  {% if 'image' in post.contentType %}
+		            <div>
+		                <img src="{{ post.content }}"/>
+		            </div>
                   {% else %}
-                    {{ post.content | safe }}
-                  {% endif %}
-{#		{%endif %}#}
+                      {% if post.contentType == 'text/markdown' %}
+                        {{ post.content | markdown }}
+                      {% else %}
+                        {{ post.content | safe }}
+                      {% endif %}
+		        {%endif %}
               </div>
 
               <div id="delet-div">
@@ -59,8 +59,8 @@
                 {% if post.author.id == author_id %}
                   <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
                     <button class = "deleteButton" type="button">Delete</button>
-                  
-                {% endif %}	
+
+                {% endif %}
 
 
               </div>

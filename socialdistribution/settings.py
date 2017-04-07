@@ -132,3 +132,12 @@ STATICFILES_DIRS = (
 STATICFILES_STORAGE ='whitenoise.django.GzipManifestStaticFilesStorage'
 
 SITE_ID = 1
+
+MARKDOWN_DEUX_STYLES = {
+    "default": {
+        "extras": {
+            "code-friendly": None,
+        },
+        "safe_mode": False,
+    },
+}

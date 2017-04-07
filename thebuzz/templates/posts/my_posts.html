@@ -32,17 +32,17 @@
               </div>
 
               <div class = "pContents">
-{#		{% if 'image' in post.contentType %}#}
-{#		<div>#}
-{#		<img src="{{post.content}}"></img>#}
-{#		</div>#}
-{#		{% else %}#}
-                  {% if post.contentType == 'text/markdown' %}
-                    {{ post.content | markdown }}
+                  {% if 'image' in post.contentType %}
+                    <div>
+                        <img src="{{post.content}}"></img>
+                    </div>
                   {% else %}
-                    {{ post.content | safe }}
-                  {% endif %}
-{#		{%endif %}#}
+                      {% if post.contentType == 'text/markdown' %}
+                        {{ post.content | markdown }}
+                      {% else %}
+                        {{ post.content | safe }}
+                      {% endif %}
+                  {%endif %}
               </div>
 
               <div id="delet-div">

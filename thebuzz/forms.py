@@ -25,8 +25,6 @@ class ProfileForm(forms.ModelForm):
         }
 
 class PostForm(forms.ModelForm):
-    markdown = forms.BooleanField(required=False)
-
     class Meta:
         model = Post
         # fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']

@@ -25,10 +25,10 @@
         {% if post.contentType == 'text/markdown' %}
             {{ post.content | markdown }}
 
-{#	{% if 'image' in post.contentType %}#}
-{#	<div>#}
-{#	<img src="{{post.content}}"></img>#}
-{#	</div>#}
+        {% elif 'image' in post.contentType %}
+        <div>
+            <img src="{{ post.content }}"/>
+        </div>
 	    {% else %}
             {{ post.content | safe }}
 	    {%endif %}
