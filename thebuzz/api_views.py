@@ -47,7 +47,7 @@ class PostDetailView(UpdateAPIView):
 
 
 class PostsAuthorCanSeeView(ListAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(unlisted=False)
     serializer_class = PostSerializer
     pagination_class = PostsPagination
     authentication_classes = (BasicAuthentication,)

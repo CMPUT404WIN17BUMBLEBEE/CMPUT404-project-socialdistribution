@@ -4,7 +4,7 @@
 {% load tz %}
 {% load markdown_deux_tags %}
 
-{% block title %}News Feed{% endblock %}
+{% block title %}My Post{% endblock %}
 
 {% block extra_head %}
   <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
@@ -18,11 +18,6 @@
 
 {% block content %}
   <div id="news_feed_content">
-    <div>
-        <a href="/posts/post_form_upload.html" style="text-decoration: none">
-            <input id="newpost" type="button" value="Add New Post">
-        </a>
-    </div>
     <div id = "incoming">
     </div>
     {% if post_list %}

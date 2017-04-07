@@ -106,7 +106,7 @@ def is_authorized_to_read_local_post(requestor, post):
 
 
 def get_readable_local_posts(requestor, posts):
-    posts = posts.filter(unlisted=False)
+    posts = posts.all()
     queryset = Post.objects.none()
     for post in posts:
         if is_authorized_to_read_local_post(requestor, post):

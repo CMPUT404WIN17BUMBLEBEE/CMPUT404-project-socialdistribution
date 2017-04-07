@@ -672,7 +672,9 @@ def edit_post(request, post_id):
 				post2.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post2.id) })
 
 				post2.save()
-				html = html + '<br>' + post2.content
+
+				if contentType == 'text/plain':
+					html = html + '<br>' + post2.content
 			#can't make a whole new post for images, will look funny. Try this??
 			#else:
 			#create a Post without an image here!
@@ -883,7 +885,8 @@ def post_form_upload(request):
 				print 'i made an image'
 				post.save()
 
-				html = html + '<br>' + post.content
+				if contentType == 'text/plain':
+					html = html + '<br>' + post.content
 				#can't make a whole new post for images, will look funny. Try this??
 				#else:
 				#create a Post without an image here!
@@ -947,5 +950,46 @@ def DeletePost(request, post_id):
    post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
+@login_required(login_url = '/login/')
+def author_post(request, profile_id):
+	post_list = list()
+	author = request.user.profile
+
+	api_user = Site_API_User.objects.get(api_site__contains=request.get_host())
+	api_url = api_user.api_site + "author/" + profile_id + "/posts/"
+	resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+	try:
+		data = json.loads(resp.text)
+		posts = data["posts"]
+
+		for p in posts:
+			split = p['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['id'] = actual_id
+
+			split = p['author']['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['author']['id'] = actual_id
+
+			p['published'] = dateutil.parser.parse(p.get('published'))
+			post_list.append(p)
+	except Exception:
+		pass
+
+	results = get_readable_posts(author, post_list)
+	# createGithubPosts(author)
+
+	context = {}
+
+	context = {
+		'post_list': results,
+		'author_id': str(author.id)
+	}
+
+	context['user_obj'] = request.user
+
+	return render(request, 'posts/my_posts.html', context)
 
 # END POSTS AND COMMENTS
