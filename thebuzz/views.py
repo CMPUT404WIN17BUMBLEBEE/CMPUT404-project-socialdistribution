@@ -394,7 +394,6 @@ def createGithubPosts(request):
 
 	    jdata = []
 	    index = 0
-	    print fgithubs
 	    while(index<len(fgithubs)):
 		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 	
@@ -721,7 +720,7 @@ def add_comment(request, post_id):
 	post = get_Post(post_id)
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
-		raise Http404
+		return HttpResponse(status=404)
 
 	author = Profile.objects.get(user_id=request.user.id)
 
@@ -760,28 +759,22 @@ def add_comment(request, post_id):
 
 		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
 
-		newpost = get_Post(post_id) #get the version with the new comment in it to send as response
-		#bug: only returns 5 comments		
-
-
-		#for testing purposes only!
-		#p = Comment.objects.filter(associated_post = post_id)
-		#print len(p)
-		#for index in range(0,len(p)):
-		#	print p[index].comment
+		newpost = get_Post(post_id) #get the version with the new comment in it
 
 		if newpost == {} or newpost == {u'detail': u'Not found.'}:
 			return HttpResponse(status=404)
-		newpost["currentId"] = str(request.user.profile.id);
-		print newpost
-		for comment in newpost['comments']:
-			comment['published'] = json.dumps(dateutil.parser.parse(newpost['published'] ).strftime('%B %d, %Y, %I:%M %p'))
-			#remove quotations around comment and date
-			comment['published'] = comment['published'][1:-1]
-			comment['comment'] = comment['comment'][1:-1]
+
+		newcomment = newpost["comments"][0]
+		newcomment['published'] = json.dumps(dateutil.parser.parse(newcomment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+		#remove quotations around comment and date
+		newcomment['published'] = newcomment['published'][1:-1]
+		newcomment['comment'] = newcomment['comment'][1:-1]
+		newcomment["currentId"] = str(request.user.profile.id);
+
 		if(resp.status_code == 200):
-			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
-			return JsonResponse(newpost)
+			resp = JsonResponse(newcomment)
+			resp.status_code = 201
+			return resp
 		if(resp.status_code == 404):
 			return HttpResponse(status=404)
 		if(resp.status_code == 403):
