@@ -9,7 +9,7 @@
 {% block extra_head %}
   <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
   <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script>
   <script  type="text/javascript">
    var currentUser = "{{request.user.profile.id }}";
   </script>
@@ -18,8 +18,13 @@
 
 {% block content %}
   <div id="news_feed_content">
+<<<<<<< HEAD
     <div>
         <a href="/posts/post_form_upload.html" style="text-decoration: none">
+=======
+    <div id="add_post_btn">
+        <a href="/posts/post_form_upload.html">
+>>>>>>> master
             <input id="newpost" type="button" value="Add New Post">
         </a>
     </div>
@@ -33,7 +38,7 @@
                   <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
                 </div>
                 <div id="post-title">
-                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
+                  {{ post.title }}
                 </div>
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
@@ -51,15 +56,27 @@
                   {% endif %}
 {#		{%endif %}#}
               </div>
-	     
+
               <div id="delet-div">
+
+		<div class = "hidden">{{post.id}}</div>
 		<button class = "commentButton">Comment</button>
                 {% if post.author.id == author_id %}
-                  <!--<a href="/posts/{{ post.id }}/delete">-->
+                  <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
                     <button class = "deleteButton" type="button">Delete</button>
-                  <!--</a>-->
-                {% endif %}
+                  
+                {% endif %}	
+
+
               </div>
+	{% if post.categories %}
+        <div id="post_categories">
+          {% for category in post.categories %}
+            <span id="category_values">#{{ category | safe }}</span>
+		{% endfor %}
+		</div>
+	{% endif %}
+	
           </div>
       {% endfor %}
     {% else %}

@@ -58,6 +58,11 @@ button {
   color: #000000;
 }
 
+#add_post_btn a, #add_post_btn a:visited, #add_post_btn a:hover{
+  color: #ffd11a;
+  text-decoration: none;
+}
+
 #delet-div {
   width: 100%;
   text-align: right;
@@ -84,5 +89,15 @@ img {
 #incomingButton:hover {
 
 background-color: #d6af15;
+
+}
+
+
+#post_categories{
+align: left;
+
+
+.pContents {
+  padding: 15px 0px;
 
 }
