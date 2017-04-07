@@ -36,17 +36,18 @@
                 <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
               </div>
 
-              <div class="pContents">
-          		    {% if 'image' in post.contentType %}
-          		<div>
-          		<img src="{{post.content}}"></img>
-          		</div>
-            		{% else %}
-                    {{ post.content | safe }}
-            		{%endif %}
+              <div class = "pContents">
+		{% if 'image' in post.contentType %}
+		<div>
+		<img src="{{post.content}}"></img>
+		</div>
+		{% else %}
+                {{ post.content | safe }}
+		{%endif %}
               </div>
 
               <div id="delet-div">
+
 		<div class = "hidden">{{post.id}}</div>
 		<button class = "commentButton">Comment</button>
                 {% if post.author.id == author_id %}
@@ -54,6 +55,7 @@
                     <button class = "deleteButton" type="button">Delete</button>
                   
                 {% endif %}	
+
 
               </div>
 	{% if post.categories %}
