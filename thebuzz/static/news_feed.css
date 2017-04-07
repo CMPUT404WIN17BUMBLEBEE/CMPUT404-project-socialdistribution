@@ -65,7 +65,10 @@ button {
 
 #buttons-div {
   width: 100%;
-  text-align: right;
+}
+
+#author_btns {
+  float: right;
 }
 
 img {
@@ -90,4 +93,8 @@ img {
 
 background-color: #d6af15;
 
+}
+
+.pContents{
+  padding: 15px 0px;
 }
