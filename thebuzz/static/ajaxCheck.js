@@ -129,6 +129,12 @@ postDelete.append(commentbtn);
 if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
 
+	var editbtn = document.createElement("button");
+	editbtn.className = "editButton";
+	editbtn.addEventListener("click", function(){
+	location.href = postInfo["id"] + "/edit_post"; //TODO: make sure this works if i get to obtaining incoming regular posts
+	});
+	editbtn.innerHTML = "Edit";
 	var delbtn = document.createElement("button");
 	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
