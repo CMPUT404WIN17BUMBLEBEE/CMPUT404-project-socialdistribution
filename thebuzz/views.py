@@ -690,7 +690,7 @@ def edit_post(request, post_id):
 			post.visibility = visibility
 			post.visibleTo = visible_to
 			post.categories = c
-			# post.unlisted = form.cleaned_data['unlisted']
+			post.unlisted = form.cleaned_data['unlisted']
 
 			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
@@ -903,7 +903,7 @@ def post_form_upload(request):
 				visibility = visibility,
 				visibleTo = visible_to,
 				categories = c,
-				unlisted = False,
+				unlisted = form.cleaned_data['unlisted'],
 				)
 
 			#update post object to proper origin and source

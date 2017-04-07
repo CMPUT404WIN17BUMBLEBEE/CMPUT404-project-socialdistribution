@@ -28,8 +28,7 @@ class PostForm(forms.ModelForm):
     markdown = forms.BooleanField(required=False)
     class Meta:
         model = Post
-        # fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']
-        fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories']
+        fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']
 
         CHOICES=(('PUBLIC','Public'),
             ('FRIENDS','Friends'),
