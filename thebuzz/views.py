@@ -875,7 +875,7 @@ def post_form_upload(request):
 				encodeImage = base64.b64encode(byteString)
 
 				post = Post.objects.create(title = title,
-					content='data:' + contentType2 + ',' + encodeImage,
+					content='<img src=\"data:' + contentType2 + ',' + encodeImage+'\">',
 					contentType=contentType2,
 					published=published,
 					associated_author = request.user.profile,
@@ -885,7 +885,7 @@ def post_form_upload(request):
 					visibility = visibility,
 					visibleTo = visible_to,
 					categories = c,
-					unlisted = form.cleaned_data['unlisted'],
+					unlisted = True,
 					)
 				#don know if i need this anymore...
 				myImg = Img.objects.create(associated_post = post,
@@ -896,6 +896,7 @@ def post_form_upload(request):
 				print 'i made an image'
 				post.save()
 
+				html = html + '<br>' + post.content
 				#can't make a whole new post for images, will look funny. Try this??
 				#else:
 				#create a Post without an image here!
@@ -910,7 +911,7 @@ def post_form_upload(request):
 				visibility = visibility,
 				visibleTo = visible_to,
 				categories = c,
-				unlisted = form.cleaned_data['unlisted'],
+				unlisted = False,
 				)
 
 			#update post object to proper origin and source
