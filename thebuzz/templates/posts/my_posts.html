@@ -49,9 +49,11 @@
               <div id="delet-div">
                   <div class = "hidden">{{post.id}}</div>
                   {% if post.author.id == author_id %}
+		   {% if post.title != "Github Activity" %}
                       <a href="/posts/{{ post.id }}/edit_post">
                           <button class = "editButton" type="button">Edit</button>
                       </a>
+		   {% endif %}
                       <button class = "deleteButton" type="button">Delete</button>
                   {% endif %}
               </div>
