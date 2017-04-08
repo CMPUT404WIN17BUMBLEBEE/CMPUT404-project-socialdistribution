@@ -409,7 +409,8 @@ def createGithubPosts(request):
 	    index = 0
 	    
 	    while(index<len(fgithubs)):
-		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
+		name = fgithubs[index].split("/")[-1]
+		resp = requests.get("https://api.github.com/users/" + name + "/events") #gets newest to oldest events
 	
 		jdata.append(resp.json())
 		
