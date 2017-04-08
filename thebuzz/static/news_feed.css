@@ -185,3 +185,7 @@ button:hover{
 #delet-div a {
   text-decoration: none;
 }
+
+.githubAvatar{
+width: 100px;
+}

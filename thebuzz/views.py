@@ -453,7 +453,7 @@ def createGithubPosts(request):
 
 				#make posts for the database
 				#for i in range(0,len(contents)):
-			lilavatar = "<img src='" + avatars[-1] + "'/>"
+			lilavatar = "<img class = 'githubAvatar' src='" + avatars[-1] + "'/>"
 			post = Post.objects.create(title = gtitle,
 				      content= lilavatar + "<p>" + contents[-1] ,
 				      published=pubtime[-1],
