@@ -131,8 +131,6 @@ commentbtn.className = "commentButton"
 commentbtn.addEventListener("click", commentPost);
 commentbtn.innerHTML = "Comments";
 postDelete.append(commentbtn);
-console.log(postInfo["currentId"]);
-console.log(postInfo["associated_author"]);
 
 if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
