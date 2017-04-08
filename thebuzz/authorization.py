@@ -17,13 +17,12 @@ def is_following(host, id1, id2):
         try:
             if 'author/' in str(id2):
                 id2 = [x for x in id2.split('/') if x][-1]
-                
+
             api_user = Site_API_User.objects.get(api_site__contains=host)
             api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2) + '/'
             resp = requests.get(api_url, auth=(api_user.username, api_user.password))
             return json.loads(resp.content).get('friends')
         except Exception as e:
-            #print("Error: authorization-friendschecking     " + str(e))
             pass
         return False
 
@@ -209,7 +208,7 @@ def is_authorized_to_read_post(requestor, post):
                 return is_following(post['author']['host'], post['author']['id'], requestor.url)
             except:
                 return False
-            
+
         # FOAF
         if post['visibility'] == "FOAF":
             try:
@@ -231,13 +230,6 @@ def is_authorized_to_read_post(requestor, post):
                 resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
                                      headers={'Content-Type': 'application/json'})
 
-                # print('===========================')
-                # print('FOAF POST DEBUGGING')
-                # print('api_url: '  + api_url)
-                # print('data: \n'  + json.dumps(data, indent=4))
-                # print('status_code: ' +str(resp.status_code))
-                # print('===========================')
-
                 if resp.status_code == 200:
                     return True
                 else:
@@ -256,4 +248,3 @@ def get_readable_posts(requestor, posts):
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
     results.sort(key=lambda k: k['published'], reverse=True)
     return results
-

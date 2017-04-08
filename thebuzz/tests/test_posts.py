@@ -9,11 +9,9 @@ class post_tests(TestCase):
         global user_id
         password = make_password("password123")
         user = User.objects.create(username="TestUser", password=password)
-	#author = Profile.objects.get(user=user)
         user_id = user.id
 
     def test_create_post(self):
-        #user = User.objects.get(id=user_id)
         user = Profile.objects.get(user__id = user_id)
 
         title = "Test Title"
@@ -75,9 +73,7 @@ class post_tests(TestCase):
         self.assertIsInstance(comment, Comment, "Not a comment object")
 
     def test_get_posts(self):
-	#print user_id
-        user = User.objects.get(id=user_id) #Profile.objects.all()#get(id=user_id)
-	print user
+        user = User.objects.get(id=user_id)
         response = self.client.get("/posts/")
         self.assertEquals(response.status_code, 302, "able to get to posts page")
 

@@ -168,7 +168,7 @@ def edit_profile(request, profile_id):
 # ------------ FRIENDS VIEWS ---------------------
 def friends (request):
 	invalid_url = False
-
+	existed = False
 	authors = list()
 	sites = Site_API_User.objects.all()
 	for site in sites:
@@ -214,18 +214,20 @@ def friends (request):
 				invalid_url = True
 				# raise e
 		else:
-			friend_data = [author for author in authors if str(author['id']) == request.POST['id']][0]
+			friend = request.user.profile.following.get(id=request.POST['id'])
+			existed = True
 			invalid_url = False
 
 		if not invalid_url:
-			friend_serializer = FriendSerializer(data=friend_data)
-			friend_serializer.is_valid(raise_exception=True)
-			friend_serializer.save()
-			friend = Friend.objects.get(id=friend_data['id'])
-
-			# follow that person
 			author = request.user.profile
-			author.following.add(friend)
+			if not existed:
+				friend_serializer = FriendSerializer(data=friend_data)
+				friend_serializer.is_valid(raise_exception=True)
+				friend_serializer.save()
+				friend = Friend.objects.get(id=friend_data['id'])
+
+				# follow that person
+				author.following.add(friend)
 
 			# send the friend request
 			api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
@@ -575,6 +577,15 @@ def post_action(request, post_id):
 	    else:
 		return HttpResponse(status=403)
 
+@login_required(login_url='/login/')
+def my_post_delete(request, profile_id, post_id):
+	if request.method == 'DELETE':
+		try:
+			post = Post.objects.get(id=post_id)
+			post.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status=404)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
