@@ -535,6 +535,7 @@ def get_Post(post_id):
 
 	post['id'] = [x for x in post['id'].split("/") if x][-1]
 	post['author']['id'] = [x for x in post['author']['id'].split("/") if x][-1]
+	post['comments'].sort(key=lambda k: k['published'], reverse=True)
 
 	return post
 
@@ -571,7 +572,7 @@ def post_action(request, post_id):
 
 		    #remove quotations around comment and date
 		    comment['published'] = comment['published'][1:-1]
-		    comment['comment'] = comment['comment'][1:-1]
+		    # comment['comment'] = comment['comment'][1:-1]
 
 		#Posts returned from api's have comments on them no need to retrieve them separately
 		post["currentId"] = str(request.user.profile.id);
@@ -748,6 +749,7 @@ def add_comment(request, post_id):
 	if request.method == 'POST':
 		#now accepts comments without the need for forms or csrf validation
 		postedComment = json.dumps(request.body)
+		postedComment = postedComment[1:-1]
 		try:
 			post_host = post.get('author').get('host')
 			api_user = Site_API_User.objects.get(api_site__contains=post_host)
@@ -786,7 +788,7 @@ def add_comment(request, post_id):
 		newcomment['published'] = json.dumps(dateutil.parser.parse(newcomment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
 		#remove quotations around comment and date
 		newcomment['published'] = newcomment['published'][1:-1]
-		newcomment['comment'] = newcomment['comment'][1:-1]
+		# newcomment['comment'] = newcomment['comment'][1:-1]
 		newcomment["currentId"] = str(request.user.profile.id);
 
 		if(resp.status_code == 200):
