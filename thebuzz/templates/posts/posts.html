@@ -17,69 +17,65 @@
 
 
 {% block content %}
-  <div id="news_feed_content">
-    <div id="add_post_btn">
-        <a href="/posts/post_form_upload.html">
-            <input id="newpost" type="button" value="Add New Post">
-        </a>
-    </div>
-    <div id = "incoming">
-    </div>
-    {% if post_list %}
-      {% for post in post_list %}
-          <div id="post-blocks">
-              <div id="post-title-bar">
-                <div id="author">
-                  <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
-                </div>
-                <div id="post-title">
-                  {{ post.title }}
-                </div>
-                <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
-              </div>
-
-              <div class = "pContents">
-                  {% if 'image' in post.contentType %}
-		            <div>
-		                <img src="{{ post.content }}"/>
-		            </div>
-                  {% else %}
-                      {% if post.contentType == 'text/markdown' %}
-                        {{ post.content | markdown }}
-                      {% else %}
-                        {{ post.content | safe }}
-                      {% endif %}
-		        {%endif %}
-              </div>
-
-              <div id="delet-div">
-
-		<div class = "hidden">{{post.id}}</div>
-		<button class = "commentButton">Comment</button>
-                {% if post.author.id == author_id %}
-                  <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
-                    <button class = "deleteButton" type="button">Delete</button>
-
-                {% endif %}
-
-
-              </div>
-	{% if post.categories %}
-        <div id="post_categories">
-          {% for category in post.categories %}
-            <span id="category_values">#{{ category | safe }}</span>
-		{% endfor %}
-		</div>
-	{% endif %}
-
-          </div>
-      {% endfor %}
-    {% else %}
-        <p id="no-posts">No post currently available.</p>
-    {% endif %}
+<div id="news_feed_content">
+  <div id="add_post_btn">
+    <a href="/posts/post_form_upload.html">
+      <input id="newpost" type="button" value="Add New Post">
+    </a>
   </div>
 
+  <div id = "incoming">
+  </div>
 
+  {% if post_list %}
+    {% for post in post_list %}
+      <div id="post-blocks">
+        <div id="post-title-bar">
+          <div id="author">
+            <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
+          </div>
+          <div id="post-title">
+            {{ post.title }}
+          </div>
+          <div id="post-date">{{ post.published }}</div>
+        </div>
 
+        <div class = "pContents">
+          {% if 'image' in post.contentType %}
+            <div>
+              <img src="{{ post.content }}"/>
+            </div>
+          {% else %}
+            {% if post.contentType == 'text/markdown' %}
+              {{ post.content | markdown }}
+            {% else %}
+              {{ post.content | safe }}
+            {% endif %}
+          {%endif %}
+        </div>
+
+        <div id="delet-div">
+          <div class = "hidden">{{post.id}}</div>
+          <button class = "commentButton">Comment</button>
+          {% if post.author.id == author_id %}
+            <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
+            <button class = "deleteButton" type="button">Delete</button>
+          {% endif %}
+        </div>
+
+        {% if post.categories %}
+          <div id="post_categories">
+            {% for category in post.categories %}
+              <span id="category_values">#{{ category | safe }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+      </div>
+  {% endfor %}
+  {% else %}
+    <p id="no-posts">No post currently available.</p>
+  {% endif %}
+</div>
 
 {% endblock %}

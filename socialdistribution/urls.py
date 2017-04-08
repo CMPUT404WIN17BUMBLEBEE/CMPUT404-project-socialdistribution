@@ -6,7 +6,6 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from rest_framework import routers
-#from thebuzz import api_views, views
 
 from thebuzz.api_views import *
 import thebuzz.views
@@ -14,9 +13,6 @@ import thebuzz.views
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/
 router = routers.DefaultRouter()
-#router.register(r'posts', PublicPostsViewSet, base_name="Posts")
-#router.register(r'author/posts', PostsAuthorCanSeeViewSet, base_name="PostsAuthorCanSee")
-#router.register(r'author/(?P<author_id>[a-z0-9-]+)/posts', AuthorPostsViewSet, base_name="AuthorPosts")
 router.register(r'author', ProfileViewSet, base_name="Profile")
 router.register(r'author/(?P<author_id>[a-z0-9-]+)/friends', FriendViewSet, base_name="Friend")
 
@@ -45,7 +41,6 @@ urlpatterns = [
     url(r'^author/(?P<profile_id>[0-9a-f-]+)/profile$', 'thebuzz.views.profile', name='profile'),
     url(r'^author/(?P<profile_id>[0-9a-f-]+)/edit_profile$', 'thebuzz.views.edit_profile', name='edit_profile'),
 
-    #Change 'thebuzz.view.[] so that it calls the appropriate method in views to get or add
     url(r'^friends/$', 'thebuzz.views.friends', name='friends'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/delete_friend$', 'thebuzz.views.delete_friend', name='delete_friend'),
     url(r'^friends/(?P<profile_id>[0-91-f-]+)/accept_request$', 'thebuzz.views.accept_request', name='accept_request'),
@@ -54,7 +49,6 @@ urlpatterns = [
 
 
     # API urls
-    #url(r'^', include('api_urls')),
     url(r'^api/posts/$', PostListView.as_view(), name='post-list'),
     url(r'^api/posts/(?P<post_id>[a-z0-9-]+)/$', PostDetailView.as_view(), name='post-detail'),
     url(r'^api/author/posts/$', PostsAuthorCanSeeView.as_view(), name='posts-author-can-see'),
@@ -71,7 +65,3 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()
-
-#url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
-#url(r'^ajax/uploadText/', 'thebuzz.views.uploadText'),
-#url(r'^ajax/uploadImage/', 'thebuzz.views.image_form_upload'),

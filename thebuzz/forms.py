@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, Textarea, ChoiceField
 from datetime import datetime
 import CommonMark
-
 from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):

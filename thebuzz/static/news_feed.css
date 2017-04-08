@@ -74,7 +74,6 @@ img {
 }
 
 #incomingButton {
-
   text-align: center;
   background-color: #ffd11a;
   color: #000000;
@@ -83,15 +82,11 @@ img {
   margin: 25px auto;
   height: 50px;
   font-size: 14pt;
-
 }
 
 #incomingButton:hover {
-
-background-color: #d6af15;
-
+  background-color: #d6af15;
 }
-
 
 #post_categories {
   align: left;
@@ -101,7 +96,6 @@ background-color: #d6af15;
   padding: 15px 0px;
 
 }
-
 
 .commentButton {
  width: 100px;
@@ -181,13 +175,11 @@ width:100px;
 }
 
 button:hover{
-
-background-color: #e8d99d;
-
+  background-color: #e8d99d;
 }
 
 #delet-div{
-text-align: right;
+  text-align: right;
 }
 
 #delet-div a {

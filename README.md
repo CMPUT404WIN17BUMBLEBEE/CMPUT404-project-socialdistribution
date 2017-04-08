@@ -39,12 +39,7 @@ https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wi
 
 Heroku demo:
 ============
-https://secret-crag-38714.herokuapp.com/
-
-
-https://polar-coast-16778.herokuapp.com/
-
-https://polar-coast-16779.herokuapp.com/
+https://mysterious-taiga-11180.herokuapp.com/
 
 Resources:  
 =========
@@ -112,4 +107,3 @@ http://www.django-rest-framework.org/
 
 Embedded image in markdown:  
 https://github.com/atom/markdown-preview/issues/329 Answered by lee-dohm on Github (https://github.com/lee-dohm)
-
