@@ -106,7 +106,7 @@ author.id = "author";
 author.innerHTML = "<a href = '/author/" + postInfo["associated_author"] + "/profile'>" + postInfo["displayName"] + "</a>";
 var postTitle = document.createElement("div");
 postTitle.id = "post-title";
-postTitle.innerHTML = "<a id = 'postlink' href = \"/posts/" + postInfo["id"] +"\">" + postInfo["title"] +"</a>"
+postTitle.innerHTML = postInfo["title"]; 
 var postDate = document.createElement("div");
 postDate.id = "post-date";
 postDate.innerHTML = postInfo["published"];
@@ -120,11 +120,19 @@ postContents.innerHTML = postInfo["content"];
 container.appendChild(postContents);
 var postDelete = document.createElement("div");
 postDelete.id = "delet-div";
+
+var hiddenVal = document.createElement("div");
+hiddenVal.className = "hidden";
+hiddenVal.textContent = postInfo["id"];
+postDelete.append(hiddenVal);
+
 var commentbtn = document.createElement("button");
 commentbtn.className = "commentButton"
 commentbtn.addEventListener("click", commentPost);
-commentbtn.innerHTML = "Comment";
+commentbtn.innerHTML = "Comments";
 postDelete.append(commentbtn);
+console.log(postInfo["currentId"]);
+console.log(postInfo["associated_author"]);
 
 if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
@@ -135,6 +143,7 @@ if(postInfo["currentId"] === postInfo["associated_author"]){
 	location.href = postInfo["id"] + "/edit_post"; //TODO: make sure this works if i get to obtaining incoming regular posts
 	});
 	editbtn.innerHTML = "Edit";
+	postDelete.append(editbtn);
 	var delbtn = document.createElement("button");
 	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
