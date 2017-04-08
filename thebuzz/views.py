@@ -1,6 +1,6 @@
 from urlparse import urlparse
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404,JsonResponse,HttpResponseForbidden
 from django.contrib.auth.forms import UserCreationForm
@@ -96,7 +96,7 @@ def profile(request, profile_id):
 				foundProfile = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			foundProfile = False
 			pass
@@ -168,7 +168,7 @@ def edit_profile(request, profile_id):
 # ------------ FRIENDS VIEWS ---------------------
 def friends (request):
 	invalid_url = False
-
+	existed = False
 	authors = list()
 	sites = Site_API_User.objects.all()
 	for site in sites:
@@ -196,8 +196,7 @@ def friends (request):
 			# get the person i want to follow
 			friend_data = [author for author in authors if str(author['id'])==request.POST['befriend']][0]
 			invalid_url = False
-		#elif request.POST.get("button2"):
-		else:
+		elif request.POST.get("button2"):
 			#profile_url = "http://127.0.0.1:8000/api/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e"
 			profile_url = str(request.POST['befriendremote'])
 			try:
@@ -214,16 +213,21 @@ def friends (request):
 			except Exception:
 				invalid_url = True
 				# raise e
+		else:
+			friend = request.user.profile.following.get(id=request.POST['id'])
+			existed = True
+			invalid_url = False
 
 		if not invalid_url:
-			friend_serializer = FriendSerializer(data=friend_data)
-			friend_serializer.is_valid(raise_exception=True)
-			friend_serializer.save()
-			friend = Friend.objects.get(id=friend_data['id'])
-
-			# follow that person
 			author = request.user.profile
-			author.following.add(friend)
+			if not existed:
+				friend_serializer = FriendSerializer(data=friend_data)
+				friend_serializer.is_valid(raise_exception=True)
+				friend_serializer.save()
+				friend = Friend.objects.get(id=friend_data['id'])
+
+				# follow that person
+				author.following.add(friend)
 
 			# send the friend request
 			api_user = get_object_or_404(Site_API_User, api_site__contains=friend.host)
@@ -276,7 +280,17 @@ def friends (request):
 			if json.loads(resp.content).get('friends'):
 				real_friends.append(following_friend)
 		except Exception as e:
-			print(e)
+            # team4 connection
+			try:
+				api_user = Site_API_User.objects.get(api_site__contains=following_friend.host)
+				api_url = api_user.api_site + "author/" + str(following_friend.id) + '/friends/'  + str(request.user.profile.id) + '/'
+				resp = requests.get(api_url, auth=(api_user.username, api_user.password),
+									headers={'Content-Type': 'application/json'})
+				if json.loads(resp.content).get('friends'):
+					real_friends.append(following_friend)
+			except:
+				pass
+			# print(e)
 			continue
 
 	return render(request, 'friends/friends.html',{'authors': authors, 'following': following, 'friend_requests': friend_requests, 'real_friends': real_friends, 'invalid_url': invalid_url })
@@ -316,8 +330,7 @@ def posts(request):
 		api_user = site.username
 		api_password = site.password
 		api_url = site.api_site + "author/posts/"
-		if "blooming-mountain" in site.api_site:
-			api_url = site.api_site + "author/posts"
+
 		resp = requests.get(api_url, auth=(api_user, api_password))
 		try:
 			data = json.loads(resp.text)
@@ -335,14 +348,13 @@ def posts(request):
 				p['author']['id'] = actual_id
 
 				p['published'] = dateutil.parser.parse(p.get('published'))
-				post_list.append(p)
+				if not p['unlisted']:
+					post_list.append(p)
 		except Exception:
 			continue
 
 	results = get_readable_posts(author, post_list)
 	#createGithubPosts(author)
-
-	context = {}
 
 	context = {
 		'post_list': results,
@@ -356,7 +368,7 @@ def posts(request):
 #def createFriendsGithubs(request):
 @login_required(login_url = '/login/')
 def createGithubPosts(request):
-	#generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
+#generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
 	#creates and returns a list of posts of ones that haven't been posted yet
     if request.user.is_authenticated:
         if request.method == 'GET':
@@ -484,7 +496,7 @@ def createGithubPosts(request):
 
         return HttpResponse(json.dumps(jtmp),content_type = "application/json")
     else:
-		return HttpResponse(status=401)
+	return HttpResponse(status=401)
 
 def get_Post(post_id):
 	post = {}
@@ -506,7 +518,7 @@ def get_Post(post_id):
 				isPostData = False
 				pass
 		#Results in an AttributeError if the object does not exist at that site
-		except  AttributeError:
+		except:
 			#Setting isPostData to False since that site didn't have the data
 			isPostData = False
 			pass
@@ -516,13 +528,12 @@ def get_Post(post_id):
 		if isPostData and not post == {u'detail': u'Not found.'}:
 			break
 
-	split = post['id'].split("/")
-	actual_id = split[0]
+	# for team4
+	if post.get('id') is None:
+		post = post['posts'][0]
 
-	if len(split) > 1:
-		actual_id = split[4]
-
-	post['id'] = actual_id
+	post['id'] = [x for x in post['id'].split("/") if x][-1]
+	post['author']['id'] = [x for x in post['author']['id'].split("/") if x][-1]
 
 	return post
 
@@ -551,7 +562,7 @@ def post_action(request, post_id):
 		return HttpResponse(status=404)
 
 	    if is_authorized_to_read_post(request.user.profile, post):
-		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))		
+		post['published'] = json.dumps(dateutil.parser.parse(post['published'] ).strftime('%B %d, %Y, %I:%M %p'))
 		#post['published'] = dateutil.parser.parse(post.get('published'))
 		for comment in post['comments']:
 		    comment['published'] = json.dumps(dateutil.parser.parse(comment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
@@ -559,13 +570,22 @@ def post_action(request, post_id):
 		    #remove quotations around comment and date
 		    comment['published'] = comment['published'][1:-1]
 		    comment['comment'] = comment['comment'][1:-1]
-			
+
 		#Posts returned from api's have comments on them no need to retrieve them separately
 		post["currentId"] = str(request.user.profile.id);
 		return HttpResponse(json.dumps(post),content_type = "application/json")
 	    else:
 		return HttpResponse(status=403)
 
+@login_required(login_url='/login/')
+def my_post_delete(request, profile_id, post_id):
+	if request.method == 'DELETE':
+		try:
+			post = Post.objects.get(id=post_id)
+			post.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status=404)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')
@@ -603,26 +623,21 @@ def edit_post(request, post_id):
 			markdown = form.cleaned_data['markdown']
 			description = ''
 
+
 			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
-
+				html = content
 				contentType = 'text/markdown'
 
 			else:
-			#protective measures applied here
 				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
-
 				contentType = 'text/plain'
+
+			#protective measures applied here
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
+
 			published = timezone.now()
 
 			image = ''
@@ -654,16 +669,16 @@ def edit_post(request, post_id):
 				cType = imghdr.what(image)
 
 				if(cType == 'png'):
-					contentType = 'image/png;base64'
+					contentType2 = 'image/png;base64'
 				elif(cType == 'jpeg'):
-					contentType = 'image/jpeg;base64'
+					contentType2 = 'image/jpeg;base64'
 
 				f = image.read()
 				byteString = bytearray(f)
 				encodeImage = base64.b64encode(byteString)
 
 				post2 = Post.objects.create(title = title,
-						content='data:' + contentType + ',' + encodeImage,
+						content='data:' + contentType2 + ',' + encodeImage,
 						published=published,
 						associated_author = request.user.profile,
 						source = request.META.get('HTTP_REFERER'),#should pointto author/postid
@@ -684,6 +699,8 @@ def edit_post(request, post_id):
 
 				post2.save()
 
+				post.contentType = 'text/markdown'
+				html = html + '  \n![](' + post2.content + ')'
 			#can't make a whole new post for images, will look funny. Try this??
 			#else:
 			#create a Post without an image here!
@@ -710,7 +727,7 @@ def edit_post(request, post_id):
 			# 	post.content += '\n <div><img src=' + post2.content + '></img></div>'
 			# post.save()
 
-			return HttpResponseRedirect(reverse('post_detail', kwargs={'post_id': str(post.id) }))
+			return redirect('/posts')
 	else:
 		post = Post.objects.get(id = post_id)
 		form = PostForm(instance=post)
@@ -722,67 +739,58 @@ def add_comment(request, post_id):
 	post = get_Post(post_id)
 	#Check that we did find a post, if not raise a 404
 	if post == {} or post == {u'detail': u'Not found.'}:
-		raise Http404
+		return HttpResponse(status=404)
 
 	author = Profile.objects.get(user_id=request.user.id)
 
 	if request.method == 'POST':
 		#now accepts comments without the need for forms or csrf validation
 		postedComment = json.dumps(request.body)
-
-		post_host = post.get('author').get('host')
-		if not post_host.endswith("/"):
-				post_host = post_host + "/"
-
-		id = str(author.id)
-		if not post_host == Site.objects.get_current().domain:
-			id = author.url
-
-		api_url = str(post_host) + 'posts/' + str(post_id) + '/comments/'
-		data = {
-				"query": "addComment",
-				"post": post_host + 'posts/' + str(post_id) + '/',
-				"comment":{
-					"author": {
-						"id": id,
-						"url": author.url,
-						"host": author.host,
-						"displayName": author.displayName,
-						"github": author.github
-					},
-					"comment": postedComment,
-					"contentType": "text/plain",
-					"published":str(datetime.now()),
-					"id":str(uuid.uuid4())
-				}
+		try:
+			post_host = post.get('author').get('host')
+			api_user = Site_API_User.objects.get(api_site__contains=post_host)
+			api_url = api_user.api_site + 'posts/' + str(post_id) + '/comments/'
+			data = {
+					"query": "addComment",
+					"post": api_user.api_site + 'posts/' + str(post_id) + '/',
+					"comment":{
+						"author": {
+							"id": author.url,
+							"url": author.url,
+							"host": author.host,
+							"displayName": author.displayName,
+							"github": author.github
+						},
+						"comment": postedComment,
+						"contentType": "text/plain",
+						"published":str(datetime.now()),
+						"id":str(uuid.uuid4())
+					}
 			}
 
-		api_user = Site_API_User.objects.get(api_site__contains=post_host)
+			resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
+							 headers={'Content-Type': 'application/json'})
+		except Exception as e:
+			# print("Error: views-addingcomment   "+ str(e))
+			pass
 
-		resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password), headers={'Content-Type':'application/json'})
+		newpost = get_Post(post_id) #get the version with the new comment in it
 
-		newpost = get_Post(post_id) #get the version with the new comment in it to send as response
-		#bug: only returns 5 comments		
-
-
-		#for testing purposes only!
-		#p = Comment.objects.filter(associated_post = post_id)
-		#print len(p)
-		#for index in range(0,len(p)):
-		#	print p[index].comment
 
 		if newpost == {} or newpost == {u'detail': u'Not found.'}:
 			return HttpResponse(status=404)
-		newpost["currentId"] = str(request.user.profile.id);
-		print newpost
-		for comment in newpost['comments']:
-			comment['published'] = json.dumps(dateutil.parser.parse(newpost['published'] ).strftime('%B %d, %Y, %I:%M %p'))
-			#remove quotations around comment and date
-			comment['published'] = comment['published'][1:-1]
-			comment['comment'] = comment['comment'][1:-1]
+
+		newcomment = newpost["comments"][0]
+		newcomment['published'] = json.dumps(dateutil.parser.parse(newcomment['published'] ).strftime('%B %d, %Y, %I:%M %p'))
+		#remove quotations around comment and date
+		newcomment['published'] = newcomment['published'][1:-1]
+		newcomment['comment'] = newcomment['comment'][1:-1]
+		newcomment["currentId"] = str(request.user.profile.id);
+
 		if(resp.status_code == 200):
-			#return HttpResponse(status=200,content_type="application/json",json.dumps(post))
-			return JsonResponse(newpost)
+			resp = JsonResponse(newcomment)
+			resp.status_code = 201
+			return resp
 		if(resp.status_code == 404):
 			return HttpResponse(status=404)
 		if(resp.status_code == 403):
@@ -793,15 +801,14 @@ def add_comment(request, post_id):
 @login_required(login_url = '/login/')
 def delete_comment(request, comment_id):
 	if request.method == 'DELETE':
-	#delete a comment of your own
-		comment = Comment.objects.get(id = comment_id)
+		#delete a comment of your own
+		try:
+			comment = Comment.objects.get(id = comment_id)
+			comment.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status = 404)
 
-	if comment == {} or comment == {u'detail': u'Not found.'}:
-		return HttpResponse(status = 404)
-
-	else:
-		comment.delete();
-		return HttpResponse(status = 204);
 
 
 #code from http://pythoncentral.io/how-to-use-python-django-forms/
@@ -825,23 +832,21 @@ def post_form_upload(request):
 			content = form.cleaned_data['content']
 			markdown = form.cleaned_data['markdown']
 			description = ''
-			if markdown:
-				ast = parser.parse(content)
-				html = renderer.render(ast)
-				description = html
 
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
+
+			if markdown:
+				html = content
 				contentType = 'text/markdown'
 
 			else:
-				#protective measures applied here
 				html = makeSafe(content)
-				description = html
-
-				if(len(description) >= 97):
-					description = description[0:97] + '...'
 				contentType = 'text/plain'
+			#protective measures applied here
+
+			description = html
+
+			if(len(description) >= 97):
+				description = description[0:97] + '...'
 			published = timezone.now()
 
 			image = ''
@@ -894,7 +899,7 @@ def post_form_upload(request):
 					visibility = visibility,
 					visibleTo = visible_to,
 					categories = c,
-					unlisted = form.cleaned_data['unlisted'],
+					unlisted = True,
 					)
 				#don know if i need this anymore...
 				myImg = Img.objects.create(associated_post = post,
@@ -905,6 +910,8 @@ def post_form_upload(request):
 				print 'i made an image'
 				post.save()
 
+				contentType = 'text/markdown'
+				html = html + '  \n![](' + post.content + ')'
 				#can't make a whole new post for images, will look funny. Try this??
 				#else:
 				#create a Post without an image here!
@@ -934,11 +941,7 @@ def post_form_upload(request):
 			#  post2.content += '\n <div><img src=' + post.content + '></img></div>'
 			#post2.save()
 
-
-
-
-			return HttpResponseRedirect(reverse('post_detail',
-                                                kwargs={'post_id': str(post2.id) }))
+			return redirect('/posts')
 
 	return render(request, 'posts/post_form_upload.html', {
         'form': form,
@@ -968,5 +971,44 @@ def DeletePost(request, post_id):
    post = get_object_or_404(Post, pk=post_id).delete()
    return HttpResponseRedirect(reverse('posts'))
 
+@login_required(login_url = '/login/')
+def author_post(request, profile_id):
+	post_list = list()
+	author = request.user.profile
+
+	api_user = Site_API_User.objects.get(api_site__contains=request.get_host())
+	api_url = api_user.api_site + "author/" + profile_id + "/posts/"
+	resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+	try:
+		data = json.loads(resp.text)
+		posts = data["posts"]
+
+		for p in posts:
+			split = p['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['id'] = actual_id
+
+			split = p['author']['id'].split("/")
+			split = [x for x in split if x]
+			actual_id = split[-1]
+			p['author']['id'] = actual_id
+
+			p['published'] = dateutil.parser.parse(p.get('published'))
+			post_list.append(p)
+	except Exception:
+		pass
+
+	results = get_readable_posts(author, post_list)
+	# createGithubPosts(author)
+
+	context = {
+		'post_list': results,
+		'author_id': str(author.id)
+	}
+
+	context['user_obj'] = request.user
+
+	return render(request, 'posts/my_posts.html', context)
 
 # END POSTS AND COMMENTS

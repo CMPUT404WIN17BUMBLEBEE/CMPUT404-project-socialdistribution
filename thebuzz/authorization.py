@@ -4,7 +4,7 @@ from .models import *
 
 def is_following(host, id1, id2):
     try:
-        if 'author/' in id2:
+        if 'author/' in str(id2):
             id2 = id2.replace('https://', '').replace('http://', '')
         api_user = Site_API_User.objects.get(api_site__contains=host)
         api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2)
@@ -13,7 +13,17 @@ def is_following(host, id1, id2):
         resp = requests.get(api_url, auth=(api_user.username, api_user.password))
         return json.loads(resp.content).get('friends')
     except Exception as e:
-        print(e)
+        # team4 connection
+        try:
+            if 'author/' in str(id2):
+                id2 = [x for x in id2.split('/') if x][-1]
+
+            api_user = Site_API_User.objects.get(api_site__contains=host)
+            api_url = api_user.api_site + "author/" + str(id1) + '/friends/' + str(id2) + '/'
+            resp = requests.get(api_url, auth=(api_user.username, api_user.password))
+            return json.loads(resp.content).get('friends')
+        except Exception as e:
+            pass
         return False
 
 
@@ -95,12 +105,11 @@ def is_authorized_to_read_local_post(requestor, post):
 
 
 def get_readable_local_posts(requestor, posts):
-    posts = posts.filter(unlisted=False)
+    posts = posts.all()
     queryset = Post.objects.none()
     for post in posts:
         if is_authorized_to_read_local_post(requestor, post):
             queryset = queryset | Post.objects.filter(id=post.id)
-    print(queryset)
     return queryset.order_by("-published")
 
 
@@ -151,7 +160,7 @@ def is_authorized_to_comment(requestor_id, post, host):
                     middle_author.following.get(id=requestor_id)
                     return True
                 except Exception as e:
-                    print(e)
+                    #print(e)
                     continue
             except: # remote middle author
                 try:
@@ -199,7 +208,7 @@ def is_authorized_to_read_post(requestor, post):
                 return is_following(post['author']['host'], post['author']['id'], requestor.url)
             except:
                 return False
-            
+
         # FOAF
         if post['visibility'] == "FOAF":
             try:
@@ -210,15 +219,17 @@ def is_authorized_to_read_post(requestor, post):
                     "postid": str(post['id']),
                     "url": api_url,
                     "author": {
-                        "id": str(requestor.id),
+                        "id": requestor.url,
                         "url": requestor.url,
                         "host": requestor.host,
                         "displayName": requestor.displayName,
+                        "github": requestor.github
                     },
                     "friends": [friend.url for friend in requestor.following.all()]
                 }
                 resp = requests.post(api_url, data=json.dumps(data), auth=(api_user.username, api_user.password),
                                      headers={'Content-Type': 'application/json'})
+
                 if resp.status_code == 200:
                     return True
                 else:
@@ -237,4 +248,3 @@ def get_readable_posts(requestor, posts):
     # http://stackoverflow.com/questions/26924812/python-sort-list-of-json-by-value
     results.sort(key=lambda k: k['published'], reverse=True)
     return results
-

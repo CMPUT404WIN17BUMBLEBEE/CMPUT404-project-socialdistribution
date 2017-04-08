@@ -2,12 +2,15 @@
 
 {% load static %}
 {% load tz %}
+{% load markdown_deux_tags %}
+
 {% block title %}News Feed{% endblock %}
 
 {% block extra_head %}
   <link href="{% static 'news_feed.css' %}" rel="stylesheet" type="text/css"></link>
   <script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script> 
+  <script type="text/javascript" src="{% static 'ajaxCheck.js' %}"></script>
+  <script type="text/javascript" src="{% static 'makePretty.js' %}"></script>
   <script  type="text/javascript">
    var currentUser = "{{request.user.profile.id }}";
   </script>
@@ -15,53 +18,65 @@
 
 
 {% block content %}
-  <div id="news_feed_content">
-    <div>
-        <a href="/posts/post_form_upload.html">
-            <input id="newpost" type="button" value="Add New Post">
-        </a>
-    </div>
-    <div id = "incoming">
-    </div>
-    {% if post_list %}
-      {% for post in post_list %}
-          <div id="post-blocks">
-              <div id="post-title-bar">
-                <div id="author">
-                  <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
-                </div>
-                <div id="post-title">
-                  <a id = "postlink" href="/posts/{{ post.id }}">{{ post.title }}</a>
-                </div>
-                <div id="post-date">{{ post.published }}</div> <!--TODO: Fix date for non-local posts-->
-              </div>
-
-              <div class = "pContents">
-		{% if 'image' in post.contentType %}
-		<div>
-		<img src="{{post.content}}"></img>
-		</div>
-		{% else %}
-                {{ post.content | safe }}
-		{%endif %}
-              </div>
-	     
-              <div id="delet-div">
-		<button class = "commentButton">Comment</button>
-                {% if post.author.id == author_id %}
-                  <!--<a href="/posts/{{ post.id }}/delete">-->
-                    <button class = "deleteButton" type="button">Delete</button>
-                  <!--</a>-->
-                {% endif %}
-              </div>
-          </div>
-      {% endfor %}
-    {% else %}
-        <p id="no-posts">No post is made during the past two days.</p>
-    {% endif %}
+<div id="news_feed_content">
+  <div id="add_post_btn">
+    <a href="/posts/post_form_upload.html">
+      <input id="newpost" type="button" value="Add New Post">
+    </a>
   </div>
 
+  <div id = "incoming">
+  </div>
 
+  {% if post_list %}
+    {% for post in post_list %}
+      <div id="post-blocks">
+        <div id="post-title-bar">
+          <div id="author">
+            <a href="/author/{{post.author.id}}/profile">{{ post.author.displayName }}</a>
+          </div>
+          <div id="post-title">
+            {{ post.title }}
+          </div>
+          <div id="post-date">{{ post.published }}</div>
+        </div>
 
+        <div class = "pContents">
+          {% if 'image' in post.contentType %}
+            <div>
+              <img src="{{ post.content }}"/>
+            </div>
+          {% else %}
+            {% if post.contentType == 'text/markdown' %}
+              {{ post.content | markdown }}
+            {% else %}
+              {{ post.content | safe }}
+            {% endif %}
+          {%endif %}
+        </div>
+
+        <div id="delet-div">
+          <div class = "hidden">{{post.id}}</div>
+          <button class = "commentButton">Comments</button>
+          {% if post.author.id == author_id %}
+            <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
+            <button class = "deleteButton" type="button">Delete</button>
+          {% endif %}
+        </div>
+
+        {% if post.categories %}
+          <div id="post_categories">
+            {% for category in post.categories %}
+              <span id="category_values">#{{ category | safe }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+      </div>
+  {% endfor %}
+  {% else %}
+    <p id="no-posts">No post currently available.</p>
+  {% endif %}
+</div>
 
 {% endblock %}

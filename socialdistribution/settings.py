@@ -34,6 +34,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 INSTALLED_APPS = (
     'rest_framework',
+    'markdown_deux',
     'thebuzz',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -129,3 +130,12 @@ STATICFILES_DIRS = (
 STATICFILES_STORAGE ='whitenoise.django.GzipManifestStaticFilesStorage'
 
 SITE_ID = 1
+
+MARKDOWN_DEUX_STYLES = {
+    "default": {
+        "extras": {
+            "code-friendly": None,
+        },
+        "safe_mode": False,
+    },
+}

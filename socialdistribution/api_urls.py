@@ -7,13 +7,8 @@ from api_views import *
 
 # Based on http://www.django-rest-framework.org/tutorial/quickstart/
 router = routers.DefaultRouter()
-#router.register(r'posts', PublicPostsViewSet, base_name="Posts")
-#router.register(r'author/posts', PostsAuthorCanSeeViewSet, base_name="PostsAuthorCanSee")
-#router.register(r'author/(?P<author_id>[a-z0-9-]+)/posts', AuthorPostsViewSet, base_name="AuthorPosts")
 router.register(r'author', ProfileViewSet, base_name="Profile")
 router.register(r'author/(?P<author_id>[a-z0-9-]+)/friends', FriendViewSet, base_name="Friend")
-
-#router.register(r'posts/(?P<post_id>[a-z0-9-]+)/comments', CommentViewSet, base_name="Comments")
 
 
 urlpatterns = [

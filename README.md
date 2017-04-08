@@ -39,12 +39,7 @@ https://github.com/CMPUT404WIN17BUMBLEBEE/CMPUT404-project-socialdistribution/wi
 
 Heroku demo:
 ============
-https://secret-crag-38714.herokuapp.com/
-
-
-https://polar-coast-16778.herokuapp.com/
-
-https://polar-coast-16779.herokuapp.com/
+https://mysterious-taiga-11180.herokuapp.com/
 
 Resources:  
 =========
@@ -103,3 +98,12 @@ http://stackoverflow.com/a/35121204 Answered by GwynBleidD on Stack Overflow (ht
 
 Making a JQuery animation play before remove():
 http://stackoverflow.com/a/308034  Answered by seanb on Stack Overflow (http://stackoverflow.com/users/3354/seanb)
+
+Showing Markdown text in django template and close safe mode:  
+https://github.com/trentm/django-markdown-deux
+
+Django REST framework:  
+http://www.django-rest-framework.org/
+
+Embedded image in markdown:  
+https://github.com/atom/markdown-preview/issues/329 Answered by lee-dohm on Github (https://github.com/lee-dohm)

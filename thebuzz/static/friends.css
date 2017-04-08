@@ -80,7 +80,7 @@
 }
 
 .friends_name {
-  width: 75%;
+  width: 30%;
   padding-left: 15px;
 }
 
@@ -94,7 +94,7 @@
 
 .unfrend_btn {
   text-align: right;
-  width: 25%;
+  width: 70%;
   padding-right: 15px;
 }
 
@@ -120,9 +120,15 @@
   text-decoration: None;
 }
 
-.friend_heart{
+.friend_heart {
   width: 3%;
   color: #ffd11a;
   text-align: center;
+}
+
+.following_btn {
+  background-color: #ffd11a;
+  color: #000000;
+  float:right;
 }
 

@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, Textarea, ChoiceField
 from datetime import datetime
 import CommonMark
-
 from .models import Profile, Comment, Post
 
 class ProfileForm(forms.ModelForm):
@@ -26,7 +25,6 @@ class ProfileForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     markdown = forms.BooleanField(required=False)
-
     class Meta:
         model = Post
         fields = ['title', 'content', 'image', 'visibility', 'visibleTo', 'categories', 'unlisted']
@@ -35,7 +33,7 @@ class PostForm(forms.ModelForm):
             ('FRIENDS','Friends'),
             ('FOAF', 'Friend of A Friend'),
             ('PRIVATE', 'Private'),
-            ('SERVERONLY', 'Members of this server only'))
+            ('SERVERONLY', 'Friends on this server only'))
 
         labels = {
             'visibleTo': 'Visible to (separate with a comma)',
