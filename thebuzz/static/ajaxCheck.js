@@ -300,7 +300,7 @@ if(data["comments"].length>0){
 		cmtBar.id = "comment-title-bar";	
 		cAuthor = document.createElement("div");
 		cAuthor.id = "comment_author";
-		cAuthor.innerHTML = "<a class = 'authlink' href= 'http://127.0.0.1:8000/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
+		cAuthor.innerHTML = "<a class = 'authlink' href= '/author/" + data["comments"][i]["author"]["id"] + "/profile'>" + data["comments"][i]["author"]["displayName"] + "</a>";
 		cDate = document.createElement("div");
 		cDate.id = "comment_date";
 		cDate.textContent = data["comments"][i]["published"]
@@ -460,7 +460,7 @@ cmtSection = document.createElement("div");
 		cmtBar.id = "comment-title-bar";	
 		cAuthor = document.createElement("div");
 		cAuthor.id = "comment_author";
-		cAuthor.innerHTML = "<a class = 'authlink' href = 'http://127.0.0.1:8000/author/" + data["author"]["id"] + "/profile'>" + data["author"]["displayName"] + "</a>";
+		cAuthor.innerHTML = "<a class = 'authlink' href = '/author/" + data["author"]["id"] + "/profile'>" + data["author"]["displayName"] + "</a>";
 		cDate = document.createElement("div");
 		cDate.id = "comment_date";
 		cDate.textContent = data["published"]
