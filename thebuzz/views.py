@@ -378,11 +378,12 @@ def createGithubPosts(request):
 	    following = user.following.all()
 	    
 	    w = 0
-	    #for person in following:
-	    while(w<len(following)):
-		if (is_following(request.get_host(), user.id, str(following[w].id))):
-		    friends.append(following[w])
-		w += 1
+	    for person in following:
+	    #while(w<len(following)):
+	    
+		if (is_following(request.get_host(), user.id, str(person.id))):
+		    friends.append(person)
+		#w += 1
 
 	    #next, get their githubs, if they have them, otherwise don't bother keeping them
 	    fgithubs = []
@@ -395,7 +396,7 @@ def createGithubPosts(request):
 		if(tmp.strip()):
 		    all_profiles.append(Profile.objects.get(id = friends[index].id))
 		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
-		    #print tmp
+		    
 		    fgithubs.append(tmp)
 		index += 1
 
@@ -406,12 +407,12 @@ def createGithubPosts(request):
 
 	    jdata = []
 	    index = 0
-	    print fgithubs
+	    
 	    while(index<len(fgithubs)):
 		resp = requests.get("https://api.github.com/users/" + fgithubs[index] + "/events") #gets newest to oldest events
 	
 		jdata.append(resp.json())
-		#print jdata[index]
+		
 		if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
 		    print "Wait an hour -- Github request limit exceeded"
 		    return HttpResponse(status=204)
@@ -452,7 +453,6 @@ def createGithubPosts(request):
 			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
 
 				#make posts for the database
-				#for i in range(0,len(contents)):
 			lilavatar = "<img class = 'githubAvatar' src='" + avatars[-1] + "'/>"
 			post = Post.objects.create(title = gtitle,
 				      content= lilavatar + "<p>" + contents[-1] ,
@@ -470,7 +470,7 @@ def createGithubPosts(request):
 			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
 			post.save()
 			postlist.append(post)
-			#print len(postlist)
+			
 		    index2 +=1
 
 
@@ -484,7 +484,7 @@ def createGithubPosts(request):
 	index = 0
 	while(index<len(postlist)):
 		jtmp.append(model_to_dict(postlist[index]))
-		#print(jtmp[index])
+		
 		jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
 		jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
 		jtmp[index]['id'] = str(postlist[index].id)
