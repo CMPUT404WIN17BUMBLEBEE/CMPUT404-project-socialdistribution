@@ -7,6 +7,8 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from ..authorization import is_following
+from rest_framework.test import APIRequestFactory, APIClient
+
 
 class post_tests(TestCase):
     def setUp(self):
@@ -111,7 +113,12 @@ class profile_tests(TestCase):
         self.author.url = self.author.host + str(self.author.id)
         self.author.firstName = "testuser"
         self.author.save()
-        response = self.client.get('/api/author/' + str(self.author.id) + '/')
+        client = APIClient()
+        client.force_authenticate(user=user)
+        #view = AccountDetail.as_view()
+        #request = factory.get('/api/author/' + str(self.author.id) + '/')
+        response = client.get('/api/author/' + str(self.author.id) + '/')
+        print response
         self.responseCode = response.status_code
         self.response = json.loads(response.content)
 
@@ -183,37 +190,8 @@ class friend_tests(TestCase):
         # Check if user2 has received user1's friend request
         author_following = author.following.all()
 	friend_following = friend.following.all()
-	#print author_following
-	#print friend_following
-        friend_pending_req = friend.friend_request.all()
+	print author_following
+	print friend_following
 
-        #self.assertEqual(author_following[0].id, friend.id, 'user2 didnt receive the friend request')
+        self.assertEqual(author_following[0].id, friend.id, 'user2 didnt receive the friend request')
         self.assertEqual(friend_pending_req[0].id, author.id, 'user1 is not a pending friend request')
-
-	#accept the friend request - both follow each other
-
-	data2 = {"query": "friendrequest",
-	"friend": {
-                "id": Bid,
-                "url": Burl,
-                "host": friend.host,
-                "displayName": friend.displayName,
-            },
-            "author": {
-                "id": Aid,
-                "url": Aurl,
-                "host": author.host,
-                "displayName": author.displayName,
-            }
-            
-        }
-	
-	response = self.client.post('/api/friendrequest/', content_type='application/json', data=json.dumps(data))
-        self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
-	
-	author_following = author.following.all()
-	friend_following = friend.following.all()
-	#print author_following
-	#print friend_following
-
-	self.assertTrue(is_following(author.host, Aid, Bid) )
