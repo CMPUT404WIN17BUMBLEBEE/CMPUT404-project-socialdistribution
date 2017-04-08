@@ -15,7 +15,6 @@ class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ("id", "url", "host", "displayName", "github")
-        #fields = '__all__'
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -73,7 +72,7 @@ class PostSerializer(serializers.ModelSerializer):
     next = serializers.SerializerMethodField()
     categories = serializers.SerializerMethodField()
     visibleTo = serializers.SerializerMethodField()
-    
+
 
     class Meta:
         model = Post
@@ -108,8 +107,6 @@ class PostSerializer(serializers.ModelSerializer):
         return [x for x in split if x]
 
 
-
-# Todo
 class FriendURLSerializer(serializers.ModelSerializer):
     class Meta:
         model = Friend
@@ -162,6 +159,3 @@ class FriendRequestSerializer(serializers.Serializer):
         friend = get_object_or_404(Profile, id=friend_data.get('id'))
         if requestor not in friend.following.all():
             friend.friend_request.add(requestor)
-
-
-
