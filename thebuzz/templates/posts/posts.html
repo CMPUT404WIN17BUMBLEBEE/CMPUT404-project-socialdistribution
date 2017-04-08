@@ -55,7 +55,7 @@
               <div id="delet-div">
 
 		<div class = "hidden">{{post.id}}</div>
-		<button class = "commentButton">Comment</button>
+		<button class = "commentButton">Comments</button>
                 {% if post.author.id == author_id %}
                   <a href="/posts/{{ post.id }}/edit_post"><button class = "editButton" type="button">Edit</button></a>
                     <button class = "deleteButton" type="button">Delete</button>
@@ -71,11 +71,11 @@
 		{% endfor %}
 		</div>
 	{% endif %}
-	
+
           </div>
       {% endfor %}
     {% else %}
-        <p id="no-posts">No post is made during the past two days.</p>
+        <p id="no-posts">No post currently available.</p>
     {% endif %}
   </div>
 
