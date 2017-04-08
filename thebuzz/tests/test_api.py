@@ -158,30 +158,33 @@ class friend_tests(TestCase):
         friend_id = User.objects.get(username='test_2').id
         author = Profile.objects.get(user=user_id)
         friend = Profile.objects.get(user=friend_id)
-        Aid = author.host + str(author.id)
+        Aid = str(author.id)
         Aurl = author.host + 'author/' + str(author.id)
-        Bid = friend.host + str(friend.id)
+        Bid = str(friend.id)
         Burl = author.host + 'author/' + str(author.id)
 
         data = {"query": "friendrequest",
             "author": {
                 "id": Aid,
+                "url": Aurl,
                 "host": author.host,
                 "displayName": author.displayName,
-                "url": Aurl,
             },
             "friend": {
                 "id": Bid,
+                "url": Burl,
                 "host": friend.host,
                 "displayName": friend.displayName,
-                "url": Burl,
             }
         }
-        response = self.client.post('/api/friendrequest', content_type='application/json', data=json.dumps(data))
+        response = self.client.post('/api/friendrequest/', content_type='application/json', data=json.dumps(data))
         self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
 
         # Check if user2 has received user1's friend request
-        author_following = author.following
-        friend_pending_req = friend.friend_request
-        #self.assertEqual(author_following[0].id, friend_id)
-        #self.assertEqual(friend_pending_req[0].id, user_id)
+        author_following = author.following.all()
+	friend_following = friend.following.all()
+	print author_following
+	print friend_following
+
+        self.assertEqual(author_following[0].id, friend.id, 'user2 didnt receive the friend request')
+        self.assertEqual(friend_pending_req[0].id, author.id, 'user1 is not a pending friend request')
