@@ -577,6 +577,15 @@ def post_action(request, post_id):
 	    else:
 		return HttpResponse(status=403)
 
+@login_required(login_url='/login/')
+def my_post_delete(request, profile_id, post_id):
+	if request.method == 'DELETE':
+		try:
+			post = Post.objects.get(id=post_id)
+			post.delete()
+			return HttpResponse(status=204)
+		except:
+			return HttpResponse(status=404)
 
 #code from http://pythoncentral.io/writing-simple-views-for-your-first-python-django-application/
 @login_required(login_url = '/login/')

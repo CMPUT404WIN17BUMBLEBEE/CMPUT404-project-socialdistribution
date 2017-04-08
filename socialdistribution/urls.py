@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/action$', 'thebuzz.views.post_action', name='post_action'),
     url(r'^posts/post_form_upload.html$', 'thebuzz.views.post_form_upload', name='post_form_upload'),
     url(r'^author/(?P<profile_id>[0-9a-f-]+)/posts', 'thebuzz.views.author_post', name='author_post'),
+    url(r'^author/(?P<profile_id>[0-9a-f-]+)/(?P<post_id>[0-9a-f-]+)/action', 'thebuzz.views.my_post_delete', name='my_post_delete'),
 
     url(r'^posts/(?P<post_id>[0-9a-f-]+)/add_comment.html$', 'thebuzz.views.add_comment', name='add_comment'),
     url(r'^posts/(?P<comment_id>[0-9a-f-]+)/delete_comment/$', 'thebuzz.views.delete_comment', name='delete_comment'),
