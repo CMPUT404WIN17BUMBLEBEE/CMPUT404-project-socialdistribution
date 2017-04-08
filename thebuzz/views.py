@@ -534,6 +534,7 @@ def get_Post(post_id):
 
 	post['id'] = [x for x in post['id'].split("/") if x][-1]
 	post['author']['id'] = [x for x in post['author']['id'].split("/") if x][-1]
+	post['comments'].sort(key=lambda k: k['published'], reverse=True)
 
 	return post
 
