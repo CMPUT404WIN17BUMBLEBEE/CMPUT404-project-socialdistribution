@@ -136,12 +136,15 @@ if(postInfo["currentId"] === postInfo["associated_author"]){
 //we only want to have the option to delete our own posts
 
 	var editbtn = document.createElement("button");
+
+	if(postInfo["title"]!=="Github Activity"){
 	editbtn.className = "editButton";
 	editbtn.addEventListener("click", function(){
 	location.href = postInfo["id"] + "/edit_post"; //TODO: make sure this works if i get to obtaining incoming regular posts
 	});
 	editbtn.innerHTML = "Edit";
 	postDelete.append(editbtn);
+	}
 	var delbtn = document.createElement("button");
 	delbtn.className = "deleteButton";
 	delbtn.addEventListener("click", deletePost);
@@ -265,10 +268,10 @@ $.ajax({
 
 function replacePost(pBlock, data){
 //replaces the post with the full post, including the comments
-//TODO: update this once jill gets images working properly
+
 
 var contents = $(pBlock).find(".pContents");
-contents = data["content"]; //show full content if post is too long to show it all
+//contents = data["content"]; //show full content if post is too long to show it all-- not doing this anymore
 var hideButton = $(pBlock).find(".commentButton");
 
 hideButton[0].textContent = "Hide";
