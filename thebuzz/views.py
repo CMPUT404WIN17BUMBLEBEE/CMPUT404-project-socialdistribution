@@ -354,7 +354,7 @@ def posts(request):
 			continue
 
 	results = get_readable_posts(author, post_list)
-	#createGithubPosts(author)
+	
 
 	context = {
 		'post_list': results,
@@ -365,7 +365,7 @@ def posts(request):
 
 	return render(request, 'posts/posts.html', context)
 
-#def createFriendsGithubs(request):
+
 @login_required(login_url = '/login/')
 def createGithubPosts(request):
 #generates the github posts of your friends. (visibility for github posts are FRIENDS so only get friend github posts!)
@@ -462,7 +462,7 @@ def createGithubPosts(request):
 	while(index<len(postlist)):
 		jtmp.append(model_to_dict(postlist[index]))
 		
-		jtmp[index]['image'] = ""#base64.b64encode(jtmp[index]['image']) TODO fix me
+		jtmp[index]['image'] = ""
 		jtmp[index]['associated_author'] = str(Profile.objects.get(id = jtmp[index]['associated_author']).id)
 		jtmp[index]['id'] = str(postlist[index].id)
 		jtmp[index]['published'] = json.dumps(dateutil.parser.parse(pubtime[index] ).strftime('%B %d, %Y, %I:%M %p'))

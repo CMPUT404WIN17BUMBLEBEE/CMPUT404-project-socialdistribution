@@ -49,10 +49,7 @@ $.ajax({
     dataType: 'json',
     statusCode: {
 	200: function(data) {
-	//console.log(data);
-	//console.log("success!");
         receivedData = receivedData.concat(data);
-	//console.log(receivedData);
 	
 	if($("#incomingButton").length===0){ //checks if it has a button as a child
 		createButton();
@@ -179,7 +176,6 @@ function showPosts(){
 	var i, newpost;	
 	for(i=0;i<receivedData.length;i++){
 	newpost = createPost(receivedData[i]);
-	//incoming.appendChild(newpost);
 	$(newpost).insertAfter(incoming);
 	}
 	receivedData = [];
@@ -271,7 +267,6 @@ function replacePost(pBlock, data){
 
 
 var contents = $(pBlock).find(".pContents");
-//contents = data["content"]; //show full content if post is too long to show it all-- not doing this anymore
 var hideButton = $(pBlock).find(".commentButton");
 
 hideButton[0].textContent = "Hide";
@@ -325,8 +320,7 @@ if(data["comments"].length>0){
 		cmtSection.append(cmtBar);		
 		cmtSection.append(cComment);
 		
-		holder.append(cmtSection);
-		//$(cmtSection).insertAfter(pBlock);		
+		holder.append(cmtSection);		
 		}
 	
 
@@ -348,11 +342,6 @@ cmtBtn.textContent = "Comment";
 cmtBtn.id = "cmtBtn";
 cmtBtn.addEventListener("click",sendCommentToPost);
 
-
-//form.append(tbox);
-//form.append(cmtBtn);
-
-//holder.append(form);
 holder.append(tbox);
 holder.append(cmtBtn);
 
@@ -368,11 +357,9 @@ var text = $(bigparent).find(".tbox")[0].value;
 
 if(text.trim() === "") return;
 
-//var comment = {"comment": text};
-
 
 $.ajax({
-    url: pID + "/add_comment.html",//"/action",
+    url: pID + "/add_comment.html",
     type: 'post', 
     contentType: 'application/json',
     data: text,
@@ -489,7 +476,3 @@ cmtSection = document.createElement("div");
 		$(cmtSection).insertBefore(tbox);
 
 }
-
-//post a comment:
-//get request for the comments on this post
-//generate them, then send a POST request with the new comment in it
