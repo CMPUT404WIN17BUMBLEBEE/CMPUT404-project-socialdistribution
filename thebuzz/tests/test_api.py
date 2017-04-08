@@ -6,6 +6,7 @@ from django.test import TestCase, Client
 from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from rest_framework.test import APIRequestFactory, APIClient
 
 
 class post_tests(TestCase):
@@ -111,7 +112,12 @@ class profile_tests(TestCase):
         self.author.url = self.author.host + str(self.author.id)
         self.author.firstName = "testuser"
         self.author.save()
-        response = self.client.get('/api/author/' + str(self.author.id) + '/')
+        client = APIClient()
+        client.force_authenticate(user=user)
+        #view = AccountDetail.as_view()
+        #request = factory.get('/api/author/' + str(self.author.id) + '/')
+        response = client.get('/api/author/' + str(self.author.id) + '/')
+        print response
         self.responseCode = response.status_code
         self.response = json.loads(response.content)
 
