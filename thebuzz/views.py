@@ -688,6 +688,7 @@ def edit_post(request, post_id):
 						visibleTo = visible_to,
 						categories = c,
 						unlisted = True,
+
 						)
 
 				#don know if i need this anymore...
