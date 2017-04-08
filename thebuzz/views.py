@@ -374,15 +374,15 @@ def createGithubPosts(request):
         if request.method == 'GET':
 
 	    user = request.user.profile
-	    friends = []
-	    following = user.following.all()
+	    #friends = []
+	    #following = user.following.all()
 	    
 	    w = 0
-	    for person in following:
+	    #for person in following:
 	    #while(w<len(following)):
-	    
-		if (is_following(request.get_host(), user.id, str(person.id))):
-		    friends.append(person)
+	    	
+		#if (is_following(request.get_host(), user.id, str(person.id))):
+		 #   friends.append(person)
 		#w += 1
 
 	    #next, get their githubs, if they have them, otherwise don't bother keeping them
@@ -390,15 +390,16 @@ def createGithubPosts(request):
 	    all_profiles = [] #a list of all profiles including yours so that you can use them when making the posts
 	    
 	    mostRecent = [] #keeps track of most recent post by each friend
+
 	    index = 0
-	    while(index<len(friends)):
-		tmp =  Profile.objects.get(id=friends[index].id).github
-		if(tmp.strip()):
-		    all_profiles.append(Profile.objects.get(id = friends[index].id))
-		    mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
+	    #while(index<len(friends)):	
+
+		#if(tmp.strip()):
+		 #   all_profiles.append(Profile.objects.get(id = friends[index].id))
+		  #  mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author=all_profiles[-1]).order_by('-published').first())
 		    
-		    fgithubs.append(tmp)
-		index += 1
+		   # fgithubs.append(tmp)
+		#index += 1
 
 	    if(user.github.strip()): #your own github posts are retrieved too!
 		mostRecent.append(Post.objects.filter(title = "Github Activity", associated_author =user.id).order_by('-published').first())
