@@ -43,7 +43,6 @@ class post_tests(TestCase):
         post_id = Post.objects.get(title='test').id
         response = self.client.get('/api/posts/'+str(post_id)+'/')
         self.assertEquals(response.status_code, 200, 'Failed to get the post detail')
-        print response
         response = json.loads(response.content)
         self.assertEqual(response['title'], 'test', 'Title does not match')
         self.assertEqual(response['source'], 'test', "Source does not match")
@@ -60,11 +59,8 @@ class post_tests(TestCase):
     def test_get_author_posts(self):
         author_id = Profile.objects.get(user__username='test').id
         response = self.client.get('/api/author/' + str(author_id) + '/posts/')
-        #print response
         response = json.loads(response.content)
-        #print response['posts'][0]['published']
         self.assertIsInstance(dateutil.parser.parse(response['posts'][0]['published']), datetime, "Published is not in datetime format")
-        #print response['visibility']
         self.assertEqual(response['posts'][0]['visibility'], "PUBLIC", "Default visibility not set")
         self.assertEqual(response['posts'][0]['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
 
@@ -169,9 +165,11 @@ class friend_tests(TestCase):
         author.url = author.host+str(author.id)
         author.save()
 
-        self.client = APIClient()
-        self.client.force_authenticate(user=user)
+        self.client1 = APIClient()
+        self.client1.force_authenticate(user=user)
         #self.client.login(username='test_1', password='test')
+        #self.client2 = APIClient()
+        #self.client2.force_authenticate(user=user2)
 
     def test_friend_request(self):
         user_id = User.objects.get(username='test_1').id
@@ -179,21 +177,21 @@ class friend_tests(TestCase):
         author = Profile.objects.get(user=user_id)
         friend = Profile.objects.get(user=friend_id)
         Aid = str(author.id)
-        Aurl = author.host + 'author/' + str(author.id)
+        Aurl = author.host + 'api/author/' + str(author.id)
         Bid = str(friend.id)
-        Burl = author.host + 'author/' + str(author.id)
+        Burl = author.host + 'api/author/' + str(author.id)
 
         data = {"query": "friendrequest",
             "author": {
                 "id": Aid,
                 "url": Aurl,
-                "host": author.host,
+                "host": "http://testserver.com",
                 "displayName": author.displayName,
             },
             "friend": {
                 "id": Bid,
                 "url": Burl,
-                "host": friend.host,
+                "host": "http://testserver.com",
                 "displayName": friend.displayName,
             }
         }
