@@ -113,7 +113,8 @@ bar.appendChild(postDate);
 
 var postContents = document.createElement("div");
 postContents.className = "pContents";
-postContents.innerHTML = postInfo["content"];
+var htmlContent = markdown.toHTML(postInfo["content"]);
+postContents.innerHTML = htmlContent;
 container.appendChild(postContents);
 var postDelete = document.createElement("div");
 postDelete.id = "delet-div";

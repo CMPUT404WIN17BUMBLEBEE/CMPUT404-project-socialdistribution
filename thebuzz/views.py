@@ -384,13 +384,13 @@ def createGithubPosts(request):
 		fgithubs = user.github
 		all_profiles = user
 
-	    jdata = []
+	    
 	    
 	    #while(index<len(fgithubs)):
 	    name = fgithubs.split("/")[-1]
 	    resp = requests.get("https://api.github.com/users/" + name + "/events") #gets newest to oldest events
 	
-	    jdata.append(resp.json())
+	    jdata = (resp.json())
 		
 	    if('documentation_url' in jdata[index]): #limit has been exceeded, wait 1 hour
 		print "Wait an hour -- Github request limit exceeded"
@@ -407,48 +407,51 @@ def createGithubPosts(request):
 	   
 
 	    #get the data
-	    while(index2<len(jdata)):
-		    for item in jdata[index2]:
-			if(mostRecent is not None):
-			    cmpareDate = dateutil.parser.parse(item['created_at'])
+	    #while(index2<len(jdata)):
+	    for item in jdata:
+		
+		if(mostRecent is not None):
+		    cmpareDate = dateutil.parser.parse(item['created_at'])
 
-			    if(cmpareDate<=mostRecent.published): #is the latest github post newer than the retrieved ones?dont create duplicates
-				continue
+		    if(cmpareDate<=mostRecent.published): #is the latest github post newer than the retrieved ones?dont create duplicates
+			continue
+		
+		avatars.append(item['actor']['avatar_url']) 
+		pubtime.append(item['created_at'])
+		print pubtime[-1]
 
-			avatars.append(item['actor']['avatar_url']) 
-			pubtime.append(item['created_at'])
+		if( "commits" in item['payload'] ):
+		    #if there is commit data
+		    if( not item['payload']['commits']): #empty commit
+			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in [" + item['repo']['name'] + "](https://github.com/" + item['repo']['name'] + ") ")
+		    else:
+			contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ") in [" + item['repo']['name'] + "](https://github.com/" + item['repo']['name'] + ") \"" + item['payload']['commits'][0]['message'] + "\"")
+					 
+		else:
+		   #there is no commit data
+		    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in [" + item['repo']['name'] + "](https://github.com/" + item['repo']['name'] + ")")
 
-			if( "commits" in item['payload'] ):
-			    #if there is commit data
-			    if( not item['payload']['commits']): #empty commit
-				    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-			    else:
-				contents.append(item['type'] + " by " + item['actor']['display_login'] +" (" + item['payload']['commits'][0]['author']['email'] + ")" + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/> \"" + item['payload']['commits'][0]['message'] + "\"")
-						 
-			else:
-			   #there is no commit data
-			    contents.append(item['type'] + " by " + item['actor']['display_login'] + " in <a href = 'https://github.com/" + item['repo']['name'] + "'> " + item['repo']['name'] + "</a> <br/>")
-
-				#make posts for the database
-			lilavatar = "<img class = 'githubAvatar' src='" + avatars[-1] + "'/>"
-			post = Post.objects.create(title = gtitle,
-				      content= lilavatar + "<p>" + contents[-1] ,
-				      published=pubtime[-1],
-				      associated_author = all_profiles,
-				      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
-				      origin = request.META.get('HTTP_REFERER'),
-				      description = contents[-1][0:97] + '...',
-				      visibility = 'FRIENDS',
-				      visibleTo = '',
-							       )
-			myImg = Img.objects.create(associated_post = post,
-			 				       myImg = lilavatar )
-			post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-			post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
-			post.save()
-			postlist.append(post)
+			#make posts for the database
+		lilavatar = "![Github Avatar](" + avatars[-1] + ")"
+		post = Post.objects.create(title = gtitle,
+			      content= lilavatar + "      " + contents[-1] ,
+			      contentType = "text/markdown",
+			      published=pubtime[-1],
+			      associated_author = all_profiles,
+			      source = request.META.get('HTTP_REFERER'),#should pointto author/postid
+			      origin = request.META.get('HTTP_REFERER'),
+			      description = contents[-1][0:97] + '...',
+			      visibility = 'FRIENDS',
+			      visibleTo = '',
+						       )
+		myImg = Img.objects.create(associated_post = post,
+		 				       myImg = lilavatar )
+		post.origin = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+		post.source = 'http://' + request.get_host() + '/api' + reverse('post_detail', kwargs={'post_id': str(post.id) })
+		post.save()
+		postlist.append(post)
 			
-		    index2 +=1
+		   
 
 
 			#if there is nothing new to send, send an empty array

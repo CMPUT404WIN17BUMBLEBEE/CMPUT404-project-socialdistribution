@@ -101,7 +101,7 @@ class Post(models.Model):
     image = models.ImageField(null=True, blank=True)
 
 
-    published = models.DateTimeField(auto_now=True)
+    published = models.DateTimeField(default=datetime.now)#auto_now=True)
     categories = models.CharField(max_length =100, blank=True)
 
     visibility_choice = (
