@@ -167,9 +167,6 @@ class friend_tests(TestCase):
 
         self.client1 = APIClient()
         self.client1.force_authenticate(user=user)
-        #self.client.login(username='test_1', password='test')
-        #self.client2 = APIClient()
-        #self.client2.force_authenticate(user=user2)
 
     def test_friend_request(self):
         user_id = User.objects.get(username='test_1').id
@@ -199,10 +196,7 @@ class friend_tests(TestCase):
         self.assertEquals(response.status_code, 200, 'Failed to make a friend request')
 
         # Check if user2 has received user1's friend request
-        author_following = author.following.all()
-        friend_following = friend.following.all()
-        print author_following
-        print friend_following
+        #author_following = author.following.all()
+        friend_follower = friend.friend_request.all()
+        self.assertEquals(len(friend_follower), 1, 'Friend has not received the request')
 
-        #self.assertEqual(author_following[0].id, friend.id, 'user2 didnt receive the friend request')
-        #self.assertEqual(friend_pending_req[0].id, author.id, 'user1 is not a pending friend request')
