@@ -28,7 +28,8 @@ class post_tests(TestCase):
             description='test',
             content='test',
             published=datetime.now(),
-            associated_author=author
+            associated_author=author,
+            contentType='text/plain'
         )
 
     def test_get_public_posts(self):
@@ -42,6 +43,7 @@ class post_tests(TestCase):
         post_id = Post.objects.get(title='test').id
         response = self.client.get('/api/posts/'+str(post_id)+'/')
         self.assertEquals(response.status_code, 200, 'Failed to get the post detail')
+        print response
         response = json.loads(response.content)
         self.assertEqual(response['title'], 'test', 'Title does not match')
         self.assertEqual(response['source'], 'test', "Source does not match")
@@ -58,9 +60,13 @@ class post_tests(TestCase):
     def test_get_author_posts(self):
         author_id = Profile.objects.get(user__username='test').id
         response = self.client.get('/api/author/' + str(author_id) + '/posts/')
-        self.assertIsInstance(dateutil.parser.parse(response['published']), datetime, "Published is not in datetime format")
-        self.assertEqual(response['visibility'], "PUBLIC", "Default visibility not set")
-        self.assertEqual(response['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
+        #print response
+        response = json.loads(response.content)
+        #print response['posts'][0]['published']
+        self.assertIsInstance(dateutil.parser.parse(response['posts'][0]['published']), datetime, "Published is not in datetime format")
+        #print response['visibility']
+        self.assertEqual(response['posts'][0]['visibility'], "PUBLIC", "Default visibility not set")
+        self.assertEqual(response['posts'][0]['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
 
     def test_get_posts_author_can_see(self):
         response = self.client.get('/api/author/posts/')
@@ -104,6 +110,9 @@ class post_tests(TestCase):
         self.assertIsInstance(dateutil.parser.parse(comment['published']), datetime, "Published is not in datetime format")
         self.assertEqual(comment['author']['id'], str(Profile.objects.get(user__username='test').id), "Associated author does not match")
 
+    def logout(self):
+        self.client.logout()
+
 
 class profile_tests(TestCase):
     def setUp(self):
@@ -137,6 +146,8 @@ class profile_tests(TestCase):
 
     def test_url(self):
         self.assertEqual(self.response['url'], 'http://testserver.com/' + str(self.author.id), 'Authors url does not match')
+
+    def logout(self):
         self.client.logout()
 
 
