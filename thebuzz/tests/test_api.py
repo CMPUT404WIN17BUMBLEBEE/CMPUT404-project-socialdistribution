@@ -165,8 +165,8 @@ class friend_tests(TestCase):
         author.url = author.host+str(author.id)
         author.save()
 
-        self.client1 = APIClient()
-        self.client1.force_authenticate(user=user)
+        self.client = APIClient()
+        self.client.force_authenticate(user=user)
 
     def test_friend_request(self):
         user_id = User.objects.get(username='test_1').id
@@ -200,3 +200,5 @@ class friend_tests(TestCase):
         friend_follower = friend.friend_request.all()
         self.assertEquals(len(friend_follower), 1, 'Friend has not received the request')
 
+    def logout(self):
+        self.client.logout()
