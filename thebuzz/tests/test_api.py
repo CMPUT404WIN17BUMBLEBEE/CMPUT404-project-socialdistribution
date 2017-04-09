@@ -7,7 +7,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from ..authorization import is_following
-from rest_framework.test import APIRequestFactory, APIClient
+from rest_framework.test import APIClient
 
 
 class post_tests(TestCase):
@@ -18,7 +18,8 @@ class post_tests(TestCase):
         author.host = "http://testserver.com/"
         author.url = author.host + str(author.id)
         author.save()
-        self.client.login(username='test', password='test')
+        self.client = APIClient()
+        self.client.force_authenticate(user)
 
         post = Post.objects.create(
             title='test',
@@ -113,12 +114,9 @@ class profile_tests(TestCase):
         self.author.url = self.author.host + str(self.author.id)
         self.author.firstName = "testuser"
         self.author.save()
-        client = APIClient()
-        client.force_authenticate(user=user)
-        #view = AccountDetail.as_view()
-        #request = factory.get('/api/author/' + str(self.author.id) + '/')
-        response = client.get('/api/author/' + str(self.author.id) + '/')
-        print response
+        self.client = APIClient()
+        self.client.force_authenticate(user=user)
+        response = self.client.get('/api/author/' + str(self.author.id) + '/')
         self.responseCode = response.status_code
         self.response = json.loads(response.content)
 
@@ -126,20 +124,20 @@ class profile_tests(TestCase):
         self.assertEqual(self.responseCode, 200, 'Profile does not exist')
 
     def test_id(self):
-        self.assertEqual(self.response['id'], str(self.author.id))
+        self.assertEqual(self.response['id'], str(self.author.id), 'Author ID does not match')
 
     def test_displayname(self):
-        self.assertEqual(self.response['displayName'], 'test')
+        self.assertEqual(self.response['displayName'], 'test', 'DisplayName does not match')
 
     def test_firstname(self):
-        self.assertEqual(self.response['firstName'], 'testuser')
+        self.assertEqual(self.response['firstName'], 'testuser', 'firstName does not match')
 
     def test_user_host(self):
-        self.assertEqual(self.response['host'], 'http://testserver.com/')
+        self.assertEqual(self.response['host'], 'http://testserver.com/', 'host does not match')
 
     def test_url(self):
-        self.assertEqual(self.response['url'], 'http://testserver.com/' + str(self.author.id))
-
+        self.assertEqual(self.response['url'], 'http://testserver.com/' + str(self.author.id), 'Authors url does not match')
+        self.client.logout()
 
 class friend_tests(TestCase):
     def setUp(self):
