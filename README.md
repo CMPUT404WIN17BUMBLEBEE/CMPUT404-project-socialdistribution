@@ -41,6 +41,10 @@ Heroku demo:
 ============
 https://mysterious-taiga-11180.herokuapp.com/
 
+Video Demo
+==========
+https://youtu.be/T_lqnvnA-ps
+
 Resources:  
 =========
 
@@ -111,6 +115,4 @@ https://github.com/atom/markdown-preview/issues/329 Answered by lee-dohm on Gith
 Printing markdown correctly in javascript:
 https://github.com/evilstreak/markdown-js
 
-Video Demo
-==========
-https://youtu.be/T_lqnvnA-ps
+
